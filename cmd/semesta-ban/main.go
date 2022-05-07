@@ -3,10 +3,11 @@ package main
 import (
 	"os"
 
+	"github.com/semestaban/internal-api/bootstrap"
+	"github.com/semestaban/internal-api/pkg/log"
 	"github.com/sirupsen/logrus"
-	"main.go/bootstrap"
-	cmd "main.go/cmd/commands"
-	"main.go/pkg/log"
+
+	cmd "github.com/semestaban/internal-api/cmd/semesta-ban/commands"
 )
 
 func main() {

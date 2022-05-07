@@ -1,4 +1,4 @@
-module main.go
+module github.com/semestaban/internal-api
 
 go 1.16
 

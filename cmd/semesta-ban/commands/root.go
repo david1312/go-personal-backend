@@ -5,9 +5,9 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/semestaban/internal-api/bootstrap"
+	"github.com/semestaban/internal-api/pkg/log"
 	"github.com/spf13/cobra"
-	"main.go/bootstrap"
-	"main.go/pkg/log"
 )
 
 type commandFn func(dep *bootstrap.Dependency) *cobra.Command
@@ -25,7 +25,7 @@ func Run(dep *bootstrap.Dependency) error {
 	var tracerCloser io.Closer
 
 	rootCommand := &cobra.Command{
-		Use: "one-notif",
+		Use: "semesta-ban",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 	
 
