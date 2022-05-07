@@ -5,9 +5,9 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/ndv6/semestaban/internal-api/bootstrap"
-	"github.com/ndv6/semestaban/internal-api/pkg/log"
 	"github.com/spf13/cobra"
+	"main.go/bootstrap"
+	"main.go/pkg/log"
 )
 
 type commandFn func(dep *bootstrap.Dependency) *cobra.Command
@@ -46,9 +46,7 @@ func Run(dep *bootstrap.Dependency) error {
 
 			// Initialize dependency injection
 			dep.SetConfig(cfg)
-			if err := dep.Initialize(); err != nil {
-				log.Errorf("Fail to load dependency: %v", err)
-			}
+		
 
 		},
 

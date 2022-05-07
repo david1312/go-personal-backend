@@ -23,6 +23,10 @@ func (dep *Dependency) GetConfig() Config {
 	return dep.cfg
 }
 
+func (dep *Dependency) SetConfig(cfg Config) {
+	dep.cfg = cfg
+}
+
 func (dep *Dependency) GetDB() *sql.DB {
 	if dep.db == nil {
 		dep.db = NewMysqlDB(dep.GetConfig().Database.Write);
