@@ -1,0 +1,7 @@
+env: local
+host:
+  address: ":8090"
+database:
+  write: "mysql_user:mysql_password@tcp(127.0.0.1:3306)/sunmoris_customer?timeout=30s"
+key:
+  encrypt_key: "30caa5d889061a6f8820d7c723387b36cf62097c317f80de"
