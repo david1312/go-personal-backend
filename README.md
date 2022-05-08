@@ -36,11 +36,11 @@ go run cmd/semesta-ban/*.go migrate:up
 
   This folder manages dependency.
 
-- `cmd/one-notif`
+- `cmd/semesta-ban`
 
   The main package.
 
-- `cmd/one-notif/commands`
+- `cmd/semesta-ban/commands`
 
   For sub-commands of the main package.
 
@@ -63,7 +63,7 @@ go run cmd/semesta-ban/*.go migrate:up
 
 - `files/db_queries`
 
-  For database queries. Use `sqlc`.
+  For database queries. Use `sqlc`. not mandatory
 
 References:
 
