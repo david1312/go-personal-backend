@@ -19,11 +19,11 @@ import (
 )
 
 //todo move to config
-const CONFIG_SMTP_HOST = "smtp.gmail.com"
-const CONFIG_SMTP_PORT = 587
-const CONFIG_SENDER_NAME = "PT. Sunmori Semesta Ban <dlearning13@gmail.com>"
-const CONFIG_AUTH_EMAIL = "dlearning13@gmail.com"
-const CONFIG_AUTH_PASSWORD = "db131296"
+const CONFIG_SMTP_HOST = "mail.sunmorisemestaban.com"
+const CONFIG_SMTP_PORT = 465
+const CONFIG_SENDER_NAME = "PT. Sunmori Semesta Ban <support@sunmorisemestaban.com>"
+const CONFIG_AUTH_EMAIL = "support@sunmorisemestaban.com"
+const CONFIG_AUTH_PASSWORD = "spyxfamily13"
 const CONFIG_API_URL = "https://api.sunmorisemestaban.com"
 
 type UsersHandler struct {

@@ -7,15 +7,15 @@ create table customers
     password        varchar(200) not null,
     email           varchar(200) not null,
     email_verified_token varchar(64),
-    email_verified_at timestamp,
+    email_verified_at timestamp NULL DEFAULT NULL,
     gender          enum('LAKI-LAKI', 'PEREMPUAN'),
     is_active       boolean not null default true,
     phone           varchar(20),
-    phone_verified_at timestamp,
+    phone_verified_at timestamp NULL DEFAULT NULL,
     avatar          varchar(50),
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at      timestamp
+    deleted_at      timestamp NULL DEFAULT NULL
 );
 
 -- create type priority_events_enum as enum ('LOW','MEDIUM','HIGH','CRITICAL');
