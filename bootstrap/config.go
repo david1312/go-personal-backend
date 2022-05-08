@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Config struct{
+type Config struct {
 	Env  string `yaml:"env"`
 	Host struct {
 		Address string `yaml:"address"`
@@ -19,7 +19,12 @@ type Config struct{
 
 	Key struct {
 		EncryptKey string `yaml:"encrypt_key"`
+		JWT        string `yaml:"jwt"`
 	} `yaml:"key"`
+
+	Api struct {
+		TimeOut int32 `yaml:"timeout"`
+	} `yaml:"api"`
 }
 
 func LoadConfig(file string) (cnfg Config, err error) {

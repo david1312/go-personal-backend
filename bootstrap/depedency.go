@@ -1,11 +1,12 @@
 package bootstrap
 
-import "database/sql"
-
+import (
+	"github.com/jmoiron/sqlx"
+)
 
 type Dependency struct {
-	cfg             Config
-	db              *sql.DB
+	cfg Config
+	db  *sqlx.DB
 	// redis           *redis.Client
 	// dispatcher      *channel.DispatcherHandler
 	// smtp            *smtp.Client
@@ -27,9 +28,9 @@ func (dep *Dependency) SetConfig(cfg Config) {
 	dep.cfg = cfg
 }
 
-func (dep *Dependency) GetDB() *sql.DB {
+func (dep *Dependency) GetDB() *sqlx.DB {
 	if dep.db == nil {
-		dep.db = NewMysqlDB(dep.GetConfig().Database.Write);
+		dep.db = NewMysqlDB(dep.GetConfig().Database.Write)
 	}
 	return dep.db
 }

@@ -2,12 +2,12 @@ package main
 
 import (
 	"os"
+	"semesta-ban/bootstrap"
+	"semesta-ban/pkg/log"
 
-	"github.com/semestaban/internal-api/bootstrap"
-	"github.com/semestaban/internal-api/pkg/log"
 	"github.com/sirupsen/logrus"
 
-	cmd "github.com/semestaban/internal-api/cmd/semesta-ban/commands"
+	cmd "semesta-ban/cmd/semesta-ban/commands"
 )
 
 func main() {

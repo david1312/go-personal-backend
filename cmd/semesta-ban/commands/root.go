@@ -4,9 +4,11 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"semesta-ban/bootstrap"
+	"semesta-ban/pkg/log"
+	"semesta-ban/pkg/log/logrusw"
 
-	"github.com/semestaban/internal-api/bootstrap"
-	"github.com/semestaban/internal-api/pkg/log"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +29,13 @@ func Run(dep *bootstrap.Dependency) error {
 	rootCommand := &cobra.Command{
 		Use: "semesta-ban",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-	
+			// Set Logger setting
+			lr := logrus.New()
+			lr.SetFormatter(&logrus.JSONFormatter{})
+			log.SetLogger(&logrusw.Logger{Logger: lr})
+			if verbose {
+				lr.Level = logrus.DebugLevel
+			}
 
 			// Set number of CPU
 			x := runtime.GOMAXPROCS(cpu)
@@ -46,7 +54,6 @@ func Run(dep *bootstrap.Dependency) error {
 
 			// Initialize dependency injection
 			dep.SetConfig(cfg)
-		
 
 		},
 

@@ -1,9 +1,15 @@
 # Semesta Ban API
 
+Idiomatic Way Format Your Code
+
+```shell script
+go fmt ./...
+```
+
 Run REST Server
 
 ```shell script
-go run cmd/one-notif/*.go rest
+go run cmd/semesta-ban/*.go rest
 ```
 
 Running Local Server
@@ -21,7 +27,7 @@ docker run --rm -v $(pwd):/src -w /src kjconroy/sqlc generate
 Running migrations
 
 ```shell script
-go run cmd/one-notif/*.go migrate:up
+go run cmd/semesta-ban/*.go migrate:up
 ```
 
 ## Directory Structure
