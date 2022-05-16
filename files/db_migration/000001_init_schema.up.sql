@@ -3,6 +3,7 @@ BEGIN;
 create table customers
 (
     id              int primary key AUTO_INCREMENT,
+    uid             varchar(36) not null UNIQUE,
     name            varchar(100) not null,
     password        varchar(200) not null,
     email           varchar(200) not null,

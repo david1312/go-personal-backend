@@ -35,7 +35,7 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 			srv := http.Server{Addr: cfg.Host.Address, Handler: handler}
 
 			//testing only
-			//xx
+			//testing your code here
 
 			//end testing
 
