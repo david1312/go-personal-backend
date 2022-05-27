@@ -16,6 +16,7 @@ import (
 func init() {
 	registerCommand(startRestService)
 }
+
 //todo create script for  migration db automation
 func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{

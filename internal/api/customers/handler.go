@@ -1,4 +1,4 @@
-package users
+package customers
 
 import (
 	"errors"
@@ -14,6 +14,7 @@ import (
 	localMdl "semesta-ban/internal/api/middleware"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/gomail.v2"
 )
@@ -48,6 +49,11 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(p.Password) < 6 { // todo implement number from config
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCode(crashy.ErrCodeValidation), crashy.Message(crashy.ErrShortPassword)), http.StatusBadRequest)
+		return
+	}
+
 	isEmailPhoneExist, errCode, err := usr.custRepository.CheckEmailExist(ctx, p.Email)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
@@ -60,27 +66,38 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hashedTokenEmail := helper.GenerateHashString()
-	errCode, err = usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password)
+	uid := uuid.New().String()
+	errCode, err = usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, uid)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-
+	//temporary
 	bodyEmail := "Hallo <b>" + p.Name + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + hashedTokenEmail
 	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
 	//generate token
-	expiredTime := time.Now().Add(60 * time.Minute)
+	expiredTime := time.Now().Add(3 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+		Uid:      uid,
 		CustName: p.Name,
-		Expired:  expiredTime,
+
+		Expired: expiredTime,
+	})
+
+	//generate refresh token
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 7)
+	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+		Uid:      uid,
+		CustName: p.Name,
+		Expired:  expiredTimeRefresh,
 	})
 
 	response.Yay(w, r, LoginResponse{
 		Token:        tokenLogin,
 		ExpiredAt:    expiredTime,
-		RefreshToken: "//todo implement refresh token",
-		RTExpired:    expiredTime,
+		RefreshToken: tokenRefresh,
+		RTExpired:    expiredTimeRefresh,
 	}, http.StatusOK)
 
 }
@@ -96,30 +113,71 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name, errCode, err := usr.custRepository.Login(ctx, p.Email, p.Password)
+	customer, errCode, err := usr.custRepository.Login(ctx, p.Email, p.Password)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
 
 	//generate token
-	expiredTime := time.Now().Add(60 * time.Minute)
+	expiredTime := time.Now().Add(3 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
-		CustName: name,
+		Uid:      customer.Uid,
+		CustName: customer.Name,
 		Expired:  expiredTime,
+	})
+
+	//generate refresh token
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 7)
+	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+		Uid:      customer.Uid,
+		CustName: customer.Name,
+		Expired:  expiredTimeRefresh,
 	})
 
 	response.Yay(w, r, LoginResponse{
 		Token:        tokenLogin,
 		ExpiredAt:    expiredTime,
-		RefreshToken: "//todo implement refresh token",
-		RTExpired:    expiredTime,
+		RefreshToken: tokenRefresh,
+		RTExpired:    expiredTimeRefresh,
 	}, http.StatusOK)
-	// response.Nay(w, r, crashy.New(errors.New("real error"), crashy.ErrCodeFormatting, "output error"), http.StatusBadRequest)
 }
 
 func (usr *UsersHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	response.Yay(w, r, "profile", http.StatusOK)
+	var (
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+	customer, errCode, err := usr.custRepository.GetCustomer(ctx, authData.Uid)
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	isEmailVerified := true
+	if customer.EmailVerifiedAt.Time.IsZero() {
+		isEmailVerified = false
+	}
+	isPhoneVerified := true
+	if customer.PhoneVerifiedAt.Time.IsZero() {
+		isPhoneVerified = false
+	}
+	birthdateVal := customer.Birthdate.Time.Format("2006-01-02")
+	if customer.Birthdate.Time.IsZero() {
+		birthdateVal = ""
+	}
+
+	response.Yay(w, r, GetCustomerResponse{
+		Name:          customer.Name,
+		Email:         customer.Email,
+		EmailVerified: isEmailVerified,
+		Phone:         customer.Phone.String,
+		PhoneVerified: isPhoneVerified,
+		Gender:        customer.Gender.String,
+		Avatar:        customer.Avatar.String,
+		Birthdate:     birthdateVal,
+	}, http.StatusOK)
 }
 
 func (usr *UsersHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
@@ -140,6 +198,124 @@ func (usr *UsersHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, "Selamat! Email anda berhasil diverifikasi. Silahkan buka aplikasi semesta ban untuk melanjutkan.")
 }
+
+func (usr *UsersHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        ChangePwdRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	if len(p.NewPassword) < 6 { // todo implement number from config
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCode(crashy.ErrCodeValidation), crashy.Message(crashy.ErrShortPassword)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := usr.custRepository.ChangePassword(ctx, authData.Uid, p.OldPassword, p.NewPassword)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (usr *UsersHandler) ResendEmailVerification(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        ResendEmailRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	emailToken, errCode, err := usr.custRepository.ResendEmail(ctx, authData.Uid, p.Email)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + emailToken
+	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep go
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrSendEmail, crashy.Message(crashy.ErrSendEmail)), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (usr *UsersHandler) RequestPinEmail(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        ResendEmailRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	pin, errCode, err := usr.custRepository.RequestPinEmail(ctx, authData.Uid, p.Email)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!<br> Anda telah melakukan request untuk pergantian email, berikut adalah kode yang dibutuhkan unik untuk diinput kedalam aplikasi untuk mengganti email anda : " + pin
+	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) 
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrSendEmail, crashy.Message(crashy.ErrSendEmail)), http.StatusInternalServerError)
+		return
+	}
+
+	// fmt.Println(pin)
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (usr *UsersHandler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        ChangeEmailRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		hashedTokenEmail = helper.GenerateHashString()
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := usr.custRepository.ChangeEmail(ctx, authData.Uid, p.OldEmail, p.NewEmail, hashedTokenEmail, p.Code)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	
+
+	//temporary
+	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + hashedTokenEmail
+	_ = sendMail(p.NewEmail, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
+
+
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+
 
 func sendMail(to, subject, body string) error {
 	m := gomail.NewMessage()

@@ -43,10 +43,17 @@ const (
 	ErrInvalidUser = "ERR_INVALID_USER"
 
 	//Err code Register related
-	ErrEmailExists = "ERR_EMAIL_EXISTS"
+	ErrEmailExists   = "ERR_EMAIL_EXISTS"
+	ErrShortPassword = "ERR_SHORT_PWD"
 
 	ErrSendEmail         = "ERR_SEND_EMAIL"
 	ErrInvalidTokenEmail = "ERR_INVALID_TOKEN_EMAIL"
+
+	ErrInvalidOldPassword = "ERR_INVALID_OLD_PWD"
+	ErrSamePassword       = "ERR_SAME_PWD"
+
+	ErrInvalidEmail = "ERR_INVALID_EMAIL"
+	ErrInvalidCode = "ERR_INVALID_CODE"
 )
 
 var mapper = map[ErrCode]string{
@@ -55,7 +62,7 @@ var mapper = map[ErrCode]string{
 	ErrCodeNetConnect:     "failed to establish connection to data source",
 	ErrCodeValidation:     "request contains invalid data",
 	ErrCodeFormatting:     "an error occurred while formatting data",
-	ErrCodeDataRead:       "failed to read data from data provider",
+	ErrCodeDataRead:       "maaf, terjadi gangguan pada server",
 	ErrCodeDataWrite:      "failed to persist data into provider",
 	ErrCodeNoResult:       "no result found match criteria",
 	ErrCodeUnauthorized:   "unauthorized access",
@@ -66,8 +73,13 @@ var mapper = map[ErrCode]string{
 	ErrCodeEncryptData:    "failed to encrypting data",
 	ErrInvalidUser:        "email atau password yang anda masukan salah",
 	ErrEmailExists:        "maaf email yang anda masukan sudah terdaftar",
-	ErrSendEmail:          "terjadi kesalahan saat mengirim email",
-	ErrInvalidTokenEmail:  "verifikasi email gagal, token untuk verifikasi email tidak valid",
+	ErrSendEmail:          "terjadi kesalahan saat mengirim email, mohon coba beberapa saat lagi",
+	ErrInvalidTokenEmail:  "token untuk verifikasi email tidak valid",
+	ErrInvalidOldPassword: "password lama yang anda masukan salah",
+	ErrShortPassword:      "password minimum 6 karakter",
+	ErrSamePassword:       "password baru tidak boleh sama dengan password lama",
+	ErrInvalidEmail:       "email yang anda masukan tidak sesuai",
+	ErrInvalidCode: "kode yang anda masukan salah",
 }
 
 //Message retrieve error messages from given error code

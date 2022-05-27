@@ -6,16 +6,18 @@ import (
 
 type Customers struct {
 	ID                 int32          `json:"id"`
+	Uid                string         `json:"uid"`
 	Name               string         `json:"name"`
 	Password           string         `json:"password"`
-	Email              int32          `json:"email"`
+	Email              string         `json:"email"`
 	EmailVerifiedToken sql.NullString `json:"email_verified_token"`
 	EmailVerifiedAt    sql.NullTime   `json:"email_verified_at"`
-	Gender             string         `json:"gender"`
+	Gender             sql.NullString `json:"gender"`
 	IsActive           bool           `json:"is_active"`
-	Phone              string         `json:"phone"`
+	Phone              sql.NullString `json:"phone"`
 	PhoneVerifiedAt    sql.NullTime   `json:"phone_verified_at"`
 	Avatar             sql.NullString `json:"avatar"`
+	Birthdate          sql.NullTime   `json:"birthdate"`
 }
 
 type InsertCustomerParam struct {

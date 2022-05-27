@@ -1,4 +1,4 @@
-package users
+package customers
 
 import (
 	"net/http"
@@ -57,3 +57,63 @@ func NewVerifyEmailParam(r *http.Request) VerifyEmailParam {
 		TokenEmail: r.URL.Query().Get("val"),
 	}
 }
+
+type GetCustomerResponse struct {
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Phone         string `json:"phone"`
+	PhoneVerified bool   `json:"phone_verified"`
+	Gender        string `json:"gender"`
+	Avatar        string `json:"avatar"`
+	Birthdate     string `json:"birthdate"`
+}
+
+type ChangePwdRequest struct {
+	NewPassword string `json:"new_password"`
+	OldPassword string `json:"old_password"`
+}
+
+func (m *ChangePwdRequest) Bind(r *http.Request) error {
+	return m.ValidateChangePwdRequest()
+}
+
+func (m *ChangePwdRequest) ValidateChangePwdRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.NewPassword, validation.Required),
+		validation.Field(&m.OldPassword, validation.Required),
+	)
+}
+
+type ResendEmailRequest struct {
+	Email string `json:"email"`
+}
+
+func (m *ResendEmailRequest) Bind(r *http.Request) error {
+	return m.ValidateResendEmailRequest()
+}
+
+func (m *ResendEmailRequest) ValidateResendEmailRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Email, validation.Required),
+	)
+}
+
+type ChangeEmailRequest struct {
+	OldEmail string `json:"old_email"`
+	NewEmail string `json:"new_email"`
+	Code string `json:"code"`
+}
+
+func (m *ChangeEmailRequest) Bind(r *http.Request) error {
+	return m.ValidateChangeEmailRequest()
+}
+
+func (m *ChangeEmailRequest) ValidateChangeEmailRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.OldEmail, validation.Required),
+		validation.Field(&m.NewEmail, validation.Required),
+		validation.Field(&m.Code, validation.Required),
+	)
+}
+
