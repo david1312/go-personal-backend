@@ -15,9 +15,14 @@ import (
 
 type ContextKey string
 
+type GuardType int32
+
 const (
 	AuthPrefix = "Bearer "
 	CtxKey     = ContextKey("context-data")
+
+	GuardAccess GuardType = iota
+	GuardRefresh
 )
 
 type JWT struct {
@@ -89,7 +94,6 @@ func (j *JWT) AuthMiddleware(handler http.Handler) http.Handler {
 			response.Nay(w, r, crashy.New(err, crashy.ErrCodeUnauthorized, "token expired"), http.StatusUnauthorized)
 			return
 		}
-
 		ctx := context.WithValue(r.Context(), CtxKey, claims)
 		handler.ServeHTTP(w, r.WithContext(ctx))
 	})
