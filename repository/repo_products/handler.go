@@ -71,11 +71,11 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	}
 
 	queryRecords := `
-	SELECT count(a.KodePLU)
+	SELECT count(a.kodeplu)
 	from tblmasterplu a
-	inner join tblMerkBan b on a.IDMerk = b.IDMerk
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
-	inner join tblPosisiBan d on a.IDPosisi = d.IDPosisi where 1 = 1 ` + whereParams
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi where 1 = 1 ` + whereParams
 	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -87,16 +87,15 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	query := `
 	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran
 	from tblmasterplu a
-	inner join tblMerkBan b on a.IDMerk = b.IDMerk
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
-	inner join tblPosisiBan d on a.IDPosisi = d.IDPosisi
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	where 1 = 1 ` + whereParams + ` 
 	` + fmt.Sprintf("order by %v %v", orderBy, orderType) + `  limit ? offset ? `
-	fmt.Println(query)
+	// fmt.Println(query)
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		fmt.Println(err)
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
