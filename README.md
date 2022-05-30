@@ -65,7 +65,6 @@ go run cmd/semesta-ban/*.go migrate:up
 
   For database queries. Use `sqlc`. not mandatory
 
-References:
+References Api Documentation:
 
-- https://github.com/kyleconroy/sqlc
-- https://github.com/golang-migrate/migrate
+- https://github.com/david1312/go_application_structure/wiki/documentation-api-semesta-ban
