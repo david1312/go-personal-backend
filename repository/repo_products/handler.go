@@ -71,11 +71,11 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	}
 
 	queryRecords := `
-	SELECT count(a.KodePLU)
+	SELECT count(a.kodeplu)
 	from tblmasterplu a
-	inner join tblMerkBan b on a.IDMerk = b.IDMerk
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
-	inner join tblPosisiBan d on a.IDPosisi = d.IDPosisi where 1 = 1 ` + whereParams
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi where 1 = 1 ` + whereParams
 	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -85,18 +85,17 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	args = append(args, fp.Limit, offsetNum)
 
 	query := `
-	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran
+	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, e.URL, a.JenisBan
 	from tblmasterplu a
-	inner join tblMerkBan b on a.IDMerk = b.IDMerk
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
-	inner join tblPosisiBan d on a.IDPosisi = d.IDPosisi
-	where 1 = 1 ` + whereParams + ` 
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
+	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
+	where 1 = 1 ` + whereParams + ` and e.DeletedAt IS NULL
 	` + fmt.Sprintf("order by %v %v", orderBy, orderType) + `  limit ? offset ? `
-	fmt.Println(query)
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		fmt.Println(err)
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
@@ -113,6 +112,75 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 			&i.HargaJual,
 			&i.HargaJualFinal,
 			&i.NamaUkuran,
+			&i.DisplayImage,
+			&i.JenisBan,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) GetProductDetail(ctx context.Context, id int) (res Products, errCode string, err error){
+	query := `
+	select a.KodePLU, a.KodeBarang,  a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, a.JenisBan, d.Posisi, a.Deskripsi
+	from tblmasterplu a
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
+	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
+	where a.KodePLU = ? `
+
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+
+	err = row.Scan(
+		&res.KodePLU,
+		&res.KodeBarang,
+		&res.NamaBarang,
+		&res.Disc,
+		&res.HargaJual,
+		&res.HargaJualFinal,
+		&res.NamaUkuran,
+		&res.JenisBan,
+		&res.NamaPosisi,
+		&res.Deskripsi,
+	)
+
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) GetProductImage(ctx context.Context, productCode string) (res []ProductImage, errCode string, err error){
+	query := `select URL, IsDisplay from tblurlgambar where KodeBarang = ? order by IsDisplay desc`
+
+	rows, err := q.db.QueryContext(ctx, query, productCode)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i ProductImage
+
+		if err = rows.Scan(
+			&i.Url,
+			&i.IsDisplay,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

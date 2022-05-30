@@ -70,8 +70,44 @@ type ProductsResponse struct {
 	KodePLU        int32   `json:"id"`
 	NamaBarang     string  `json:"nama_barang"`
 	Disc           float32 `json:"disc"`
-	NamaUkuran     string  `json:"nama_ukuran"`
-	HargaJual      float64 `json:"harga_jual_final"`
-	HargaJualFinal float64 `json:"harga_jual"`
+	NamaUkuran     string  `json:"ukuran"`
+	HargaJualFinal float64 `json:"harga_jual_final"`
 	IsWishList     bool    `json:"is_wishlist"`
+	JenisBan       string  `json:"jenis_ban"`
+	DisplayImage   string  `json:"display_image"`
+}
+
+type ProductDetailResponse struct {
+	KodePLU        int32   `json:"id"`
+	NamaBarang     string  `json:"nama_barang"`
+	Disc           float32 `json:"disc"`
+	NamaUkuran     string  `json:"ukuran"`
+	HargaJualFinal float64 `json:"harga_jual_final"`
+	IsWishList     bool    `json:"is_wishlist"`
+	JenisBan       string  `json:"jenis_ban"`
+	Posisi       string  `json:"posisi"`
+	JenisMotor       string  `json:"jenis_motor"`
+	TotalTerjual int			`json:"total_terjual"`
+	Deskripsi string  `json:"deskripsi"`
+	ImageList   []ProductImage  `json:"image_list"`
+	ReviewList []ProductReview `json:"product_review"`	
+	Kompatibilitas []MotorCycleCompatibility `json:"kompatibilitas"`
+}
+
+type ProductImage struct{
+	Url   string  `json:"url"`
+	IsDisplay   string  `json:"is_display"`
+}
+
+type ProductReview struct{
+	Name   string  `json:"url"`
+	Avatar string   `json:"avatar"`
+	Date   string  `json:"is_display"`
+	Rating  int `json:"rating"`
+	Comment string `json:"comment"`
+}
+
+type MotorCycleCompatibility struct{
+	MerkMotor string  `json:"url"`
+	DisplayImage   string  `json:"display_image"`
 }

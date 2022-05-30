@@ -177,19 +177,18 @@ func (q *SqlRepository) ResendEmail(ctx context.Context, uid, email string) (ema
 	return
 }
 
-func (q *SqlRepository) RequestPinEmail(ctx context.Context, uid, email string) (pin, errCode string, err error){
+func (q *SqlRepository) RequestPinEmail(ctx context.Context, uid, email string) (pin, errCode string, err error) {
 	var exist bool
 	const query = `SELECT EXISTS(SELECT email FROM customers where email = ? and uid = ? AND deleted_at IS NULL)`
-	row := q.db.DB.QueryRowContext(ctx, query, email,uid)
+	row := q.db.DB.QueryRowContext(ctx, query, email, uid)
 	err = row.Scan(&exist)
-
 
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
 
-	if !exist{
+	if !exist {
 		err = errors.New(crashy.ErrInvalidEmail)
 		errCode = crashy.ErrInvalidEmail
 		return
@@ -209,12 +208,11 @@ func (q *SqlRepository) RequestPinEmail(ctx context.Context, uid, email string) 
 	return
 }
 
-func (q *SqlRepository) ChangeEmail(ctx context.Context, uid, oldEmail, newEmail, hashedTokenEmail, code string) (errCode string, err error){ //simplify
+func (q *SqlRepository) ChangeEmail(ctx context.Context, uid, oldEmail, newEmail, hashedTokenEmail, code string) (errCode string, err error) { //simplify
 	var codeDB string
 	const query = `SELECT email_change_code FROM customers where email = ? and uid = ? AND email_change_eligible = true AND deleted_at IS NULL`
 	row := q.db.DB.QueryRowContext(ctx, query, oldEmail, uid)
 	err = row.Scan(&codeDB)
-
 
 	if err != nil && err == sql.ErrNoRows {
 		errCode = crashy.ErrInvalidEmail
