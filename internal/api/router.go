@@ -16,8 +16,9 @@ import (
 )
 
 type ServerConfig struct {
-	EncKey string
-	JWTKey string
+	EncKey        string
+	JWTKey        string
+	BaseAssetsUrl string
 }
 
 //todo add rate limiter
@@ -31,9 +32,9 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		jwt         = localMdl.New([]byte(cnf.JWTKey))
 		cuRepo      = repo_customers.NewSqlRepository(db)
 		prRepo      = repo_products.NewSqlRepository(db)
-		custHandler = cust.NewUsersHandler(db, cuRepo, jwt)
+		custHandler = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl)
 		authHandler = auth.NewAuthHandler(jwt)
-		prodHandler = products.NewProductsHandler(db, prRepo)
+		prodHandler = products.NewProductsHandler(db, prRepo, cnf.BaseAssetsUrl)
 	)
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -70,6 +71,14 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 	r.Route("/v1/products", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware)
 		r.Get("/", prodHandler.GetListProducts)
+		r.Get("/detail", prodHandler.GetProductDetail)
+	})
+
+	r.Route("/v1/master-data", func(r chi.Router) {
+		r.Use(jwt.AuthMiddleware)
+		r.Get("/tire-brand", prodHandler.GetListProducts)
+		// r.Get("/motor-brand", prodHandler.GetListProducts)
+		// r.Get("/outlets", prodHandler.GetListProducts)
 	})
 
 	return r

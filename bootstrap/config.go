@@ -25,6 +25,10 @@ type Config struct {
 	Api struct {
 		TimeOut int32 `yaml:"timeout"`
 	} `yaml:"api"`
+
+	Assets struct {
+		Url string `yaml:"url"`
+	} `yaml:"assets"`
 }
 
 func LoadConfig(file string) (cnfg Config, err error) {

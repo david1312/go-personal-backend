@@ -12,6 +12,7 @@ import (
 	"time"
 
 	localMdl "semesta-ban/internal/api/middleware"
+	cn "semesta-ban/pkg/constants"
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -31,12 +32,13 @@ type UsersHandler struct {
 	db             *sqlx.DB
 	custRepository custRepo.CustomersRepository
 	jwt            *localMdl.JWT
+	baseAssetUrl   string
 }
 
 //todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
 
-func NewUsersHandler(db *sqlx.DB, cr custRepo.CustomersRepository, jwt *localMdl.JWT) *UsersHandler {
-	return &UsersHandler{db: db, custRepository: cr, jwt: jwt}
+func NewUsersHandler(db *sqlx.DB, cr custRepo.CustomersRepository, jwt *localMdl.JWT, baseAssetUrl string) *UsersHandler {
+	return &UsersHandler{db: db, custRepository: cr, jwt: jwt, baseAssetUrl: baseAssetUrl}
 }
 
 func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +177,7 @@ func (usr *UsersHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		Phone:         customer.Phone.String,
 		PhoneVerified: isPhoneVerified,
 		Gender:        customer.Gender.String,
-		Avatar:        customer.Avatar.String,
+		Avatar:        usr.baseAssetUrl + cn.UserDir + customer.Avatar.String,
 		Birthdate:     birthdateVal,
 	}, http.StatusOK)
 }
@@ -273,7 +275,7 @@ func (usr *UsersHandler) RequestPinEmail(w http.ResponseWriter, r *http.Request)
 	}
 
 	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!<br> Anda telah melakukan request untuk pergantian email, berikut adalah kode yang dibutuhkan unik untuk diinput kedalam aplikasi untuk mengganti email anda : " + pin
-	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) 
+	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail)
 
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrSendEmail, crashy.Message(crashy.ErrSendEmail)), http.StatusInternalServerError)
@@ -287,9 +289,9 @@ func (usr *UsersHandler) RequestPinEmail(w http.ResponseWriter, r *http.Request)
 
 func (usr *UsersHandler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 	var (
-		p        ChangeEmailRequest
-		ctx      = r.Context()
-		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		p                ChangeEmailRequest
+		ctx              = r.Context()
+		authData         = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 		hashedTokenEmail = helper.GenerateHashString()
 	)
 
@@ -304,18 +306,12 @@ func (usr *UsersHandler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-
 	//temporary
 	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + hashedTokenEmail
 	_ = sendMail(p.NewEmail, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
-
-
 	response.Yay(w, r, "success", http.StatusOK)
 }
-
-
 
 func sendMail(to, subject, body string) error {
 	m := gomail.NewMessage()

@@ -27,8 +27,9 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 			cfg := dep.GetConfig()
 
 			handler := api.NewServer(dep.GetDB(), api.ServerConfig{
-				EncKey: cfg.Key.EncryptKey,
-				JWTKey: cfg.Key.JWT,
+				EncKey:        cfg.Key.EncryptKey,
+				JWTKey:        cfg.Key.JWT,
+				BaseAssetsUrl: cfg.Assets.Url,
 			})
 			// application context, which will be cancelled upon receiving termination signal
 			actx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)

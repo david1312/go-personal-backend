@@ -102,7 +102,7 @@ func (m *ResendEmailRequest) ValidateResendEmailRequest() error {
 type ChangeEmailRequest struct {
 	OldEmail string `json:"old_email"`
 	NewEmail string `json:"new_email"`
-	Code string `json:"code"`
+	Code     string `json:"code"`
 }
 
 func (m *ChangeEmailRequest) Bind(r *http.Request) error {
@@ -116,4 +116,3 @@ func (m *ChangeEmailRequest) ValidateChangeEmailRequest() error {
 		validation.Field(&m.Code, validation.Required),
 	)
 }
-

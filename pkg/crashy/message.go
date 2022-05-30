@@ -53,7 +53,10 @@ const (
 	ErrSamePassword       = "ERR_SAME_PWD"
 
 	ErrInvalidEmail = "ERR_INVALID_EMAIL"
-	ErrInvalidCode = "ERR_INVALID_CODE"
+	ErrInvalidCode  = "ERR_INVALID_CODE"
+
+	//Err code product related
+	ErrInvalidProductID = "ERR_INVALID_PRODUCT_ID"
 )
 
 var mapper = map[ErrCode]string{
@@ -79,7 +82,8 @@ var mapper = map[ErrCode]string{
 	ErrShortPassword:      "password minimum 6 karakter",
 	ErrSamePassword:       "password baru tidak boleh sama dengan password lama",
 	ErrInvalidEmail:       "email yang anda masukan tidak sesuai",
-	ErrInvalidCode: "kode yang anda masukan salah",
+	ErrInvalidCode:        "kode yang anda masukan salah",
+	ErrInvalidProductID: "product id yang anda masukan salah",
 }
 
 //Message retrieve error messages from given error code
