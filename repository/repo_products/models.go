@@ -20,9 +20,9 @@ type Products struct {
 	NamaMerk       string  `json:"nama_merk"`
 	JenisBan       string  `json:"jenis_ban"`
 	DisplayImage   string  `json:"display_image"`
-	JenisMotor       string  `json:"jenis_motor"`
-	TotalTerjual int			`json:"total_terjual"`
-	Deskripsi string  `json:"deskripsi"`
+	JenisMotor     string  `json:"jenis_motor"`
+	TotalTerjual   int     `json:"total_terjual"`
+	Deskripsi      string  `json:"deskripsi"`
 }
 
 type ProductsParamsTemp struct {
@@ -39,8 +39,7 @@ type ProductsParamsTemp struct {
 	OrderType string
 }
 
-type ProductImage struct{
-	Url   string  
-	IsDisplay   string 
+type ProductImage struct {
+	Url       string
+	IsDisplay string
 }
-

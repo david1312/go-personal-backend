@@ -3,9 +3,11 @@ package api
 import (
 	"semesta-ban/internal/api/auth"
 	cust "semesta-ban/internal/api/customers"
+	"semesta-ban/internal/api/master_data"
 	localMdl "semesta-ban/internal/api/middleware"
 	"semesta-ban/internal/api/products"
 	"semesta-ban/repository/repo_customers"
+	"semesta-ban/repository/repo_master_data"
 	"semesta-ban/repository/repo_products"
 
 	"github.com/go-chi/chi"
@@ -29,12 +31,14 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 	var (
 		r = chi.NewRouter()
 		// ul = NewUnitLimiter()
-		jwt         = localMdl.New([]byte(cnf.JWTKey))
-		cuRepo      = repo_customers.NewSqlRepository(db)
-		prRepo      = repo_products.NewSqlRepository(db)
-		custHandler = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl)
-		authHandler = auth.NewAuthHandler(jwt)
-		prodHandler = products.NewProductsHandler(db, prRepo, cnf.BaseAssetsUrl)
+		jwt               = localMdl.New([]byte(cnf.JWTKey))
+		cuRepo            = repo_customers.NewSqlRepository(db)
+		prRepo            = repo_products.NewSqlRepository(db)
+		mdRepo            = repo_master_data.NewSqlRepository(db)
+		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl)
+		authHandler       = auth.NewAuthHandler(jwt)
+		prodHandler       = products.NewProductsHandler(db, prRepo, cnf.BaseAssetsUrl)
+		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
 	)
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -76,7 +80,9 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 
 	r.Route("/v1/master-data", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware)
-		r.Get("/tire-brand", prodHandler.GetListProducts)
+		r.Get("/tire-brand", masterDataHandler.GetListMerkBan)
+		r.Get("/gender", masterDataHandler.GetListGender)
+		r.Get("/outlet", masterDataHandler.GetListOutlet)
 		// r.Get("/motor-brand", prodHandler.GetListProducts)
 		// r.Get("/outlets", prodHandler.GetListProducts)
 	})
