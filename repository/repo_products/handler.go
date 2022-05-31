@@ -132,7 +132,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	return
 }
 
-func (q *SqlRepository) GetProductDetail(ctx context.Context, id int) (res Products, errCode string, err error){
+func (q *SqlRepository) GetProductDetail(ctx context.Context, id int) (res Products, errCode string, err error) {
 	query := `
 	select a.KodePLU, a.KodeBarang,  a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, a.JenisBan, d.Posisi, a.Deskripsi
 	from tblmasterplu a
@@ -164,7 +164,7 @@ func (q *SqlRepository) GetProductDetail(ctx context.Context, id int) (res Produ
 	return
 }
 
-func (q *SqlRepository) GetProductImage(ctx context.Context, productCode string) (res []ProductImage, errCode string, err error){
+func (q *SqlRepository) GetProductImage(ctx context.Context, productCode string) (res []ProductImage, errCode string, err error) {
 	query := `select URL, IsDisplay from tblurlgambar where KodeBarang = ? order by IsDisplay desc`
 
 	rows, err := q.db.QueryContext(ctx, query, productCode)

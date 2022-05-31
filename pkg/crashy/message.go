@@ -83,7 +83,7 @@ var mapper = map[ErrCode]string{
 	ErrSamePassword:       "password baru tidak boleh sama dengan password lama",
 	ErrInvalidEmail:       "email yang anda masukan tidak sesuai",
 	ErrInvalidCode:        "kode yang anda masukan salah",
-	ErrInvalidProductID: "product id yang anda masukan salah",
+	ErrInvalidProductID:   "product id yang anda masukan salah",
 }
 
 //Message retrieve error messages from given error code
