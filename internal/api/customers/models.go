@@ -116,3 +116,45 @@ func (m *ChangeEmailRequest) ValidateChangeEmailRequest() error {
 		validation.Field(&m.Code, validation.Required),
 	)
 }
+
+type UpdateNameRequest struct {
+	Name string `json:"name"`
+}
+
+func (m *UpdateNameRequest) Bind(r *http.Request) error {
+	return m.ValidateUpdateNameRequest()
+}
+
+func (m *UpdateNameRequest) ValidateUpdateNameRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Name, validation.Required),
+	)
+}
+
+type UpdateGenderRequest struct {
+	Gender string `json:"gender"`
+}
+
+func (m *UpdateGenderRequest) Bind(r *http.Request) error {
+	return m.ValidateUpdateGenderRequest()
+}
+
+func (m *UpdateGenderRequest) ValidateUpdateGenderRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Gender, validation.Required),
+	)
+}
+
+type UpdatePhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
+func (m *UpdatePhoneRequest) Bind(r *http.Request) error {
+	return m.ValidateUpdatePhoneRequest()
+}
+
+func (m *UpdatePhoneRequest) ValidateUpdatePhoneRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Phone, validation.Required),
+	)
+}

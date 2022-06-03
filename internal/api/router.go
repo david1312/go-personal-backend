@@ -20,6 +20,7 @@ import (
 type ServerConfig struct {
 	EncKey        string
 	JWTKey        string
+	AnonymousKey  string
 	BaseAssetsUrl string
 }
 
@@ -32,14 +33,16 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r = chi.NewRouter()
 		// ul = NewUnitLimiter()
 		jwt               = localMdl.New([]byte(cnf.JWTKey))
+		anon              = localMdl.New([]byte(cnf.AnonymousKey))
 		cuRepo            = repo_customers.NewSqlRepository(db)
 		prRepo            = repo_products.NewSqlRepository(db)
 		mdRepo            = repo_master_data.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl)
-		authHandler       = auth.NewAuthHandler(jwt)
+		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, cnf.BaseAssetsUrl)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
 	)
+
 	r.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -54,37 +57,45 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 	r.Use(mdl.Recoverer)
 	r.Use(mdl.Heartbeat("/ping"))
 
-	r.Post("/v1/login", custHandler.Login) //todo add auth for login & register endpoint
-	r.Post("/v1/register", custHandler.Register)
 	r.Get("/v1/verify", custHandler.VerifyEmail)
+	r.Get("/v1/auth/anonymous", authHandler.GetAnonymousToken)
+
+	r.Route("/v1", func(r chi.Router) { //anonymous scope
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
+		r.Post("/login", custHandler.Login)
+		r.Post("/register", custHandler.Register)
+		r.Route("/master-data", func(r chi.Router) { //anonymous scope
+			r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
+			r.Get("/tire-brand", masterDataHandler.GetListMerkBan)
+			r.Get("/gender", masterDataHandler.GetListGender)
+			r.Get("/outlet", masterDataHandler.GetListOutlet)
+			// r.Get("/motor-brand", prodHandler.GetListProducts)
+			// r.Get("/outlets", prodHandler.GetListProducts)
+		})
+
+	})
 
 	r.Route("/v1/auth", func(r chi.Router) {
-		r.Use(jwt.AuthMiddleware)
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Get("/refresh", authHandler.RefreshToken)
 	})
 
 	r.Route("/v1/users", func(r chi.Router) {
-		r.Use(jwt.AuthMiddleware)
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Get("/me", custHandler.GetProfile)
 		r.Post("/change-password", custHandler.ChangePassword)
 		r.Post("/resend-email", custHandler.ResendEmailVerification)
 		r.Post("/request-pin-email", custHandler.RequestPinEmail)
 		r.Post("/change-email", custHandler.ChangeEmail)
+		r.Post("/update-name", custHandler.UpdateName)
+		r.Post("/update-gender", custHandler.UpdateGender)
+		r.Post("/update-phone", custHandler.UpdatePhoneNumber)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
-		r.Use(jwt.AuthMiddleware)
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Get("/", prodHandler.GetListProducts)
 		r.Get("/detail", prodHandler.GetProductDetail)
-	})
-
-	r.Route("/v1/master-data", func(r chi.Router) {
-		r.Use(jwt.AuthMiddleware)
-		r.Get("/tire-brand", masterDataHandler.GetListMerkBan)
-		r.Get("/gender", masterDataHandler.GetListGender)
-		r.Get("/outlet", masterDataHandler.GetListOutlet)
-		// r.Get("/motor-brand", prodHandler.GetListProducts)
-		// r.Get("/outlets", prodHandler.GetListProducts)
 	})
 
 	return r

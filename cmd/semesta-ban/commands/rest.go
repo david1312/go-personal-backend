@@ -29,6 +29,7 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 			handler := api.NewServer(dep.GetDB(), api.ServerConfig{
 				EncKey:        cfg.Key.EncryptKey,
 				JWTKey:        cfg.Key.JWT,
+				AnonymousKey:  cfg.Key.Anonymous,
 				BaseAssetsUrl: cfg.Assets.Url,
 			})
 			// application context, which will be cancelled upon receiving termination signal

@@ -20,6 +20,7 @@ type Config struct {
 	Key struct {
 		EncryptKey string `yaml:"encrypt_key"`
 		JWT        string `yaml:"jwt"`
+		Anonymous  string `yaml:"anonymous"`
 	} `yaml:"key"`
 
 	Api struct {

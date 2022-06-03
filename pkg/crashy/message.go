@@ -51,9 +51,12 @@ const (
 
 	ErrInvalidOldPassword = "ERR_INVALID_OLD_PWD"
 	ErrSamePassword       = "ERR_SAME_PWD"
-
-	ErrInvalidEmail = "ERR_INVALID_EMAIL"
-	ErrInvalidCode  = "ERR_INVALID_CODE"
+	ErrInvalidGender      = "ERR_INVALID_GENDER"
+	ErrInvalidEmail       = "ERR_INVALID_EMAIL"
+	ErrInvalidCode        = "ERR_INVALID_CODE"
+	ErrInvalidPhone       = "ERR_INVALID_PHONE"
+	ErrSamePhoneSelf      = "ERR_SAME_PHONE_SELF"
+	ErrDedupPhone         = "ERR_DEDUP_PHONE"
 
 	//Err code product related
 	ErrInvalidProductID = "ERR_INVALID_PRODUCT_ID"
@@ -84,6 +87,10 @@ var mapper = map[ErrCode]string{
 	ErrInvalidEmail:       "email yang anda masukan tidak sesuai",
 	ErrInvalidCode:        "kode yang anda masukan salah",
 	ErrInvalidProductID:   "product id yang anda masukan salah",
+	ErrInvalidGender:      "value gender yang anda masukan tidak sesuai format",
+	ErrInvalidPhone:       "nomor hp yang anda masukan tidak sesuai format",
+	ErrSamePhoneSelf:      "tidak bisa mengganti dengan nomor hp yang sama dengan nomor sebelumnya",
+	ErrDedupPhone:         "nomor hp yang anda masukan sudah digunakan",
 }
 
 //Message retrieve error messages from given error code

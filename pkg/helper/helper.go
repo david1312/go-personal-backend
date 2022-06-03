@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"regexp"
+	"strings"
 )
 
 func RandomString(n int) string {
@@ -42,4 +43,30 @@ func IsFloatNoDecimal(val float64) bool {
 func ValidateParam(val string) bool {
 	valid := regexp.MustCompile("^[A-Za-z0-9_]+$")
 	return valid.MatchString(val)
+}
+
+func IsStringNumeric(val string) bool {
+	valid := regexp.MustCompile("^[0-9_]+$")
+	return valid.MatchString(val)
+}
+
+func StringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func ConvertPhoneNumber(inputNumber string) (res string) {
+	res = inputNumber
+	if res[:1] == "+" {
+		res = strings.Replace(res, "+", "", 1)
+	}
+	if res[:1] == "0" {
+		res = strings.Replace(res, "0", "62", 1)
+	}
+	res = strings.ReplaceAll(res, " ", "")
+	return
 }

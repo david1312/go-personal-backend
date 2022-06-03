@@ -2,7 +2,6 @@ package products
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"semesta-ban/internal/api/response"
 	cn "semesta-ban/pkg/constants"
@@ -114,8 +113,6 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println(product.KodeBarang)
 	for _, val := range prodImg {
 		listProductImage = append(listProductImage, ProductImage{
 			Url:       val.Url,

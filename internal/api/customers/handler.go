@@ -79,7 +79,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
 	//generate token
-	expiredTime := time.Now().Add(3 * time.Hour)
+	expiredTime := time.Now().Add(24 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      uid,
 		CustName: p.Name,
@@ -88,7 +88,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 7)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      uid,
 		CustName: p.Name,
@@ -122,7 +122,7 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//generate token
-	expiredTime := time.Now().Add(3 * time.Hour)
+	expiredTime := time.Now().Add(24 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,
@@ -130,7 +130,7 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 7)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,
@@ -282,8 +282,6 @@ func (usr *UsersHandler) RequestPinEmail(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// fmt.Println(pin)
-
 	response.Yay(w, r, "success", http.StatusOK)
 }
 
@@ -311,6 +309,82 @@ func (usr *UsersHandler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 	_ = sendMail(p.NewEmail, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
 	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (usr *UsersHandler) UpdateName(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        UpdateNameRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+	errCode, err := usr.custRepository.UpdateName(ctx, authData.Uid, p.Name)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (usr *UsersHandler) UpdatePhoneNumber(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        UpdatePhoneRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	if !helper.IsStringNumeric(p.Phone) {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidPhone), crashy.ErrInvalidPhone, crashy.Message(crashy.ErrCode(crashy.ErrInvalidPhone))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := usr.custRepository.UpdatePhoneNumber(ctx, authData.Uid,helper.ConvertPhoneNumber(p.Phone))
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (usr *UsersHandler) UpdateGender(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        UpdateGenderRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	checkValidGender := helper.StringInSlice(p.Gender, []string{cn.Male, cn.Female, cn.OtherGender})
+
+	if !checkValidGender {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidGender), crashy.ErrInvalidGender, crashy.Message(crashy.ErrCode(crashy.ErrInvalidGender))), http.StatusBadRequest)
+		return
+	}
+	errCode, err := usr.custRepository.UpdateGender(ctx, authData.Uid, p.Gender)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+
 }
 
 func sendMail(to, subject, body string) error {
