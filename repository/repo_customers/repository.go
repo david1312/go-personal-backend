@@ -12,4 +12,7 @@ type CustomersRepository interface {
 	ResendEmail(ctx context.Context, uid, email string) (emailToken, errCode string, err error)
 	RequestPinEmail(ctx context.Context, uid, email string) (pin, errCode string, err error)
 	ChangeEmail(ctx context.Context, uid, oldEmail, newEmail, hashedTokenEmail, code string) (errCode string, err error)
+	UpdateName(ctx context.Context, uid, name string) (errCode string, err error)
+	UpdatePhoneNumber(ctx context.Context, uid, phone string) (errCode string, err error)
+	UpdateGender(ctx context.Context, uid, gender string) (errCode string, err error)
 }

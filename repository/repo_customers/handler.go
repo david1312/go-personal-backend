@@ -239,3 +239,66 @@ func (q *SqlRepository) ChangeEmail(ctx context.Context, uid, oldEmail, newEmail
 	}
 	return
 }
+
+func (q *SqlRepository) UpdateName(ctx context.Context, uid, name string) (errCode string, err error) {
+	const queryUpdate = `update customers set name =  ? where uid = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, name, uid)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+func (q *SqlRepository) UpdatePhoneNumber(ctx context.Context, uid, phone string) (errCode string, err error) {
+	var oldPhone string
+	const query = `SELECT phone FROM customers where uid = ? AND deleted_at IS NULL`
+	row := q.db.DB.QueryRowContext(ctx, query, uid)
+	err = row.Scan(&oldPhone)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if oldPhone == phone {
+		err = errors.New(crashy.ErrSamePhoneSelf)
+		errCode = crashy.ErrSamePhoneSelf
+		return
+	}
+
+	var existPhone string
+	const queryCheckPhone = `SELECT phone FROM customers where uid != ? and phone = ? AND deleted_at IS NULL`
+	row = q.db.DB.QueryRowContext(ctx, queryCheckPhone, uid, phone)
+	err = row.Scan(&existPhone)
+	if err != nil && err != sql.ErrNoRows {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	if len(existPhone) > 0 {
+		err = errors.New(crashy.ErrDedupPhone)
+		errCode = crashy.ErrDedupPhone
+		return
+	}
+
+	const queryUpdate = `update customers set phone =  ? where uid = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, phone, uid)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) UpdateGender(ctx context.Context, uid, gender string) (errCode string, err error) {
+	const queryUpdate = `update customers set gender =  ? where uid = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, gender, uid)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
