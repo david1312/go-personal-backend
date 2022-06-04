@@ -49,14 +49,13 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		Expired:  expiredTime,
 	})
 
-
 	response.Yay(w, r, RefreshTokenResponse{
 		Token:        tokenLogin,
 		ExpiredAt:    expiredTime,
 		RefreshToken: tokenRefresh,
 		RTExpired:    expiredTimeRefresh,
-		AnonToken: anonToken,
-		AnonExpired: expiredTimeAnon,
+		AnonToken:    anonToken,
+		AnonExpired:  expiredTimeAnon,
 	}, http.StatusOK)
 
 }

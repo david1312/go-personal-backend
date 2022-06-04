@@ -115,7 +115,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 	}
 	for _, val := range prodImg {
 		listProductImage = append(listProductImage, ProductImage{
-			Url:       val.Url,
+			Url:       prd.baseAssetUrl + cn.ProductDir + val.Url,
 			IsDisplay: val.IsDisplay,
 		})
 	}
