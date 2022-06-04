@@ -12,6 +12,6 @@ type RefreshTokenResponse struct {
 	ExpiredAt    time.Time `json:"expired_at"`
 	RefreshToken string    `json:"refresh_token"`
 	RTExpired    time.Time `json:"refresh_token_expired"`
-	AnonToken string    `json:"anonymous_token"`
-	AnonExpired time.Time `json:"anonymous_token_expired"`
+	AnonToken    string    `json:"anonymous_token"`
+	AnonExpired  time.Time `json:"anonymous_token_expired"`
 }

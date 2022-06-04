@@ -349,7 +349,7 @@ func (usr *UsersHandler) UpdatePhoneNumber(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	errCode, err := usr.custRepository.UpdatePhoneNumber(ctx, authData.Uid,helper.ConvertPhoneNumber(p.Phone))
+	errCode, err := usr.custRepository.UpdatePhoneNumber(ctx, authData.Uid, helper.ConvertPhoneNumber(p.Phone))
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
