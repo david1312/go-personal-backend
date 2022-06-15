@@ -15,4 +15,5 @@ type CustomersRepository interface {
 	UpdateName(ctx context.Context, uid, name string) (errCode string, err error)
 	UpdatePhoneNumber(ctx context.Context, uid, phone string) (errCode string, err error)
 	UpdateGender(ctx context.Context, uid, gender string) (errCode string, err error)
+	UpdateBirthDate(ctx context.Context, uid, birthdate string) (errCode string, err error)
 }

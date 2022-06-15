@@ -57,12 +57,15 @@ const (
 	ErrInvalidPhone       = "ERR_INVALID_PHONE"
 	ErrSamePhoneSelf      = "ERR_SAME_PHONE_SELF"
 	ErrDedupPhone         = "ERR_DEDUP_PHONE"
+	ErrInvalidBirthDate   = "ERR_INVALID_BIRTHDATE"
 
 	//Err code product related
 	ErrInvalidProductID = "ERR_INVALID_PRODUCT_ID"
+	ErrExistsWishlist   = "ERR_EXIST_WISHLIST"
 )
 
 var mapper = map[ErrCode]string{
+	ErrInvalidToken:       "error veryfying token",
 	ErrCodeUnexpected:     "maaf, terjadi gangguan pada server",
 	ErrCodeNetBuild:       "failed to build connection to data source",
 	ErrCodeNetConnect:     "failed to establish connection to data source",
@@ -91,6 +94,8 @@ var mapper = map[ErrCode]string{
 	ErrInvalidPhone:       "nomor hp yang anda masukan tidak sesuai format",
 	ErrSamePhoneSelf:      "tidak bisa mengganti dengan nomor hp yang sama dengan nomor sebelumnya",
 	ErrDedupPhone:         "nomor hp yang anda masukan sudah digunakan",
+	ErrInvalidBirthDate:   "format tanggal wajib yyyy-mm-dd (contoh : 1996-12-02)",
+	ErrExistsWishlist:     "produk yang dipilih sudah berada dalam wishlist anda",
 }
 
 //Message retrieve error messages from given error code

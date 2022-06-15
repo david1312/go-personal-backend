@@ -90,12 +90,23 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r.Post("/update-name", custHandler.UpdateName)
 		r.Post("/update-gender", custHandler.UpdateGender)
 		r.Post("/update-phone", custHandler.UpdatePhoneNumber)
+		r.Post("/update-birthdate", custHandler.UpdateBirthDate)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
 		r.Get("/", prodHandler.GetListProducts)
 		r.Get("/detail", prodHandler.GetProductDetail)
+		r.Post("/cart/add", prodHandler.GetProductDetail)
+		r.Post("/cart/remove", prodHandler.GetProductDetail)
+		r.Get("/cart/get", prodHandler.GetProductDetail)
+	})
+
+	r.Route("/v1/products/wishlist", func(r chi.Router) {
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
+		r.Post("/add", prodHandler.WishlistAdd)
+		r.Post("/remove", prodHandler.WishlistRemove)
+		r.Get("/me", prodHandler.WishlistMe)
 	})
 
 	return r

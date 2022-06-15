@@ -61,15 +61,12 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request) {
-	// var (
-	// 	ctx      = r.Context()
-	// 	// authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
-	// )
+	uid := uuid.New().String()
 
 	//generate token
 	expiredTime := time.Now().Add(time.Hour * 24 * 30)
 	_, token, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
-		Uid:      uuid.New().String(),
+		Uid:      uid,
 		CustName: "",
 		Expired:  expiredTime,
 	})

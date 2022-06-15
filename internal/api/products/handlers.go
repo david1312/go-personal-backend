@@ -10,6 +10,9 @@ import (
 	"semesta-ban/repository/repo_products"
 	"strconv"
 
+	localMdl "semesta-ban/internal/api/middleware"
+
+	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -61,7 +64,7 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 			Disc:           val.Disc,
 			NamaUkuran:     val.NamaUkuran,
 			HargaJualFinal: val.HargaJualFinal,
-			IsWishList:     false,
+			IsWishList:     val.IsWishlist,
 			JenisBan:       val.JenisBan,
 			DisplayImage:   prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
 		})
@@ -127,7 +130,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		Disc:           product.Disc,
 		NamaUkuran:     product.NamaUkuran,
 		HargaJualFinal: product.HargaJualFinal,
-		IsWishList:     false, //todo to be implemented
+		IsWishList:     product.IsWishlist, 
 		JenisBan:       product.JenisBan,
 		Posisi:         product.NamaPosisi,
 		JenisMotor:     "Bebek",
@@ -170,4 +173,124 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 			},
 		},
 	}, http.StatusOK)
+}
+
+func (prd *ProductsHandler) WishlistAdd(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		p        WishlistRequest
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
+		return
+	}
+
+	errCode, err = prd.prodRepo.WishlistAdd(ctx, custId, p.KodePLU)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (prd *ProductsHandler) WishlistRemove(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		p        WishlistRequest
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
+		return
+	}
+
+	errCode, err = prd.prodRepo.WishlistRemove(ctx, custId, p.KodePLU)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) WishlistMe(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		fp       = NewProductsParams(r)
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
+		return
+	}
+
+	listProduct := []ProductsResponse{}
+	listProductRes, totalData, errCode, err := prd.prodRepo.WishlistMe(ctx, custId, repo_products.ProductsParamsTemp{
+		Limit: fp.Limit,
+		Page:  fp.Page,
+	})
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	for _, val := range listProductRes {
+		listProduct = append(listProduct, ProductsResponse{
+			KodePLU:        val.KodePLU,
+			NamaBarang:     val.NamaBarang,
+			Disc:           val.Disc,
+			NamaUkuran:     val.NamaUkuran,
+			HargaJualFinal: val.HargaJualFinal,
+			IsWishList:     true,
+			JenisBan:       val.JenisBan,
+			DisplayImage:   prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
+		})
+	}
+
+	response.Yay(w, r, ListProductsResponse{
+		Products: listProduct,
+		DataInfo: DataInfo{
+			CurrentPage: fp.Page,
+			MaxPage: func() int {
+				maxPage := float64(totalData) / float64(fp.Limit)
+				if helper.IsFloatNoDecimal(maxPage) {
+					return int(maxPage)
+				}
+				return int(maxPage) + 1
+			}(),
+			Limit:       fp.Limit,
+			TotalRecord: totalData,
+		},
+	}, http.StatusOK)
+
 }

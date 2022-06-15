@@ -158,3 +158,17 @@ func (m *UpdatePhoneRequest) ValidateUpdatePhoneRequest() error {
 		validation.Field(&m.Phone, validation.Required),
 	)
 }
+
+type UpdateBirthDateRequest struct {
+	Birthdate string `json:"birthdate"`
+}
+
+func (m *UpdateBirthDateRequest) Bind(r *http.Request) error {
+	return m.ValidateUpdateBirthDateRequest()
+}
+
+func (m *UpdateBirthDateRequest) ValidateUpdateBirthDateRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Birthdate, validation.Required),
+	)
+}
