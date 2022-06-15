@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	localMdl "semesta-ban/internal/api/middleware"
 	"semesta-ban/internal/api/response"
@@ -62,9 +61,8 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("called")
 	uid := uuid.New().String()
-	fmt.Println(uid)
+
 	//generate token
 	expiredTime := time.Now().Add(time.Hour * 24 * 30)
 	_, token, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
