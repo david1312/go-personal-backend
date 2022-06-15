@@ -215,6 +215,11 @@ func (prd *ProductsHandler) WishlistRemove(w http.ResponseWriter, r *http.Reques
 		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
 
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
 	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
