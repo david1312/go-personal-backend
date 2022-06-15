@@ -251,16 +251,18 @@ func (q *SqlRepository) UpdateName(ctx context.Context, uid, name string) (errCo
 	return
 }
 func (q *SqlRepository) UpdatePhoneNumber(ctx context.Context, uid, phone string) (errCode string, err error) {
-	var oldPhone string
+	var oldPhone sql.NullString
 	const query = `SELECT phone FROM customers where uid = ? AND deleted_at IS NULL`
 	row := q.db.DB.QueryRowContext(ctx, query, uid)
 	err = row.Scan(&oldPhone)
 
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows  {
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
-	if oldPhone == phone {
+
+
+	if oldPhone.String == phone {
 		err = errors.New(crashy.ErrSamePhoneSelf)
 		errCode = crashy.ErrSamePhoneSelf
 		return
