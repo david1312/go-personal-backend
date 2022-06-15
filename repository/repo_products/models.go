@@ -23,6 +23,7 @@ type Products struct {
 	JenisMotor     string  `json:"jenis_motor"`
 	TotalTerjual   int     `json:"total_terjual"`
 	Deskripsi      string  `json:"deskripsi"`
+	IsWishlist bool `json:"is_wishlist"`
 }
 
 type ProductsParamsTemp struct {
@@ -37,9 +38,15 @@ type ProductsParamsTemp struct {
 	MaxPrice  int
 	OrderBy   string
 	OrderType string
+	CustomerId int
 }
 
 type ProductImage struct {
 	Url       string
 	IsDisplay string
+}
+
+type CustomerResponse struct {
+	Id  int    `json:"id"`
+	Uid string `json:"uid"`
 }

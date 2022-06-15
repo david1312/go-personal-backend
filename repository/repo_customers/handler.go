@@ -302,3 +302,13 @@ func (q *SqlRepository) UpdateGender(ctx context.Context, uid, gender string) (e
 	}
 	return
 }
+func (q *SqlRepository) UpdateBirthDate(ctx context.Context, uid, birthdate string) (errCode string, err error) {
+	const queryUpdate = `update customers set birthdate =  ? where uid = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, birthdate, uid)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}

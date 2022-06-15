@@ -9,13 +9,13 @@ import (
 	"semesta-ban/pkg/helper"
 	"semesta-ban/pkg/log"
 	custRepo "semesta-ban/repository/repo_customers"
+	"strings"
 	"time"
 
 	localMdl "semesta-ban/internal/api/middleware"
 	cn "semesta-ban/pkg/constants"
 
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/gomail.v2"
 )
@@ -43,9 +43,11 @@ func NewUsersHandler(db *sqlx.DB, cr custRepo.CustomersRepository, jwt *localMdl
 
 func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var (
-		p   RegisterRequest
-		ctx = r.Context()
+		p        RegisterRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
+	
 	if err := render.Bind(r, &p); err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
 		return
@@ -68,8 +70,8 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hashedTokenEmail := helper.GenerateHashString()
-	uid := uuid.New().String()
-	errCode, err = usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, uid)
+
+	errCode, err = usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, authData.Uid)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
@@ -81,7 +83,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	//generate token
 	expiredTime := time.Now().Add(24 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
-		Uid:      uid,
+		Uid:      authData.Uid,
 		CustName: p.Name,
 
 		Expired: expiredTime,
@@ -90,7 +92,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	//generate refresh token
 	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
-		Uid:      uid,
+		Uid:      authData.Uid,
 		CustName: p.Name,
 		Expired:  expiredTimeRefresh,
 	})
@@ -378,6 +380,39 @@ func (usr *UsersHandler) UpdateGender(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	errCode, err := usr.custRepository.UpdateGender(ctx, authData.Uid, p.Gender)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (usr *UsersHandler) UpdateBirthDate(w http.ResponseWriter, r *http.Request) {
+	var (
+		p        UpdateBirthDateRequest
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	date := strings.Split(p.Birthdate, "-")
+	if len(date) != 3 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidBirthDate), crashy.ErrInvalidBirthDate, crashy.Message(crashy.ErrCode(crashy.ErrInvalidBirthDate))), http.StatusBadRequest)
+		return
+	}
+
+	if len(date[0]) != 4 || len(date[1]) != 2 || len(date[2]) != 2 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidBirthDate), crashy.ErrInvalidBirthDate, crashy.Message(crashy.ErrCode(crashy.ErrInvalidBirthDate))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := usr.custRepository.UpdateBirthDate(ctx, authData.Uid, p.Birthdate)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return

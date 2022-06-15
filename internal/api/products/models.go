@@ -3,6 +3,8 @@ package products
 import (
 	"net/http"
 	"strconv"
+
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 type ProductsParams struct {
@@ -110,4 +112,18 @@ type ProductReview struct {
 type MotorCycleCompatibility struct {
 	MerkMotor    string `json:"url"`
 	DisplayImage string `json:"display_image"`
+}
+
+type WishlistRequest struct {
+	KodePLU int `json:"id"`
+}
+
+func (m *WishlistRequest) Bind(r *http.Request) error {
+	return m.ValidateWishlistRequest()
+}
+
+func (m *WishlistRequest) ValidateWishlistRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.KodePLU, validation.Required),
+	)
 }

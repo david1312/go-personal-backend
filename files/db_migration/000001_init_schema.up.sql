@@ -2,7 +2,7 @@ BEGIN;
 
 create table customers
 (
-    id              int primary key AUTO_INCREMENT,
+    id              bigint primary key AUTO_INCREMENT,
     uid             varchar(36) not null UNIQUE,
     name            varchar(100) not null,
     password        varchar(200) not null,
@@ -25,26 +25,39 @@ create table customers
 
 create table carts
 (
-    id              int primary key AUTO_INCREMENT,
+    id              bigint primary key AUTO_INCREMENT,
+    customer_id              bigint,
     uid             varchar(36) not null UNIQUE,
-    name            varchar(100) not null,
-    password        varchar(200) not null,
-    email           varchar(200) not null,
-    email_verified_token varchar(64),
-    email_verified_at timestamp NULL DEFAULT NULL,
-    email_verified_sent   tinyint NOT NULL default 0,
-    email_change_code  varchar(6) NULL DEFAULT null,
-    email_change_eligible      boolean not null default false,
-    gender          enum('LAKI-LAKI', 'PEREMPUAN'),
-    is_active       boolean not null default true,
-    phone           varchar(20),
-    phone_verified_at timestamp NULL DEFAULT NULL,
-    avatar          varchar(100),
-    birthdate       DATE NULL DEFAULT NULL,
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at      timestamp NULL DEFAULT NULL
+    deleted_at      timestamp NULL DEFAULT NULL,
+
+    foreign key (customer_id) references customers (id)
 );
+
+create table carts_item
+(
+    carts_id              bigint not null,
+    product_code              varchar(45) not null,
+    qty             int not null default 1,
+    is_active   boolean not null default true,
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    foreign key (carts_id) references carts(id),
+    foreign key (product_code) references tblmasterplu(KodeBarang)
+);
+
+create table wishlists
+(
+    customer_id              bigint not null,
+    product_id              bigint not null,
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+     foreign key (customer_id) references customers (id),
+    foreign key (product_id) references tblmasterplu(KodePLU)
+);
+
 
 -- create type priority_events_enum as enum ('LOW','MEDIUM','HIGH','CRITICAL');
 -- create table events
