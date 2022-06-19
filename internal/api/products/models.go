@@ -127,3 +127,68 @@ func (m *WishlistRequest) ValidateWishlistRequest() error {
 		validation.Field(&m.KodePLU, validation.Required),
 	)
 }
+
+type CartItemUpdateRequest struct {
+	CartItemId int  `json:"cart_item_id"`
+	Qty        int  `json:"qty"`
+	IsSelected bool `json:"is_selected"`
+}
+
+func (m *CartItemUpdateRequest) Bind(r *http.Request) error {
+	return m.ValidateCartItemUpdateRequest()
+}
+
+func (m *CartItemUpdateRequest) ValidateCartItemUpdateRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.CartItemId, validation.Required),
+		validation.Field(&m.Qty, validation.Required),
+	)
+}
+
+type CartItemRemoveRequest struct {
+	CartItemId int `json:"cart_item_id"`
+}
+
+func (m *CartItemRemoveRequest) Bind(r *http.Request) error {
+	return m.ValidateCartItemRemoveRequest()
+}
+
+func (m *CartItemRemoveRequest) ValidateCartItemRemoveRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.CartItemId, validation.Required),
+	)
+}
+
+type CartSelectAllRequest struct {
+	CartId      int  `json:"cart_id"`
+	IsSelectAll bool `json:"is_select_all"`
+}
+
+func (m *CartSelectAllRequest) Bind(r *http.Request) error {
+	return m.ValidateCartSelectAllRequest()
+}
+
+func (m *CartSelectAllRequest) ValidateCartSelectAllRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.CartId, validation.Required),
+	)
+}
+
+type CartResponse struct {
+	CartItemId         int     `json:"cart_item_id"`
+	CartItemQty        int     `json:"cart_item_qty"`
+	CartItemIsSelected bool     `json:"cart_item_is_selected"`
+	KodePLU            int32   `json:"id"`
+	NamaBarang         string  `json:"nama_barang"`
+	Disc               float32 `json:"disc"`
+	NamaUkuran         string  `json:"ukuran"`
+	HargaJualFinal     float64 `json:"harga_jual_final"`
+	JenisBan           string  `json:"jenis_ban"`
+	DisplayImage       string  `json:"display_image"`
+}
+
+type ListItemCartResponse struct {
+	DataInfo  DataInfo       `json:"info"`
+	CartId    int            `json:"cart_id"`
+	CartsItem []CartResponse `json:"data"`
+}

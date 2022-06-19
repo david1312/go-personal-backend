@@ -6,6 +6,7 @@ import (
 
 type Customers struct {
 	ID                 int32          `json:"id"`
+	CustId             string         `json:"cust_id"`
 	Uid                string         `json:"uid"`
 	Name               string         `json:"name"`
 	Password           string         `json:"password"`

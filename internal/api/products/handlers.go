@@ -30,10 +30,22 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 	var (
 		ctx = r.Context()
 		fp  = NewProductsParams(r)
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
 
 	if (len(fp.OrderBy) > 0 && !helper.ValidateParam(fp.OrderBy)) || (len(fp.OrderType) > 0 && !helper.ValidateParam(fp.OrderType)) {
 		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, crashy.Message(crashy.ErrCodeValidation)), http.StatusBadRequest)
+		return
+	}
+
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
 		return
 	}
 
@@ -50,7 +62,7 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 		MaxPrice:  fp.MaxPrice,
 		OrderBy:   fp.OrderBy,
 		OrderType: fp.OrderType,
-	})
+	}, custId)
 
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
@@ -91,6 +103,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 	var (
 		ctx              = r.Context()
 		listProductImage = []ProductImage{}
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
 
 	productId, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -105,7 +118,18 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	product, errCode, err := prd.prodRepo.GetProductDetail(ctx, productId)
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
+		return
+	}
+
+	product, errCode, err := prd.prodRepo.GetProductDetail(ctx, productId, custId)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
@@ -130,7 +154,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		Disc:           product.Disc,
 		NamaUkuran:     product.NamaUkuran,
 		HargaJualFinal: product.HargaJualFinal,
-		IsWishList:     product.IsWishlist, 
+		IsWishList:     product.IsWishlist,
 		JenisBan:       product.JenisBan,
 		Posisi:         product.NamaPosisi,
 		JenisMotor:     "Bebek",
@@ -284,6 +308,192 @@ func (prd *ProductsHandler) WishlistMe(w http.ResponseWriter, r *http.Request) {
 
 	response.Yay(w, r, ListProductsResponse{
 		Products: listProduct,
+		DataInfo: DataInfo{
+			CurrentPage: fp.Page,
+			MaxPage: func() int {
+				maxPage := float64(totalData) / float64(fp.Limit)
+				if helper.IsFloatNoDecimal(maxPage) {
+					return int(maxPage)
+				}
+				return int(maxPage) + 1
+			}(),
+			Limit:       fp.Limit,
+			TotalRecord: totalData,
+		},
+	}, http.StatusOK)
+
+}
+
+func (prd *ProductsHandler) CartAdd(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		p        WishlistRequest
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	cartId, errCode, err := prd.prodRepo.CartCheck(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if cartId == 0 {
+		cartId, errCode, err = prd.prodRepo.CartAdd(ctx, authData.Uid)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	cartItemId, qty, errCode, err := prd.prodRepo.CartItemCheck(ctx, cartId, p.KodePLU)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if cartItemId == 0 {
+		errCode, err = prd.prodRepo.CartItemAdd(ctx, cartId, p.KodePLU)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		errCode, err = prd.prodRepo.CartItemUpdate(ctx, cartItemId, (qty + 1), true)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) CartRemove(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   CartItemRemoveRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := prd.prodRepo.CartItemRemove(ctx, p.CartItemId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) CartUpdate(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   CartItemUpdateRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := prd.prodRepo.CartItemUpdate(ctx, p.CartItemId, p.Qty, p.IsSelected)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) CartSelectDeselectAll(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   CartSelectAllRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := prd.prodRepo.CartSelectDeselectAll(ctx, p.CartId, p.IsSelectAll)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) CartMe(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		fp       = NewProductsParams(r)
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
+		return
+	}
+
+	cartId, errCode, err := prd.prodRepo.CartCheck(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if cartId == 0 {
+		cartId, errCode, err = prd.prodRepo.CartAdd(ctx, authData.Uid)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	listCartItem := []CartResponse{}
+	listProductRes, totalData, errCode, err := prd.prodRepo.CartMe(ctx, cartId, repo_products.ProductsParamsTemp{
+		Limit: fp.Limit,
+		Page:  fp.Page,
+	})
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	for _, val := range listProductRes {
+		listCartItem = append(listCartItem, CartResponse{
+			CartItemId: val.CartItemId,
+			CartItemQty: val.CartItemQty,
+			CartItemIsSelected: val.CartItemIsSelected,
+			KodePLU:        val.KodePLU,
+			NamaBarang:     val.NamaBarang,
+			Disc:           val.Disc,
+			NamaUkuran:     val.NamaUkuran,
+			HargaJualFinal: val.HargaJualFinal,
+			JenisBan:       val.JenisBan,
+			DisplayImage:   prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
+		})
+	}
+
+	response.Yay(w, r, ListItemCartResponse{
+		CartId: cartId,
+		CartsItem: listCartItem,
 		DataInfo: DataInfo{
 			CurrentPage: fp.Page,
 			MaxPage: func() int {

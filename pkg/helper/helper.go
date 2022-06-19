@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -68,5 +70,23 @@ func ConvertPhoneNumber(inputNumber string) (res string) {
 		res = strings.Replace(res, "0", "62", 1)
 	}
 	res = strings.ReplaceAll(res, " ", "")
+	return
+}
+
+func GenerateCustomerId(lastId string) (res string) {
+	splitted := strings.Split(lastId, "-")
+
+	test, _ := strconv.Atoi(splitted[1])
+	test++
+	secRes := strconv.Itoa(test)
+	if test <= 9 {
+		secRes = fmt.Sprintf("000%v", test)
+	} else if test <= 99 && test > 9 {
+		secRes = fmt.Sprintf("00%v", test)
+	} else if test <= 999 && test > 99 {
+		secRes = fmt.Sprintf("0%v", test)
+	}
+
+	res = fmt.Sprintf("%s-%v", splitted[0], secRes)
 	return
 }
