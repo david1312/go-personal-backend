@@ -7,6 +7,7 @@ import (
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -61,17 +62,43 @@ func (q *SqlRepository) CheckEmailExist(ctx context.Context, email string) (res 
 }
 
 func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, password, uid string) (errCode string, err error) {
-	const query = `insert into customers (uid, name, password, email, email_verified_token, is_active, email_verified_sent) 
-	VALUES (?, ?, ?, ?, ?, true, 1) `
+	var lastCustId string
+	const query = `select cust_id from customers order by id desc limit 1`
+	row := q.db.DB.QueryRowContext(ctx, query)
+	err = row.Scan(&lastCustId)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	//check uid exist prevent bug
+	var isUidExists bool
+	const queryChecker = `select EXISTS(select uid from customers where uid = ?)`
+	rowChecker := q.db.DB.QueryRowContext(ctx, queryChecker, uid)
+	err = rowChecker.Scan(&isUidExists)
+
+	cleanUid := uid
+	if isUidExists {
+		cleanUid = uuid.New().String()
+	}
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	newCustId := helper.GenerateCustomerId(lastCustId)
+
+	const queryInsert = `insert into customers (uid, name, password, email, email_verified_token, is_active, email_verified_sent, cust_id) 
+	VALUES (?, ?, ?, ?, ?, true, 1, ?) `
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
-	_, err = q.db.ExecContext(ctx, query, uid,
+	_, err = q.db.ExecContext(ctx, queryInsert, cleanUid,
 		name,
-		string(hashedPass), email, emailToken,
+		string(hashedPass), email, emailToken, newCustId,
 	)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -99,7 +126,7 @@ func (q *SqlRepository) VerifyEmail(ctx context.Context, emailToken string) (err
 }
 
 func (q *SqlRepository) GetCustomer(ctx context.Context, uid string) (res Customers, errCode string, err error) {
-	const query = `SELECT name, email, email_verified_at, gender, phone, phone_verified_at, avatar, birthdate FROM customers where uid = ? AND deleted_at IS NULL`
+	const query = `SELECT name, email, email_verified_at, gender, phone, phone_verified_at, avatar, birthdate, cust_id FROM customers where uid = ? AND deleted_at IS NULL`
 	row := q.db.DB.QueryRowContext(ctx, query, uid)
 
 	err = row.Scan(
@@ -111,6 +138,7 @@ func (q *SqlRepository) GetCustomer(ctx context.Context, uid string) (res Custom
 		&res.PhoneVerifiedAt,
 		&res.Avatar,
 		&res.Birthdate,
+		&res.CustId,
 	)
 
 	if err != nil {
@@ -256,11 +284,10 @@ func (q *SqlRepository) UpdatePhoneNumber(ctx context.Context, uid, phone string
 	row := q.db.DB.QueryRowContext(ctx, query, uid)
 	err = row.Scan(&oldPhone)
 
-	if err != nil && err != sql.ErrNoRows  {
+	if err != nil && err != sql.ErrNoRows {
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
-
 
 	if oldPhone.String == phone {
 		err = errors.New(crashy.ErrSamePhoneSelf)

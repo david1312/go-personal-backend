@@ -47,7 +47,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		ctx      = r.Context()
 		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
-	
+
 	if err := render.Bind(r, &p); err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
 		return
@@ -171,6 +171,10 @@ func (usr *UsersHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	if customer.Birthdate.Time.IsZero() {
 		birthdateVal = ""
 	}
+	avatar := usr.baseAssetUrl + cn.UserDir + customer.Avatar.String
+	if len(customer.Avatar.String) == 0 {
+		avatar = ""
+	}
 
 	response.Yay(w, r, GetCustomerResponse{
 		Name:          customer.Name,
@@ -179,8 +183,9 @@ func (usr *UsersHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		Phone:         customer.Phone.String,
 		PhoneVerified: isPhoneVerified,
 		Gender:        customer.Gender.String,
-		Avatar:        usr.baseAssetUrl + cn.UserDir + customer.Avatar.String,
+		Avatar:        avatar,
 		Birthdate:     birthdateVal,
+		CustId:        customer.CustId,
 	}, http.StatusOK)
 }
 

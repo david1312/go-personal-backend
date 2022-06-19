@@ -26,26 +26,25 @@ create table customers
 create table carts
 (
     id              bigint primary key AUTO_INCREMENT,
-    customer_id              bigint,
-    uid             varchar(36) not null UNIQUE,
+    customer_uid             varchar(36) not null UNIQUE,
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at      timestamp NULL DEFAULT NULL,
+    deleted_at      timestamp NULL DEFAULT NULL
 
-    foreign key (customer_id) references customers (id)
 );
 
 create table carts_item
 (
+    id              bigint primary key AUTO_INCREMENT,
     carts_id              bigint not null,
-    product_code              varchar(45) not null,
+    product_id              bigint not null,
     qty             int not null default 1,
-    is_active   boolean not null default true,
+    is_selected   boolean not null default true,
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     foreign key (carts_id) references carts(id),
-    foreign key (product_code) references tblmasterplu(KodeBarang)
+    foreign key (product_id) references tblmasterplu(KodePLU)
 );
 
 create table wishlists
@@ -54,7 +53,7 @@ create table wishlists
     product_id              bigint not null,
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     
-     foreign key (customer_id) references customers (id),
+    foreign key (customer_id) references customers (id),
     foreign key (product_id) references tblmasterplu(KodePLU)
 );
 

@@ -67,6 +67,7 @@ type GetCustomerResponse struct {
 	Gender        string `json:"gender"`
 	Avatar        string `json:"avatar"`
 	Birthdate     string `json:"birthdate"`
+	CustId        string `json:"cust_id"`
 }
 
 type ChangePwdRequest struct {

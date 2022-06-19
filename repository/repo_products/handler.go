@@ -21,7 +21,7 @@ func NewSqlRepository(db *sqlx.DB) *SqlRepository {
 	}
 }
 
-func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTemp) (res []Products, totalData int, errCode string, err error) {
+func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTemp, custId int) (res []Products, totalData int, errCode string, err error) {
 	var (
 		args        = make([]interface{}, 0)
 		whereParams = ""
@@ -29,7 +29,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 		orderBy     = "a.NamaBarang"
 		orderType   = "asc"
 	)
-
+	
 	if len(fp.Name) > 0 {
 		lowerName := strings.ToLower(fp.Name)
 		whereParams += "and LOWER(a.NamaBarang) LIKE CONCAT('%', ?, '%') "
@@ -89,7 +89,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 
 	query := `
 	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, e.URL, a.JenisBan,
-	(select exists(select x.product_id from wishlists x where x.customer_id = 4 and x.product_id = a.KodePLU)) as isWishlist
+	(select exists(select x.product_id from wishlists x where x.customer_id = ` + fmt.Sprintf("%v", custId) +` and x.product_id = a.KodePLU)) as isWishlist
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
@@ -137,17 +137,17 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	return
 }
 
-func (q *SqlRepository) GetProductDetail(ctx context.Context, id int) (res Products, errCode string, err error) {
+func (q *SqlRepository) GetProductDetail(ctx context.Context, id, custId int) (res Products, errCode string, err error) {
 	query := `
 	select a.KodePLU, a.KodeBarang,  a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, a.JenisBan, d.Posisi, a.Deskripsi,
-	(select exists(select x.product_id from wishlists x where x.customer_id = 4 and x.product_id = a.KodePLU)) as isWishlist
+	(select exists(select x.product_id from wishlists x where x.customer_id = ? and x.product_id = a.KodePLU)) as isWishlist
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	where a.KodePLU = ? `
 
-	row := q.db.DB.QueryRowContext(ctx, query, id)
+	row := q.db.DB.QueryRowContext(ctx, query, custId, id)
 
 	err = row.Scan(
 		&res.KodePLU,
@@ -215,9 +215,7 @@ func (q *SqlRepository) GetCustomerId(ctx context.Context, uid string) (custId i
 	if err != nil && err != sql.ErrNoRows {
 		errCode = crashy.ErrCodeUnexpected
 		return
-	}
-
-	if err != nil && err == sql.ErrNoRows {
+	} else if err != nil && err == sql.ErrNoRows {
 		err = nil
 		return
 	}
@@ -294,8 +292,7 @@ func (q *SqlRepository) WishlistMe(ctx context.Context, custId int, fp ProductsP
         inner join wishlists f on f.product_id = a.KodePLU
 		where f.customer_id = ?
 		order by f.created_at desc limit ? offset ?`
-	
-	
+
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -316,6 +313,171 @@ func (q *SqlRepository) WishlistMe(ctx context.Context, custId int, fp ProductsP
 			&i.NamaUkuran,
 			&i.DisplayImage,
 			&i.JenisBan,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+
+}
+
+func (q *SqlRepository) CartCheck(ctx context.Context, custUid string) (cartId int, errCode string, err error) {
+	const query = `SELECT id FROM carts where customer_uid = ?`
+	row := q.db.DB.QueryRowContext(ctx, query, custUid)
+	err = row.Scan(&cartId)
+
+	if err != nil && err != sql.ErrNoRows {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	} else if err != nil && err == sql.ErrNoRows {
+		err = nil
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) CartAdd(ctx context.Context, custUid string) (cartId int, errCode string, err error) {
+	const query = `INSERT INTO carts (customer_uid) VALUES (?)`
+	res, err := q.db.ExecContext(ctx, query, custUid)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+
+	cartId = int(lastId)
+
+	return
+}
+
+func (q *SqlRepository) CartItemCheck(ctx context.Context, cartId, productId int) (cartItemId, qty int, errCode string, err error) {
+	const query = `SELECT id, qty FROM carts_item where carts_id = ? and product_id = ?`
+	row := q.db.DB.QueryRowContext(ctx, query, cartId, productId)
+	err = row.Scan(&cartItemId, &qty)
+
+	if err != nil && err != sql.ErrNoRows {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	} else if err != nil && err == sql.ErrNoRows {
+		err = nil
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) CartItemAdd(ctx context.Context, cartId, productId int) (errCode string, err error) {
+	const query = `INSERT INTO carts_item (carts_id, product_id, qty, is_selected) VALUES (?, ?, 1, true)`
+	_, err = q.db.ExecContext(ctx, query, cartId, productId)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+
+	return
+}
+
+func (q *SqlRepository) CartItemUpdate(ctx context.Context, cartItemId, qty int, isSelected bool) (errCode string, err error) {
+	const queryUpdate = `update carts_item set qty =  ?, is_selected = ? where id = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, qty, isSelected, cartItemId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) CartItemRemove(ctx context.Context, cartItemId int) (errCode string, err error) {
+	const queryUpdate = `delete from carts_item where id = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, cartItemId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) CartSelectDeselectAll(ctx context.Context, cartId int, isSelectAll bool) (errCode string, err error) {
+	const queryUpdate = `update carts_item set is_selected = ? where carts_id = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, isSelectAll, cartId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) CartMe(ctx context.Context, cartId int, fp ProductsParamsTemp) (res []Products, totalData int, errCode string, err error) {
+	var (
+		args      = make([]interface{}, 0)
+		offsetNum = (fp.Page - 1) * fp.Limit
+	)
+	queryRecords := `
+	select count(a.KodePLU)
+	from tblmasterplu a
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
+	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
+	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
+        inner join carts_item f on f.product_id = a.KodePLU
+		where f.carts_id = ?`
+	args = append(args, cartId)
+
+	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	args = append(args, fp.Limit, offsetNum)
+
+	query := `
+	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, e.URL, a.JenisBan, f.id, f.qty, f.is_selected
+	from tblmasterplu a
+	inner join tblmerkban b on a.IDMerk = b.IDMerk
+	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
+	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
+	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
+	inner join carts_item f on f.product_id = a.KodePLU
+	where f.carts_id = ?
+		order by f.created_at desc limit ? offset ?`
+
+	rows, err := q.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i Products
+
+		if err = rows.Scan(
+			&i.KodePLU,
+			&i.NamaBarang,
+			&i.Disc,
+			&i.HargaJual,
+			&i.HargaJualFinal,
+			&i.NamaUkuran,
+			&i.DisplayImage,
+			&i.JenisBan,
+			&i.CartItemId,
+			&i.CartItemQty,
+			&i.CartItemIsSelected,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
