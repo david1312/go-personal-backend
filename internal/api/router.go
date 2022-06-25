@@ -91,6 +91,7 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r.Post("/update-gender", custHandler.UpdateGender)
 		r.Post("/update-phone", custHandler.UpdatePhoneNumber)
 		r.Post("/update-birthdate", custHandler.UpdateBirthDate)
+		r.Post("/upload-profile-img", custHandler.UploadProfileImg)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
