@@ -44,11 +44,6 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if custId == 0 {
-		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
-		return
-	}
-
 	listProduct := []ProductsResponse{}
 	listProductRes, totalData, errCode, err := prd.prodRepo.GetListProducts(ctx, repo_products.ProductsParamsTemp{
 		Limit:     fp.Limit,
@@ -121,11 +116,6 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
-		return
-	}
-
-	if custId == 0 {
-		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
 		return
 	}
 

@@ -427,6 +427,40 @@ func (usr *UsersHandler) UpdateBirthDate(w http.ResponseWriter, r *http.Request)
 
 }
 
+func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request) {
+	// var (
+	// 	p        UpdateBirthDateRequest
+	// 	ctx      = r.Context()
+	// 	authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	// )
+
+	// if err := render.Bind(r, &p); err != nil {
+	// 	response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+	// 	return
+	// }
+
+	// date := strings.Split(p.Birthdate, "-")
+	// if len(date) != 3 {
+	// 	response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidBirthDate), crashy.ErrInvalidBirthDate, crashy.Message(crashy.ErrCode(crashy.ErrInvalidBirthDate))), http.StatusBadRequest)
+	// 	return
+	// }
+
+	// if len(date[0]) != 4 || len(date[1]) != 2 || len(date[2]) != 2 {
+	// 	response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidBirthDate), crashy.ErrInvalidBirthDate, crashy.Message(crashy.ErrCode(crashy.ErrInvalidBirthDate))), http.StatusBadRequest)
+	// 	return
+	// }
+
+	// errCode, err := usr.custRepository.UpdateBirthDate(ctx, authData.Uid, p.Birthdate)
+	// if err != nil {
+	// 	response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+	// 	return
+	// }
+	fmt.Println("HEI")
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
 func sendMail(to, subject, body string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", CONFIG_SENDER_NAME)
