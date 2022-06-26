@@ -26,7 +26,7 @@ type Products struct {
 	IsWishlist         bool    `json:"is_wishlist"`
 	CartItemId         int     `json:"cart_item_id"`
 	CartItemQty        int     `json:"cart_item_qty"`
-	CartItemIsSelected bool     `json:"cart_item_is_selected"`
+	CartItemIsSelected bool    `json:"cart_item_is_selected"`
 }
 
 type ProductsParamsTemp struct {

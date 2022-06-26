@@ -90,3 +90,12 @@ func GenerateCustomerId(lastId string) (res string) {
 	res = fmt.Sprintf("%s-%v", splitted[0], secRes)
 	return
 }
+
+func ConvertFileSizeToMb(size int) (res int) {
+	return size * 1000000
+}
+
+func GetUploadedFileName(file string) string {
+	spliited := strings.Split(file, "/")
+	return spliited[2]
+}

@@ -28,7 +28,12 @@ type Config struct {
 	} `yaml:"api"`
 
 	Assets struct {
-		Url string `yaml:"url"`
+		BaseUrl    string `yaml:"base_url"`
+		UploadPath string `yaml:"upload_path"`
+		ProfilePic struct {
+			MaxSize int    `yaml:"max_size"`
+			Path    string `yaml:"path"`
+		} `yaml:"profile_pic"`
 	} `yaml:"assets"`
 }
 

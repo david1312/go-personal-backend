@@ -18,10 +18,13 @@ import (
 )
 
 type ServerConfig struct {
-	EncKey        string
-	JWTKey        string
-	AnonymousKey  string
-	BaseAssetsUrl string
+	EncKey            string
+	JWTKey            string
+	AnonymousKey      string
+	BaseAssetsUrl     string
+	UploadPath        string
+	ProfilePicPath    string
+	ProfilePicMaxSize int
 }
 
 //todo add rate limiter
@@ -37,7 +40,7 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		cuRepo            = repo_customers.NewSqlRepository(db)
 		prRepo            = repo_products.NewSqlRepository(db)
 		mdRepo            = repo_master_data.NewSqlRepository(db)
-		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl)
+		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, cnf.BaseAssetsUrl)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)

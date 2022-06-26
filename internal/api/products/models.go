@@ -177,7 +177,7 @@ func (m *CartSelectAllRequest) ValidateCartSelectAllRequest() error {
 type CartResponse struct {
 	CartItemId         int     `json:"cart_item_id"`
 	CartItemQty        int     `json:"cart_item_qty"`
-	CartItemIsSelected bool     `json:"cart_item_is_selected"`
+	CartItemIsSelected bool    `json:"cart_item_is_selected"`
 	KodePLU            int32   `json:"id"`
 	NamaBarang         string  `json:"nama_barang"`
 	Disc               float32 `json:"disc"`
