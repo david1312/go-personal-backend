@@ -29,7 +29,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 		orderBy     = "a.NamaBarang"
 		orderType   = "asc"
 	)
-	
+
 	if len(fp.Name) > 0 {
 		lowerName := strings.ToLower(fp.Name)
 		whereParams += "and LOWER(a.NamaBarang) LIKE CONCAT('%', ?, '%') "
@@ -89,7 +89,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 
 	query := `
 	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, e.URL, a.JenisBan,
-	(select exists(select x.product_id from wishlists x where x.customer_id = ` + fmt.Sprintf("%v", custId) +` and x.product_id = a.KodePLU)) as isWishlist
+	(select exists(select x.product_id from wishlists x where x.customer_id = ` + fmt.Sprintf("%v", custId) + ` and x.product_id = a.KodePLU)) as isWishlist
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan

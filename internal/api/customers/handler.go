@@ -3,6 +3,7 @@ package customers
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"semesta-ban/internal/api/response"
 	"semesta-ban/pkg/crashy"
@@ -29,16 +30,20 @@ const CONFIG_AUTH_PASSWORD = "spyxfamily13"
 const CONFIG_API_URL = "https://api.sunmorisemestaban.com"
 
 type UsersHandler struct {
-	db             *sqlx.DB
-	custRepository custRepo.CustomersRepository
-	jwt            *localMdl.JWT
-	baseAssetUrl   string
+	db                *sqlx.DB
+	custRepository    custRepo.CustomersRepository
+	jwt               *localMdl.JWT
+	baseAssetUrl      string
+	uploadPath        string
+	profilePicPath    string
+	profilePicMaxSize int
 }
 
 //todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
 
-func NewUsersHandler(db *sqlx.DB, cr custRepo.CustomersRepository, jwt *localMdl.JWT, baseAssetUrl string) *UsersHandler {
-	return &UsersHandler{db: db, custRepository: cr, jwt: jwt, baseAssetUrl: baseAssetUrl}
+func NewUsersHandler(db *sqlx.DB, cr custRepo.CustomersRepository, jwt *localMdl.JWT, baseAssetUrl, uploadPath,
+	profilePicPath string, profilePicMaxSize int) *UsersHandler {
+	return &UsersHandler{db: db, custRepository: cr, jwt: jwt, baseAssetUrl: baseAssetUrl, uploadPath: uploadPath, profilePicPath: profilePicPath, profilePicMaxSize: profilePicMaxSize}
 }
 
 func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -171,7 +176,7 @@ func (usr *UsersHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	if customer.Birthdate.Time.IsZero() {
 		birthdateVal = ""
 	}
-	avatar := usr.baseAssetUrl + cn.UserDir + customer.Avatar.String
+	avatar := usr.baseAssetUrl + usr.profilePicPath + customer.Avatar.String
 	if len(customer.Avatar.String) == 0 {
 		avatar = ""
 	}
@@ -428,34 +433,60 @@ func (usr *UsersHandler) UpdateBirthDate(w http.ResponseWriter, r *http.Request)
 }
 
 func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request) {
-	// var (
-	// 	p        UpdateBirthDateRequest
-	// 	ctx      = r.Context()
-	// 	authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
-	// )
+	var (
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
 
-	// if err := render.Bind(r, &p); err != nil {
-	// 	response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
-	// 	return
-	// }
+	// Parse our multipart form, 10 << 20 specifies a maximum
+	// upload of 10 MB files.
+	r.ParseMultipartForm(10 << 20)
+	// FormFile returns the first file for the given key `myFile`
+	// it also returns the FileHeader so we can get the Filename,
+	// the Header and the size of the file
+	file, handler, err := r.FormFile("profile_img")
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrFileNotFound, crashy.Message(crashy.ErrCode(crashy.ErrFileNotFound))), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
 
-	// date := strings.Split(p.Birthdate, "-")
-	// if len(date) != 3 {
-	// 	response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidBirthDate), crashy.ErrInvalidBirthDate, crashy.Message(crashy.ErrCode(crashy.ErrInvalidBirthDate))), http.StatusBadRequest)
-	// 	return
-	// }
+	// fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+	// fmt.Printf("File Size: %+v\n", handler.Size)
+	// fmt.Printf("MIME Header: %+v\n", handler.Header)
 
-	// if len(date[0]) != 4 || len(date[1]) != 2 || len(date[2]) != 2 {
-	// 	response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidBirthDate), crashy.ErrInvalidBirthDate, crashy.Message(crashy.ErrCode(crashy.ErrInvalidBirthDate))), http.StatusBadRequest)
-	// 	return
-	// }
+	if handler.Size > int64(helper.ConvertFileSizeToMb(usr.profilePicMaxSize)) {
+		errMsg := fmt.Sprintf("%s%v mb", crashy.Message(crashy.ErrCode(crashy.ErrExceededFileSize)), usr.profilePicMaxSize)
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrExceededFileSize), crashy.ErrExceededFileSize, errMsg), http.StatusBadRequest)
+		return
+	}
 
-	// errCode, err := usr.custRepository.UpdateBirthDate(ctx, authData.Uid, p.Birthdate)
-	// if err != nil {
-	// 	response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
-	// 	return
-	// }
-	fmt.Println("HEI")
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	tempFile, err := ioutil.TempFile(usr.uploadPath+usr.profilePicPath, "pic-*.png")
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrUploadFile, crashy.Message(crashy.ErrCode(crashy.ErrUploadFile))), http.StatusBadRequest)
+		return
+	}
+	defer tempFile.Close()
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrUploadFile, crashy.Message(crashy.ErrCode(crashy.ErrUploadFile))), http.StatusBadRequest)
+		return
+	}
+	// write this byte array to our temporary file
+	fileName := helper.GetUploadedFileName(tempFile.Name())
+	tempFile.Write(fileBytes)
+	fmt.Printf("success upload %s to the server \n", fileName)
+
+	errCode, err := usr.custRepository.UploadProfileImg(ctx, authData.Uid, fileName)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
 
 	response.Yay(w, r, "success", http.StatusOK)
 

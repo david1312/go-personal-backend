@@ -341,3 +341,14 @@ func (q *SqlRepository) UpdateBirthDate(ctx context.Context, uid, birthdate stri
 	}
 	return
 }
+
+func (q *SqlRepository) UploadProfileImg(ctx context.Context, uid, imgName string) (errCode string, err error) {
+	const queryUpdate = `update customers set avatar =  ? where uid = ?`
+	_, err = q.db.ExecContext(ctx, queryUpdate, imgName, uid)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}

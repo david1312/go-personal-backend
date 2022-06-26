@@ -27,10 +27,13 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 			cfg := dep.GetConfig()
 
 			handler := api.NewServer(dep.GetDB(), api.ServerConfig{
-				EncKey:        cfg.Key.EncryptKey,
-				JWTKey:        cfg.Key.JWT,
-				AnonymousKey:  cfg.Key.Anonymous,
-				BaseAssetsUrl: cfg.Assets.Url,
+				EncKey:            cfg.Key.EncryptKey,
+				JWTKey:            cfg.Key.JWT,
+				AnonymousKey:      cfg.Key.Anonymous,
+				BaseAssetsUrl:     cfg.Assets.BaseUrl,
+				UploadPath:        cfg.Assets.UploadPath,
+				ProfilePicPath:    cfg.Assets.ProfilePic.Path,
+				ProfilePicMaxSize: cfg.Assets.ProfilePic.MaxSize,
 			})
 			// application context, which will be cancelled upon receiving termination signal
 			actx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)

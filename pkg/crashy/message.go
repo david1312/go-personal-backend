@@ -38,6 +38,9 @@ const (
 
 	ErrInvalidToken = "ERR_INVALID_TOKEN"
 	ErrServer
+	ErrExceededFileSize = "ERR_EXCEEDED_FILE_SIZE"
+	ErrFileNotFound     = "ERR_FILE_NOT_FOUND"
+	ErrUploadFile       = "ERR_UPLOAD_FILE"
 
 	//Err code Login related
 	ErrInvalidUser = "ERR_INVALID_USER"
@@ -96,6 +99,9 @@ var mapper = map[ErrCode]string{
 	ErrDedupPhone:         "nomor hp yang anda masukan sudah digunakan",
 	ErrInvalidBirthDate:   "format tanggal wajib yyyy-mm-dd (contoh : 1996-12-02)",
 	ErrExistsWishlist:     "produk yang dipilih sudah berada dalam wishlist anda",
+	ErrExceededFileSize:   "maximum file/foto yang di upload adalah : ",
+	ErrFileNotFound:       "file tidak ditemukan",
+	ErrUploadFile:         "terjadi gangguan saat upload file ke server, mohon coba beberapa saat lagi",
 }
 
 //Message retrieve error messages from given error code

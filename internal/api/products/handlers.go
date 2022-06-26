@@ -28,8 +28,8 @@ func NewProductsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, baseAs
 
 func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx = r.Context()
-		fp  = NewProductsParams(r)
+		ctx      = r.Context()
+		fp       = NewProductsParams(r)
 		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
 
@@ -98,7 +98,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 	var (
 		ctx              = r.Context()
 		listProductImage = []ProductImage{}
-		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		authData         = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 	)
 
 	productId, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -468,21 +468,21 @@ func (prd *ProductsHandler) CartMe(w http.ResponseWriter, r *http.Request) {
 
 	for _, val := range listProductRes {
 		listCartItem = append(listCartItem, CartResponse{
-			CartItemId: val.CartItemId,
-			CartItemQty: val.CartItemQty,
+			CartItemId:         val.CartItemId,
+			CartItemQty:        val.CartItemQty,
 			CartItemIsSelected: val.CartItemIsSelected,
-			KodePLU:        val.KodePLU,
-			NamaBarang:     val.NamaBarang,
-			Disc:           val.Disc,
-			NamaUkuran:     val.NamaUkuran,
-			HargaJualFinal: val.HargaJualFinal,
-			JenisBan:       val.JenisBan,
-			DisplayImage:   prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
+			KodePLU:            val.KodePLU,
+			NamaBarang:         val.NamaBarang,
+			Disc:               val.Disc,
+			NamaUkuran:         val.NamaUkuran,
+			HargaJualFinal:     val.HargaJualFinal,
+			JenisBan:           val.JenisBan,
+			DisplayImage:       prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
 		})
 	}
 
 	response.Yay(w, r, ListItemCartResponse{
-		CartId: cartId,
+		CartId:    cartId,
 		CartsItem: listCartItem,
 		DataInfo: DataInfo{
 			CurrentPage: fp.Page,
