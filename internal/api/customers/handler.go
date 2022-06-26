@@ -479,7 +479,10 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 	}
 	// write this byte array to our temporary file
 	fileName := helper.GetUploadedFileName(tempFile.Name())
+
+	
 	tempFile.Write(fileBytes)
+	tempFile.Chmod(0604)
 	fmt.Printf("success upload %s to the server \n", fileName)
 
 	errCode, err := usr.custRepository.UploadProfileImg(ctx, authData.Uid, fileName)
