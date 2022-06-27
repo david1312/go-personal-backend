@@ -1,9 +1,12 @@
 package master_data
 
 import (
+	"errors"
 	"net/http"
 	"semesta-ban/internal/api/response"
 	"semesta-ban/repository/repo_master_data"
+	"sort"
+	"strconv"
 
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
@@ -41,7 +44,6 @@ func (md *MasterDataHandler) GetListMerkBan(w http.ResponseWriter, r *http.Reque
 	}
 
 	response.Yay(w, r, listMerkBan, http.StatusOK)
-
 }
 
 func (md *MasterDataHandler) GetListOutlet(w http.ResponseWriter, r *http.Request) {
@@ -71,4 +73,128 @@ func (md *MasterDataHandler) GetListGender(w http.ResponseWriter, r *http.Reques
 			Value: cn.OtherGender,
 		},
 	}, http.StatusOK)
+}
+
+func (md *MasterDataHandler) GetListSortBy(w http.ResponseWriter, r *http.Request) {
+	response.Yay(w, r, ListSortBy, http.StatusOK)
+}
+
+func (md *MasterDataHandler) GetListSizeBan(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx         = r.Context()
+		listSizeBan = []ListUkuranBan{}
+	)
+
+	data, errCode, err := md.mdRepo.GetListUkuranBan(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	mappedData := make(map[string][]string)
+	for _, m := range data {
+		mappedData[m.UkuranRing] = append(mappedData[m.UkuranRing], m.Id)
+	}
+	keys := make([]string, 0, len(mappedData))
+	for k := range mappedData {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		tempListSize := []UkuranBan{}
+		for _, val := range mappedData[k] {
+			tempListSize = append(tempListSize, UkuranBan{
+				Ukuran: val,
+			})
+		}
+
+		listSizeBan = append(listSizeBan, ListUkuranBan{
+			RingBan:    k,
+			ListUkuran: tempListSize,
+		},
+		)
+	}
+
+	response.Yay(w, r, listSizeBan, http.StatusOK)
+
+}
+
+func (md *MasterDataHandler) GetListMerkMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx           = r.Context()
+		listMerkMotor = []MerkMotor{}
+	)
+
+	data, errCode, err := md.mdRepo.GetListMerkMotor(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	for _, val := range data {
+		listMerkMotor = append(listMerkMotor, MerkMotor{
+			Id:   val.Id,
+			Nama: val.Nama,
+			Icon: md.baseAssetUrl + cn.TireBrandDir + val.Icon,
+		})
+	}
+
+	response.Yay(w, r, listMerkMotor, http.StatusOK)
+}
+
+func (md *MasterDataHandler) GetListMotorByBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx       = r.Context()
+		listMotor = []ListMotor{}
+	)
+	idBrandMotor, err := strconv.Atoi(r.URL.Query().Get("id_brand_motor"))
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, crashy.Message(crashy.ErrCodeValidation)), http.StatusBadRequest)
+		return
+	}
+
+	if idBrandMotor == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, crashy.Message(crashy.ErrCodeValidation)), http.StatusBadRequest)
+		return
+	}
+
+	data, errCode, err := md.mdRepo.GetListMotorByBrand(ctx, idBrandMotor)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	mappedData := make(map[string][]Motor)
+	for _, m := range data {
+		mappedData[m.CategoryName] = append(mappedData[m.CategoryName], Motor{
+			Id:   m.Id,
+			Nama: m.Name,
+			Icon: m.Icon,
+		})
+	}
+	keys := make([]string, 0, len(mappedData))
+	for k := range mappedData {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		tempListMotor := []Motor{}
+		for _, val := range mappedData[k] {
+			tempListMotor = append(tempListMotor, Motor{
+				Id:   val.Id,
+				Nama: val.Nama,
+				Icon: val.Icon,
+			})
+		}
+
+		listMotor = append(listMotor, ListMotor{
+			Category:  k,
+			ListMotor: tempListMotor,
+		},
+		)
+	}
+
+	response.Yay(w, r, listMotor, http.StatusOK)
 }

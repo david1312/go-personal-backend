@@ -27,7 +27,6 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 		whereParams = ""
 		offsetNum   = (fp.Page - 1) * fp.Limit
 		orderBy     = "a.NamaBarang"
-		orderType   = "asc"
 	)
 
 	if len(fp.Name) > 0 {
@@ -57,26 +56,45 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 		args = append(args, fp.MaxPrice)
 	}
 
-	if len(fp.OrderBy) > 0 {
-		switch fp.OrderBy {
-		case "price":
-			orderBy = "a.HargaJualFinal"
-		case "time":
-			orderBy = "a.CreateDate"
-		default:
-			orderBy = "a.NamaBarang"
+	if len(fp.UkuranBan) > 0 && len(fp.ArrUkuran) == 0 {
+		inTotal := ""
+		arrUkuran := strings.Split(fp.UkuranBan, ",")
+		for _, v := range arrUkuran {
+			inTotal += "?,"
+			args = append(args, v)
 		}
+		trimmed := inTotal[:len(inTotal)-1]
+		whereParams += "and a.IDUkuranRing in (" + trimmed + ") "
 	}
 
-	if len(fp.OrderType) > 0 && strings.ToLower(fp.OrderType) == "desc" {
-		orderType = "desc"
+	if len(fp.ArrUkuran) > 0 {
+		inTotal := ""
+		for _, v := range fp.ArrUkuran {
+			inTotal += "?,"
+			args = append(args, v)
+		}
+		trimmed := inTotal[:len(inTotal)-1]
+		whereParams += "and a.IDUkuranRing in (" + trimmed + ") "
+
+	}
+
+	if len(fp.OrderBy) > 0 {
+		switch fp.OrderBy {
+		case "max_price":
+			orderBy = "a.HargaJualFinal desc"
+		case "min_price":
+			orderBy = "a.HargaJualFinal asc"
+		case "latest":
+			orderBy = "a.CreateDate desc"
+		default:
+			orderBy = "a.NamaBarang asc"
+		}
 	}
 
 	queryRecords := `
 	SELECT count(a.kodeplu)
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
-	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	 where 1 = 1 ` + whereParams
 	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
@@ -88,15 +106,14 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	args = append(args, fp.Limit, offsetNum)
 
 	query := `
-	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, c.Ukuran, e.URL, a.JenisBan,
+	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, e.URL, a.JenisBan,
 	(select exists(select x.product_id from wishlists x where x.customer_id = ` + fmt.Sprintf("%v", custId) + ` and x.product_id = a.KodePLU)) as isWishlist
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
-	inner join tblmasterukuranban c on a.IDUkuran = c.IDUkuranBan
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
 	where 1 = 1 ` + whereParams + ` and e.DeletedAt IS NULL
-	` + fmt.Sprintf("order by %v %v", orderBy, orderType) + `  limit ? offset ? `
+	` + fmt.Sprintf("order by %v", orderBy) + `  limit ? offset ? `
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
