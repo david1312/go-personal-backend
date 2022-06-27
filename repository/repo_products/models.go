@@ -36,7 +36,9 @@ type ProductsParamsTemp struct {
 	UkuranBan  string
 	Posisi     string
 	MerkBan    string
-	MerkMotor  string
+	MerkMotor  int
+	IdMotor    int
+	ArrUkuran  []string
 	MinPrice   int
 	MaxPrice   int
 	OrderBy    string
@@ -52,4 +54,8 @@ type ProductImage struct {
 type CustomerResponse struct {
 	Id  int    `json:"id"`
 	Uid string `json:"uid"`
+}
+
+type ListUkuranBan struct {
+	Id int `json:"id"`
 }

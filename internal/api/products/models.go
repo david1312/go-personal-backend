@@ -14,7 +14,8 @@ type ProductsParams struct {
 	UkuranBan string
 	Posisi    string
 	MerkBan   string
-	MerkMotor string
+	MerkMotor int
+	IdMotor   int
 	MinPrice  int
 	MaxPrice  int
 	OrderBy   string
@@ -46,6 +47,9 @@ func NewProductsParams(r *http.Request) ProductsParams {
 	minPrice, _ := strconv.Atoi(r.URL.Query().Get("minprice"))
 	maxPrice, _ := strconv.Atoi(r.URL.Query().Get("maxprice"))
 
+	merkMotor, _ := strconv.Atoi(r.URL.Query().Get("merkmotor"))
+	idMotor, _ := strconv.Atoi(r.URL.Query().Get("idmotor"))
+
 	// add filetype validation
 
 	return ProductsParams{
@@ -55,7 +59,8 @@ func NewProductsParams(r *http.Request) ProductsParams {
 		UkuranBan: r.URL.Query().Get("ukuran"),
 		Posisi:    r.URL.Query().Get("posisi"),
 		MerkBan:   r.URL.Query().Get("merkban"),
-		MerkMotor: r.URL.Query().Get("merkmotor"),
+		MerkMotor: merkMotor,
+		IdMotor:   idMotor,
 		MinPrice:  minPrice,
 		MaxPrice:  maxPrice,
 		OrderBy:   r.URL.Query().Get("orderby"),

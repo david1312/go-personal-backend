@@ -7,6 +7,7 @@ import (
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
+	"semesta-ban/repository/repo_master_data"
 	"semesta-ban/repository/repo_products"
 	"strconv"
 
@@ -19,18 +20,20 @@ import (
 type ProductsHandler struct {
 	db           *sqlx.DB
 	prodRepo     repo_products.ProductsRepository
+	mdRepo       repo_master_data.MasterDataRepository
 	baseAssetUrl string
 }
 
-func NewProductsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, baseAssetUrl string) *ProductsHandler {
-	return &ProductsHandler{db: db, prodRepo: pr, baseAssetUrl: baseAssetUrl}
+func NewProductsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, baseAssetUrl string) *ProductsHandler {
+	return &ProductsHandler{db: db, prodRepo: pr, baseAssetUrl: baseAssetUrl, mdRepo: md}
 }
 
 func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx      = r.Context()
-		fp       = NewProductsParams(r)
-		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		ctx       = r.Context()
+		fp        = NewProductsParams(r)
+		authData  = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		arrUkuran = []string{}
 	)
 
 	if (len(fp.OrderBy) > 0 && !helper.ValidateParam(fp.OrderBy)) || (len(fp.OrderType) > 0 && !helper.ValidateParam(fp.OrderType)) {
@@ -42,6 +45,28 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
+	}
+
+	if fp.MerkMotor > 0 && fp.IdMotor == 0 {
+		dataListUkuran, errCode, err := prd.mdRepo.GetListUkuranBanByBrandMotor(ctx, fp.MerkMotor)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+		for _, v := range dataListUkuran {
+			arrUkuran = append(arrUkuran, v.Id)
+		}
+	}
+
+	if fp.IdMotor > 0 {
+		dataListUkuran, errCode, err := prd.mdRepo.GetListUkuranBanByMotor(ctx, fp.IdMotor)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+		for _, v := range dataListUkuran {
+			arrUkuran = append(arrUkuran, v.Id)
+		}
 	}
 
 	listProduct := []ProductsResponse{}
@@ -57,6 +82,7 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 		MaxPrice:  fp.MaxPrice,
 		OrderBy:   fp.OrderBy,
 		OrderType: fp.OrderType,
+		ArrUkuran: arrUkuran,
 	}, custId)
 
 	if err != nil {

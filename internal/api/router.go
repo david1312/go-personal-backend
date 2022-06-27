@@ -42,7 +42,7 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		mdRepo            = repo_master_data.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
-		prodHandler       = products.NewProductsHandler(db, prRepo, cnf.BaseAssetsUrl)
+		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
 	)
 
@@ -72,7 +72,10 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 			r.Get("/tire-brand", masterDataHandler.GetListMerkBan)
 			r.Get("/gender", masterDataHandler.GetListGender)
 			r.Get("/outlet", masterDataHandler.GetListOutlet)
-			// r.Get("/motor-brand", prodHandler.GetListProducts)
+			r.Get("/sort-by", masterDataHandler.GetListSortBy)
+			r.Get("/tire-size", masterDataHandler.GetListSizeBan)
+			r.Get("/motor-brand", masterDataHandler.GetListMerkMotor)
+			r.Get("/motor-list-by-brand", masterDataHandler.GetListMotorByBrand)
 			// r.Get("/outlets", prodHandler.GetListProducts)
 		})
 
