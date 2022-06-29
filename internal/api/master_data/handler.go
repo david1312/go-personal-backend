@@ -135,7 +135,7 @@ func (md *MasterDataHandler) GetListMerkMotor(w http.ResponseWriter, r *http.Req
 		listMerkMotor = append(listMerkMotor, MerkMotor{
 			Id:   val.Id,
 			Nama: val.Nama,
-			Icon: md.baseAssetUrl + cn.TireBrandDir + val.Icon,
+			Icon: md.baseAssetUrl + cn.MotorBrandDir + val.Icon,
 		})
 	}
 
@@ -170,7 +170,7 @@ func (md *MasterDataHandler) GetListMotorByBrand(w http.ResponseWriter, r *http.
 		mappedData[m.CategoryName] = append(mappedData[m.CategoryName], Motor{
 			Id:   m.Id,
 			Nama: m.Name,
-			Icon: m.Icon,
+			Icon:  md.baseAssetUrl + cn.MotorDir + m.Icon,
 		})
 	}
 	keys := make([]string, 0, len(mappedData))

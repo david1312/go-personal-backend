@@ -7,7 +7,8 @@ const (
 	UserDir       = "usr/"
 	ProductDir    = "product/"
 	TireBrandDir  = "merkban/"
-	MotorBrandDir = "motor/"
+	MotorBrandDir = "merkmotor/"
+	MotorDir = "motor/"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"
