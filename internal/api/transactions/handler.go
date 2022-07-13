@@ -3,6 +3,7 @@ package transactions
 import (
 	"errors"
 	"net/http"
+	"semesta-ban/internal/api/products"
 	"semesta-ban/internal/api/response"
 	"semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
@@ -173,4 +174,100 @@ func (tr *TransactionsHandler) InquirySchedule(w http.ResponseWriter, r *http.Re
 		)
 	}
 	response.Yay(w, r, listSchedule, http.StatusOK)
+}
+
+func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx                = r.Context()
+		fp                 GetListTransactionRequest
+		authData           = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		listTransactionRes = []TransactionsResponse{}
+	)
+
+	if err := render.Bind(r, &fp); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	limit := fp.Limit
+	if limit < 1 {
+		limit = 10
+	} else if limit > 50 {
+		limit = 50
+	}
+	page := fp.Page
+	if page < 1 {
+		page = 1
+	}
+
+	custId, errCode, err := tr.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	listTransaction, totalData, listInvoiceId, errCode, err := tr.trRepo.GetHistoryTransaction(ctx, repo_transactions.GetListTransactionsParam{
+		Limit:              limit,
+		Page:               page,
+		StatusTransactions: fp.TransStatus,
+		CustomerId:         custId,
+	})
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	//get list product for each invoice
+
+	listProductByInvoices, errCode, err := tr.trRepo.GetProductByInvoices(ctx, listInvoiceId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	mappedProductByInvoice := make(map[string][]ProductsData)
+	for _, m := range listProductByInvoices {
+		mappedProductByInvoice[m.InvoiceId] = append(mappedProductByInvoice[m.InvoiceId], ProductsData{
+			KodePLU:              m.KodePLU,
+			NamaBarang:           m.NamaBarang,
+			NamaUkuran:           m.NamaUkuran,
+			Qty:                  m.Qty,
+			HargaSatuan:          m.Harga,
+			HargaSatuanFormatted: helper.FormatCurrency(int(m.Harga)),
+			HargaTotal:           m.HargaTotal,
+			HargaTotalFormatted:  helper.FormatCurrency(int(m.HargaTotal)),
+			Deskripsi:            m.Deskripsi,
+			DisplayImage:         tr.baseAssetUrl + constants.ProductDir + m.DisplayImage,
+		})
+
+	}
+
+	for _, v := range listTransaction {
+		listTransactionRes = append(listTransactionRes, TransactionsResponse{
+			InvoiceId:            v.InvoiceId,
+			Status:               v.Status,
+			TotalAmount:          v.TotalAmount,
+			TotalAmountFormatted: helper.FormatCurrency(int(v.TotalAmount)),
+			PaymentMethodDesc:    v.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + v.PaymentMethodIcon,
+			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
+			ListProduct:          mappedProductByInvoice[v.InvoiceId],
+		})
+	}
+
+	response.Yay(w, r, ListProductsResponse{
+		TransactionData: listTransactionRes,
+		DataInfo: products.DataInfo{
+			CurrentPage: page,
+			MaxPage: func() int {
+				maxPage := float64(totalData) / float64(limit)
+				if helper.IsFloatNoDecimal(maxPage) {
+					return int(maxPage)
+				}
+				return int(maxPage) + 1
+			}(),
+			Limit:       limit,
+			TotalRecord: totalData,
+		},
+	}, http.StatusOK)
+
 }

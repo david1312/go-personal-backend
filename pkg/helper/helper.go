@@ -9,6 +9,9 @@ import (
 	"semesta-ban/pkg/constants"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func RandomString(n int) string {
@@ -130,4 +133,19 @@ func ValidateScheduleTime(schedule string) bool {
 	}
 
 	return (set[schedule])
+}
+
+func StringInArray(arr []string, param string) bool {
+	set := make(map[string]bool)
+	for _, v := range arr {
+		set[v] = true
+	}
+
+	return (set[param])
+}
+
+func FormatCurrency(number int) string {
+	p := message.NewPrinter(language.English)
+	test := p.Sprintf("%d", number)
+	return "Rp" + strings.ReplaceAll(test, ",", ".")
 }
