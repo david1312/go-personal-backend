@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"net/http"
+	"semesta-ban/internal/api/products"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 )
@@ -55,4 +56,47 @@ type ScheduleCountOnly struct {
 type ScheduleCountMap struct {
 	ScheduleTime          string
 	ScheduleCountOnlyList []ScheduleCountOnly
+}
+
+type GetListTransactionRequest struct {
+	Limit       int      `json:"limit"`
+	Page        int      `json:"page"`
+	TransStatus []string `json:"trans_status"`
+}
+
+func (m *GetListTransactionRequest) Bind(r *http.Request) error {
+	return m.ValidateGetListTransactionRequest()
+}
+
+func (m *GetListTransactionRequest) ValidateGetListTransactionRequest() error {
+	return validation.ValidateStruct(m)
+}
+
+type TransactionsResponse struct {
+	InvoiceId            string         `json:"invoice_id"`
+	Status               string         `json:"status"`
+	TotalAmount          float64        `json:"total_amount"`
+	TotalAmountFormatted string         `json:"total_amount_formatted"`
+	PaymentMethodDesc    string         `json:"payment_method_desc"`
+	PaymentMethodIcon    string         `json:"payment_method_icon"`
+	CreatedAt            string         `json:"created_at"`
+	ListProduct          []ProductsData `json:"list_product"`
+}
+
+type ProductsData struct {
+	KodePLU              int32   `json:"id"`
+	NamaBarang           string  `json:"nama_barang"`
+	NamaUkuran           string  `json:"ukuran"`
+	Qty                  int     `json:"qty"`
+	HargaSatuan          float64 `json:"harga_satuan"`
+	HargaSatuanFormatted string  `json:"harga_satuan_formatted"`
+	HargaTotal           float64 `json:"harga_total"`
+	HargaTotalFormatted  string  `json:"harga_total_formatted"`
+	Deskripsi            string  `json:"deskripsi"`
+	DisplayImage         string  `json:"display_image"`
+}
+
+type ListProductsResponse struct {
+	DataInfo        products.DataInfo      `json:"info"`
+	TransactionData []TransactionsResponse `json:"data"`
 }

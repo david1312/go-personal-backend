@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/repository/repo_products"
 
@@ -151,6 +152,143 @@ func (q *SqlRepository) InquirySchedule(ctx context.Context, startDate, endDate 
 			&i.ScheduleDate,
 			&i.ScheduleTime,
 			&i.OrderCount,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTransactionsParam) (res []Transactions, totalData int, listInvoice []string, errCode string, err error) {
+	var (
+		args        = make([]interface{}, 0)
+		whereParams = ""
+		offsetNum   = (fp.Page - 1) * fp.Limit
+		orderBy     = "CreateDate desc "
+	)
+
+	whereParams += " and a.CustomerId = ? "
+	args = append(args, fp.CustomerId)
+
+	if len(fp.StatusTransactions) > 0 {
+		inTotal := ""
+		for _, v := range fp.StatusTransactions {
+			inTotal += "?,"
+			args = append(args, v)
+		}
+		trimmed := inTotal[:len(inTotal)-1]
+		whereParams += " and a.StatusTransaksi in(" + trimmed + ") "
+	}
+
+	queryRecords := `
+	select count(a.NoFaktur)
+	from tbltransaksihead a
+	join payment_method b on a.MetodePembayaran = b.id
+	where 1=1 ` + whereParams
+	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	args = append(args, fp.Limit, offsetNum)
+
+	query := `
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon
+	from tbltransaksihead a
+	join payment_method b on a.MetodePembayaran = b.id
+	where 1=1` + whereParams + `
+	` + fmt.Sprintf("order by %v", orderBy) + `  limit ? offset ? `
+
+	rows, err := q.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i Transactions
+
+		if err = rows.Scan(
+			&i.InvoiceId,
+			&i.Status,
+			&i.TotalAmount,
+			&i.CreatedAt,
+			&i.PaymentMethodDesc,
+			&i.PaymentMethodIcon,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		listInvoice = append(listInvoice, i.InvoiceId)
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) GetProductByInvoices(ctx context.Context, listInvoiceId []string) (res []ProductsData, errCode string, err error) {
+	var (
+		args        = make([]interface{}, 0)
+		whereParams = ""
+	)
+
+	inTotal := ""
+	for _, v := range listInvoiceId {
+		inTotal += "?,"
+		args = append(args, v)
+	}
+	trimmed := inTotal[:len(inTotal)-1]
+	whereParams += " a.NoFaktur in(" + trimmed + ") "
+
+	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang
+	from tbltransaksidetail a
+	join tblmasterplu b on a.IdBarang = b.KodePlu
+	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
+	where ` + whereParams
+
+	rows, err := q.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i ProductsData
+
+		if err = rows.Scan(
+			&i.InvoiceId,
+			&i.NamaBarang,
+			&i.NamaUkuran,
+			&i.Harga,
+			&i.Deskripsi,
+			&i.DisplayImage,
+			&i.Qty,
+			&i.HargaTotal,
+			&i.KodePLU,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

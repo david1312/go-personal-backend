@@ -27,3 +27,31 @@ type ScheduleCount struct {
 	ScheduleTime string
 	OrderCount   int
 }
+
+type GetListTransactionsParam struct {
+	Limit              int
+	Page               int
+	StatusTransactions []string
+	CustomerId         int
+}
+
+type Transactions struct {
+	InvoiceId         string    `json:"invoice_id"`
+	Status            string    `json:"status"`
+	TotalAmount       float64   `json:"total_amount"`
+	PaymentMethodDesc string    `json:"payment_method_desc"`
+	PaymentMethodIcon string    `json:"payment_method_icon"`
+	CreatedAt         time.Time `json:"created_at"`
+}
+
+type ProductsData struct {
+	InvoiceId    string  `json:"invoice_id"`
+	KodePLU      int32   `json:"id"`
+	NamaBarang   string  `json:"nama_barang"`
+	NamaUkuran   string  `json:"ukuran"`
+	Qty          int     `json:"qty"`
+	Harga        float64 `json:"harga"`
+	HargaTotal   float64 `json:"harga_total"`
+	Deskripsi    string  `json:"deskripsi"`
+	DisplayImage string  `json:"display_image"`
+}

@@ -46,6 +46,17 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	limit := fp.Limit
+	if limit < 1 {
+		limit = 10
+	} else if limit > 100 {
+		limit = 100
+	}
+	page := fp.Page
+	if page < 1 {
+		page = 1
+	}
+
 	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
@@ -76,8 +87,8 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 
 	listProduct := []ProductsResponse{}
 	listProductRes, totalData, errCode, err := prd.prodRepo.GetListProducts(ctx, repo_products.ProductsParamsTemp{
-		Limit:     fp.Limit,
-		Page:      fp.Page,
+		Limit:     limit,
+		Page:      page,
 		Name:      fp.Name,
 		UkuranBan: fp.UkuranBan,
 		MerkBan:   fp.MerkBan,
@@ -108,15 +119,15 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 	response.Yay(w, r, ListProductsResponse{
 		Products: listProduct,
 		DataInfo: DataInfo{
-			CurrentPage: fp.Page,
+			CurrentPage: page,
 			MaxPage: func() int {
-				maxPage := float64(totalData) / float64(fp.Limit)
+				maxPage := float64(totalData) / float64(limit)
 				if helper.IsFloatNoDecimal(maxPage) {
 					return int(maxPage)
 				}
 				return int(maxPage) + 1
 			}(),
-			Limit:       fp.Limit,
+			Limit:       limit,
 			TotalRecord: totalData,
 		},
 	}, http.StatusOK)

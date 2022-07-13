@@ -109,6 +109,7 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Post("/submit", transHandler.SubmitTransactions)
 		r.Get("/inquiry/schedule", transHandler.InquirySchedule)
+		r.Post("/history", transHandler.GetHistoryTransactions)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
