@@ -35,15 +35,15 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 		args = append(args, lowerName)
 	}
 
-	if len(fp.Posisi) > 0 {
-		whereParams += "and a.IDPosisi = ? "
-		args = append(args, fp.Posisi)
-	}
-
 	if len(fp.MerkBan) > 0 {
-		lowerName := strings.ToLower(fp.MerkBan)
-		whereParams += "and LOWER(a.IDMerk) = ? "
-		args = append(args, lowerName)
+		inTotal := ""
+		arrUkuran := strings.Split(fp.MerkBan, ",")
+		for _, v := range arrUkuran {
+			inTotal += "?,"
+			args = append(args, v)
+		}
+		trimmed := inTotal[:len(inTotal)-1]
+		whereParams += "and a.IDMerk in (" + trimmed + ") "
 	}
 
 	if fp.MinPrice > 0 {

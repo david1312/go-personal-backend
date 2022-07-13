@@ -31,13 +31,18 @@ func NewProductsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md rep
 func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Request) {
 	var (
 		ctx       = r.Context()
-		fp        = NewProductsParams(r)
+		fp        GetProductsRequest
 		authData  = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 		arrUkuran = []string{}
 	)
 
-	if (len(fp.OrderBy) > 0 && !helper.ValidateParam(fp.OrderBy)) || (len(fp.OrderType) > 0 && !helper.ValidateParam(fp.OrderType)) {
+	if len(fp.OrderBy) > 0 && !helper.ValidateParam(fp.OrderBy) {
 		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, crashy.Message(crashy.ErrCodeValidation)), http.StatusBadRequest)
+		return
+	}
+
+	if err := render.Bind(r, &fp); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -47,7 +52,7 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if fp.MerkMotor > 0 && fp.IdMotor == 0 {
+	if len(fp.MerkMotor) > 0 && fp.IdMotor == 0 {
 		dataListUkuran, errCode, err := prd.mdRepo.GetListUkuranBanByBrandMotor(ctx, fp.MerkMotor)
 		if err != nil {
 			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
@@ -74,14 +79,11 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 		Limit:     fp.Limit,
 		Page:      fp.Page,
 		Name:      fp.Name,
-		Posisi:    fp.Posisi,
 		UkuranBan: fp.UkuranBan,
-		MerkMotor: fp.MerkMotor,
 		MerkBan:   fp.MerkBan,
 		MinPrice:  fp.MinPrice,
 		MaxPrice:  fp.MaxPrice,
 		OrderBy:   fp.OrderBy,
-		OrderType: fp.OrderType,
 		ArrUkuran: arrUkuran,
 	}, custId)
 

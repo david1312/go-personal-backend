@@ -90,9 +90,22 @@ func (q *SqlRepository) GetListUkuranBan(ctx context.Context) (res []UkuranRingB
 	return
 }
 
-func (q *SqlRepository) GetListUkuranBanByBrandMotor(ctx context.Context, idBrandMotor int) (res []UkuranRingBan, errCode string, err error) {
-	const query = `select distinct(id_ukuran_ring) as id from motor_x_size_ban where id_brand_motor = ? order by id_ukuran_ring asc;`
-	rows, err := q.db.QueryContext(ctx, query, idBrandMotor)
+func (q *SqlRepository) GetListUkuranBanByBrandMotor(ctx context.Context, idBrandMotor []int) (res []UkuranRingBan, errCode string, err error) {
+	var (
+		args        = make([]interface{}, 0)
+		whereParams = ""
+		inTotal     = ""
+	)
+
+	for _, v := range idBrandMotor {
+		inTotal += "?,"
+		args = append(args, v)
+	}
+	trimmed := inTotal[:len(inTotal)-1]
+	whereParams += " id_brand_motor in (" + trimmed + ") "
+
+	query := `select distinct(id_ukuran_ring) as id from motor_x_size_ban where ` + whereParams + ` order by id_ukuran_ring asc;`
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
@@ -227,5 +240,44 @@ func (q *SqlRepository) GetListMotorByBrand(ctx context.Context, idBrandMotor in
 		return
 	}
 
+	return
+}
+
+func (q *SqlRepository) GetListPaymentMethod(ctx context.Context) (res []PaymentMethod, errCode string, err error) {
+	const query = `select a.id, a.description, a.is_default, a.icon,b.name as category
+	from payment_method a
+	join payment_category b on a.id_payment_category = b.id
+	order by b.id asc, a.is_default desc`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i PaymentMethod
+
+		if err = rows.Scan(
+			&i.Id,
+			&i.Description,
+			&i.IsDefault,
+			&i.Icon,
+			&i.CategoryName,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
 	return
 }

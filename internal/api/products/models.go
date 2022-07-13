@@ -7,6 +7,27 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+type GetProductsRequest struct {
+	Limit     int    `json:"limit"`
+	Page      int    `json:"page"`
+	Name      string `json:"name"`
+	UkuranBan string `json:"ukuran"`
+	MerkBan   string `json:"merkban"`
+	MerkMotor []int  `json:"merkmotor"`
+	IdMotor   int    `json:"idmotor"`
+	MinPrice  int    `json:"minprice"`
+	MaxPrice  int    `json:"maxprice"`
+	OrderBy   string `json:"orderby"`
+}
+
+func (m *GetProductsRequest) Bind(r *http.Request) error {
+	return m.ValidateGetProductsRequest()
+}
+
+func (m *GetProductsRequest) ValidateGetProductsRequest() error {
+	return validation.ValidateStruct(m)
+}
+
 type ProductsParams struct {
 	Limit     int
 	Page      int
@@ -19,7 +40,6 @@ type ProductsParams struct {
 	MinPrice  int
 	MaxPrice  int
 	OrderBy   string
-	OrderType string
 }
 
 type DataInfo struct {
@@ -64,7 +84,6 @@ func NewProductsParams(r *http.Request) ProductsParams {
 		MinPrice:  minPrice,
 		MaxPrice:  maxPrice,
 		OrderBy:   r.URL.Query().Get("orderby"),
-		OrderType: r.URL.Query().Get("ordertype"),
 	}
 }
 

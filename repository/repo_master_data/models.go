@@ -26,3 +26,11 @@ type Motor struct {
 	Icon         string `json:"icon"`
 	CategoryName string `json:"category_name"`
 }
+
+type PaymentMethod struct {
+	Id           string `json:"id"`
+	Description  string `json:"description"`
+	IsDefault    bool   `json:"is_default"`
+	Icon         string `json:"icon"`
+	CategoryName string `json:"category_name"`
+}

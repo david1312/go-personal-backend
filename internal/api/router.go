@@ -6,9 +6,11 @@ import (
 	"semesta-ban/internal/api/master_data"
 	localMdl "semesta-ban/internal/api/middleware"
 	"semesta-ban/internal/api/products"
+	"semesta-ban/internal/api/transactions"
 	"semesta-ban/repository/repo_customers"
 	"semesta-ban/repository/repo_master_data"
 	"semesta-ban/repository/repo_products"
+	"semesta-ban/repository/repo_transactions"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -40,9 +42,11 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		cuRepo            = repo_customers.NewSqlRepository(db)
 		prRepo            = repo_products.NewSqlRepository(db)
 		mdRepo            = repo_master_data.NewSqlRepository(db)
+		trRepo            = repo_transactions.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl)
+		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
 	)
 
@@ -76,6 +80,7 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 			r.Get("/tire-size", masterDataHandler.GetListSizeBan)
 			r.Get("/motor-brand", masterDataHandler.GetListMerkMotor)
 			r.Get("/motor-list-by-brand", masterDataHandler.GetListMotorByBrand)
+			r.Get("/payment-method", masterDataHandler.GetListPaymentMethod)
 			// r.Get("/outlets", prodHandler.GetListProducts)
 		})
 
@@ -100,9 +105,15 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r.Post("/upload-profile-img", custHandler.UploadProfileImg)
 	})
 
+	r.Route("/v1/transactions", func(r chi.Router) {
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
+		r.Post("/submit", transHandler.SubmitTransactions)
+		r.Get("/inquiry/schedule", transHandler.InquirySchedule)
+	})
+
 	r.Route("/v1/products", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
-		r.Get("/", prodHandler.GetListProducts)
+		r.Post("/", prodHandler.GetListProducts)
 		r.Get("/detail", prodHandler.GetProductDetail)
 	})
 
