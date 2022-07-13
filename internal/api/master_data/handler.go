@@ -170,7 +170,7 @@ func (md *MasterDataHandler) GetListMotorByBrand(w http.ResponseWriter, r *http.
 		mappedData[m.CategoryName] = append(mappedData[m.CategoryName], Motor{
 			Id:   m.Id,
 			Nama: m.Name,
-			Icon:  md.baseAssetUrl + cn.MotorDir + m.Icon,
+			Icon: md.baseAssetUrl + cn.MotorDir + m.Icon,
 		})
 	}
 	keys := make([]string, 0, len(mappedData))
@@ -197,4 +197,53 @@ func (md *MasterDataHandler) GetListMotorByBrand(w http.ResponseWriter, r *http.
 	}
 
 	response.Yay(w, r, listMotor, http.StatusOK)
+}
+
+func (md *MasterDataHandler) GetListPaymentMethod(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx               = r.Context()
+		listPaymentMethod = []ListPaymentMethod{}
+	)
+
+	data, errCode, err := md.mdRepo.GetListPaymentMethod(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	mappedData := make(map[string][]PaymentMethod)
+	for _, m := range data {
+		mappedData[m.CategoryName] = append(mappedData[m.CategoryName], PaymentMethod{
+			Id:          m.Id,
+			Description: m.Description,
+			IsDefault:   m.IsDefault,
+			Icon:        md.baseAssetUrl + cn.PaymentMethod + m.Icon,
+		})
+	}
+	keys := make([]string, 0, len(mappedData))
+	for k := range mappedData {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		tempListPayment := []PaymentMethod{}
+		for _, val := range mappedData[k] {
+			tempListPayment = append(tempListPayment, PaymentMethod{
+				Id:          val.Id,
+				Description: val.Description,
+				IsDefault:   val.IsDefault,
+				Icon:        val.Icon,
+			})
+		}
+
+		listPaymentMethod = append(listPaymentMethod, ListPaymentMethod{
+			Category:          k,
+			ListPaymentMethod: tempListPayment,
+		},
+		)
+	}
+
+	response.Yay(w, r, listPaymentMethod, http.StatusOK)
+
 }

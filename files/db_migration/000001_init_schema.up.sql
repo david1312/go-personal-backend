@@ -57,7 +57,61 @@ create table wishlists
     foreign key (product_id) references tblmasterplu(KodePLU)
 );
 
+create table outlets
+(
+    id              bigint primary key AUTO_INCREMENT,
+    name             varchar(50) not null,
+    city      varchar(50) not null,
+    districts      varchar(50) not null,
+    address      varchar(100) not null,
+    latitude     varchar(20) not null,
+    longitude varchar(20) not null,
+    gmap_url varchar(50) not null
+);
 
+ALTER TABLE `tbltransaksihead`
+ADD `IdOutlet` bigint NOT NULL DEFAULT '1' AFTER `Pending`,
+ADD `TipeTransaksi` enum('Booking Outlet', 'Kirim Barang') NOT NULL DEFAULT 'Booking Outlet' after `IdOutlet`,
+ADD `StatusTransaksi` enum('Menunggu Konfirmasi', 'Menunggu Kedatangan', 'Diproses', 'Selesai') NOT NULL AFTER `TipeTransaksi`,
+ADD `StatusPembayaran` enum('Lunas', 'Belum Lunas') NOT NULL AFTER `StatusTransaksi`,
+ADD `MetodePembayaran`  varchar(50) AFTER `StatusPembayaran`,
+ADD `JadwalPemasangan` enum('08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00') NOT NULL AFTER `MetodePembayaran`,
+ADD `CustomerId` bigint NOT NULL AFTER `JadwalPemasangan`,
+ADD `Catatan` varchar(50) DEFAULT NULL `CustomerId`,
+ADD `UpdatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP after `CreateDate`,
+ADD foreign key (CustomerId) references customers (id)
+;
+
+ALTER TABLE `tbltransaksidetail`
+ADD FOREIGN KEY (`IdBarang`) REFERENCES `tblmasterplu` (`KodePLU`) ON DELETE NO ACTION;
+
+
+CREATE TABLE `payment_category` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `payment_method` (
+  `id` varchar(50) NOT NULL ,
+  `id_payment_category` int NOT NULL ,
+  `description` varchar(50) NOT NULL,
+   is_default      boolean not null default false,
+   icon     varchar(50) not null default 'default.png',
+  PRIMARY KEY (`id`),
+ foreign key (id_payment_category) references payment_category(id)
+);
+
+ALTER TABLE t1 ENGINE = InnoDB;
+
+ALTER TABLE `tblmasterplu`
+ADD `CreatedAt` timestamp DEFAULT CURRENT_TIMESTAMP AFTER `Deskripsi`,
+ADD `UpdatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  AFTER `CreatedAt`
+;
+
+ALTER TABLE `tbltransaksihead`
+ADD `Source` enum('APP', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE' AFTER `Catatan`
+;
 -- create type priority_events_enum as enum ('LOW','MEDIUM','HIGH','CRITICAL');
 -- create table events
 -- (

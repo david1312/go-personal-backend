@@ -64,3 +64,15 @@ type ListMotor struct {
 	Category  string  `json:"kategori"`
 	ListMotor []Motor `json:"list_motor"`
 }
+
+type PaymentMethod struct {
+	Id          string `json:"id"`
+	Description string `json:"description"`
+	IsDefault   bool   `json:"is_default"`
+	Icon        string `json:"icon"`
+}
+
+type ListPaymentMethod struct {
+	Category          string          `json:"category"`
+	ListPaymentMethod []PaymentMethod `json:"list_payment_method"`
+}

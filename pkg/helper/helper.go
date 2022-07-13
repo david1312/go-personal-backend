@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"semesta-ban/pkg/constants"
 	"strconv"
 	"strings"
 )
@@ -91,6 +92,28 @@ func GenerateCustomerId(lastId string) (res string) {
 	return
 }
 
+func GenerateTransactionId(lastId, date string) (res string) {
+	if len(lastId) == 0 {
+		res = fmt.Sprintf("INV-%s-0001", date)
+		return
+	}
+	splitted := strings.Split(lastId, "-")
+
+	test, _ := strconv.Atoi(splitted[2])
+	test++
+	secRes := strconv.Itoa(test)
+	if test <= 9 {
+		secRes = fmt.Sprintf("000%v", test)
+	} else if test <= 99 && test > 9 {
+		secRes = fmt.Sprintf("00%v", test)
+	} else if test <= 999 && test > 99 {
+		secRes = fmt.Sprintf("0%v", test)
+	}
+
+	res = fmt.Sprintf("%s-%s-%v", splitted[0], date, secRes)
+	return
+}
+
 func ConvertFileSizeToMb(size int) (res int) {
 	return size * 1000000
 }
@@ -98,4 +121,13 @@ func ConvertFileSizeToMb(size int) (res int) {
 func GetUploadedFileName(file string) string {
 	spliited := strings.Split(file, "/")
 	return spliited[2]
+}
+
+func ValidateScheduleTime(schedule string) bool {
+	set := make(map[string]bool)
+	for _, v := range constants.ScheduleTime {
+		set[v] = true
+	}
+
+	return (set[schedule])
 }
