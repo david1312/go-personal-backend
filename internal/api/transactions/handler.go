@@ -182,6 +182,7 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 		fp                 GetListTransactionRequest
 		authData           = ctx.Value(localMdl.CtxKey).(localMdl.Token)
 		listTransactionRes = []TransactionsResponse{}
+		listProductByInvoices = []repo_transactions.ProductsData{}
 	)
 
 	if err := render.Bind(r, &fp); err != nil {
@@ -218,12 +219,14 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 	}
 
 	//get list product for each invoice
-
-	listProductByInvoices, errCode, err := tr.trRepo.GetProductByInvoices(ctx, listInvoiceId)
-	if err != nil {
-		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
-		return
+	if len(listInvoiceId) > 0{
+		listProductByInvoices, errCode, err = tr.trRepo.GetProductByInvoices(ctx, listInvoiceId)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
 	}
+	
 	mappedProductByInvoice := make(map[string][]ProductsData)
 	for _, m := range listProductByInvoices {
 		mappedProductByInvoice[m.InvoiceId] = append(mappedProductByInvoice[m.InvoiceId], ProductsData{
