@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -21,5 +22,9 @@ func NewMysqlDB(dbUrl string) *sqlx.DB {
 		log.Fatalf("unable to ping the database : %v", err.Error())
 		return nil
 	}
+
+	db.SetConnMaxLifetime(time.Second * 30)
+    db.SetMaxIdleConns(0)
+    db.SetMaxOpenConns(100)
 	return db
 }
