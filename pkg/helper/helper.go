@@ -122,8 +122,8 @@ func ConvertFileSizeToMb(size int) (res int) {
 }
 
 func GetUploadedFileName(file string) string {
-	spliited := strings.Split(file, "/")
-	return spliited[2]
+	splitted := strings.Split(file, "/")
+	return splitted[4]
 }
 
 func ValidateScheduleTime(schedule string) bool {
