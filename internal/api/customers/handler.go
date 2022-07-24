@@ -483,7 +483,7 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 
 	tempFile.Write(fileBytes)
 	tempFile.Chmod(0604)
-	fmt.Printf("success upload %s to the server \n", fileName)
+	fmt.Printf("success upload %s to the server x \n", fileName)
 
 	errCode, err := usr.custRepository.UploadProfileImg(ctx, authData.Uid, fileName)
 	if err != nil {
