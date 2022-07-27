@@ -34,6 +34,7 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 				UploadPath:        cfg.Assets.UploadPath,
 				ProfilePicPath:    cfg.Assets.ProfilePic.Path,
 				ProfilePicMaxSize: cfg.Assets.ProfilePic.MaxSize,
+				MaxFileSize:       cfg.Assets.Common.MaxFileSize,
 			})
 			// application context, which will be cancelled upon receiving termination signal
 			actx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)

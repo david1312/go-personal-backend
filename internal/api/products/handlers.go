@@ -110,7 +110,7 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 			Disc:           val.Disc,
 			NamaUkuran:     val.NamaUkuran,
 			HargaJualFinal: val.HargaJualFinal,
-			IsWishList:     val.IsWishlist,
+			IsWishList:     false,
 			JenisBan:       val.JenisBan,
 			DisplayImage:   prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
 		})

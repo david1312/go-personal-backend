@@ -28,6 +28,9 @@ type Config struct {
 	} `yaml:"api"`
 
 	Assets struct {
+		Common struct {
+			MaxFileSize int `yaml:"max_file_size"`
+		} `yaml:"common"`
 		BaseUrl    string `yaml:"base_url"`
 		UploadPath string `yaml:"upload_path"`
 		ProfilePic struct {

@@ -34,9 +34,9 @@ type ProductsParamsTemp struct {
 	Limit      int
 	Page       int
 	Name       string
-	UkuranBan  string
+	UkuranBan  []string
 	Posisi     string
-	MerkBan    string
+	MerkBan    []string
 	MerkMotor  int
 	IdMotor    int
 	ArrUkuran  []string

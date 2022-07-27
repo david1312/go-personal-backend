@@ -6,10 +6,12 @@ import (
 	"semesta-ban/internal/api/master_data"
 	localMdl "semesta-ban/internal/api/middleware"
 	"semesta-ban/internal/api/products"
+	"semesta-ban/internal/api/ratings"
 	"semesta-ban/internal/api/transactions"
 	"semesta-ban/repository/repo_customers"
 	"semesta-ban/repository/repo_master_data"
 	"semesta-ban/repository/repo_products"
+	"semesta-ban/repository/repo_ratings"
 	"semesta-ban/repository/repo_transactions"
 
 	"github.com/go-chi/chi"
@@ -25,6 +27,7 @@ type ServerConfig struct {
 	AnonymousKey      string
 	BaseAssetsUrl     string
 	UploadPath        string
+	MaxFileSize       int
 	ProfilePicPath    string
 	ProfilePicMaxSize int
 }
@@ -43,11 +46,13 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		prRepo            = repo_products.NewSqlRepository(db)
 		mdRepo            = repo_master_data.NewSqlRepository(db)
 		trRepo            = repo_transactions.NewSqlRepository(db)
+		rateRepo          = repo_ratings.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl)
 		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
+		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 	)
 
 	r.Use(cors.New(cors.Options{
@@ -132,6 +137,11 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r.Post("/add", prodHandler.WishlistAdd)
 		r.Post("/remove", prodHandler.WishlistRemove)
 		r.Get("/me", prodHandler.WishlistMe)
+	})
+
+	r.Route("/v1/ratings", func(r chi.Router) {
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
+		r.Post("/product/submit", rateHandler.SubmitRatingProduct)
 	})
 
 	return r

@@ -53,10 +53,10 @@ func (q *SqlRepository) GetListMerkBan(ctx context.Context) (res []MerkBan, errC
 }
 
 func (q *SqlRepository) GetListUkuranBan(ctx context.Context) (res []UkuranRingBan, errCode string, err error) {
-	const query = `select a.id, b.UkuranRing, a.id_ring_ban
+	const query = `select a.id, b.UkuranRing, b.ranking
 					from tblbanukuranring a
 					join tblmasterringban b on a.id_ring_ban = b.IDRing
-					order by a.id_ring_ban asc`
+					order by b.ranking asc`
 	rows, err := q.db.QueryContext(ctx, query)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -71,7 +71,7 @@ func (q *SqlRepository) GetListUkuranBan(ctx context.Context) (res []UkuranRingB
 		if err = rows.Scan(
 			&i.Id,
 			&i.UkuranRing,
-			&i.IdRingBan,
+			&i.Ranking,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

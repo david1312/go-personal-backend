@@ -12,6 +12,7 @@ type UkuranRingBan struct {
 	IdRingBan   int    `json:"id_ring_ban"`
 	IdUkuranBan string `json:"id_ukuran_ban"`
 	UkuranRing  string `json:"UkuranRing"`
+	Ranking     int    `json:"ranking"`
 }
 
 type MerkMotor struct {

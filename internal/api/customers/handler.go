@@ -461,10 +461,9 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-
 	// Create a temporary file within our temp-images directory that follows
 	// a particular naming pattern
-	tempFile, err := ioutil.TempFile("../public_html/" + usr.uploadPath+usr.profilePicPath, "pic-*.png")
+	tempFile, err := ioutil.TempFile(usr.uploadPath+usr.profilePicPath, "pic-*.png")
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrUploadFile, crashy.Message(crashy.ErrCode(crashy.ErrUploadFile))), http.StatusBadRequest)
 		return
