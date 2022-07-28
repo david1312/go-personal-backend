@@ -57,6 +57,7 @@ create table wishlists
     foreign key (product_id) references tblmasterplu(KodePLU)
 );
 
+
 create table outlets
 (
     id              bigint primary key AUTO_INCREMENT,
@@ -112,6 +113,28 @@ ADD `UpdatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP 
 ALTER TABLE `tbltransaksihead`
 ADD `Source` enum('APP', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE' AFTER `Catatan`
 ;
+
+create table product_ratings
+(
+    id              bigint primary key AUTO_INCREMENT,
+    customer_id              bigint not null,
+    product_id              bigint not null,
+    comment varchar(200),
+    rating tinyint not null,
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+    foreign key (customer_id) references customers (id),
+    foreign key (product_id) references tblmasterplu(KodePLU)
+);
+
+create table product_ratings_img
+(
+    id_ratings              bigint,
+    image              varchar(50) not null,
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+    foreign key (id_ratings) references product_ratings (id)
+);
 -- create type priority_events_enum as enum ('LOW','MEDIUM','HIGH','CRITICAL');
 -- create table events
 -- (

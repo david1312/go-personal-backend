@@ -43,6 +43,11 @@ type UkuranBan struct {
 	Ukuran string `json:"ukuran"`
 }
 
+type UkuranBanTemp struct {
+	RingBan string `json:"ring_ban"`
+	Ukuran  string `json:"ukuran"`
+}
+
 type ListUkuranBan struct {
 	RingBan    string      `json:"ring_ban"`
 	ListUkuran []UkuranBan `json:"list_ukuran"`

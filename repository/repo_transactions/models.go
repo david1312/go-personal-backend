@@ -42,6 +42,7 @@ type Transactions struct {
 	PaymentMethodDesc string    `json:"payment_method_desc"`
 	PaymentMethodIcon string    `json:"payment_method_icon"`
 	CreatedAt         time.Time `json:"created_at"`
+	PaymentDue        time.Time
 }
 
 type ProductsData struct {

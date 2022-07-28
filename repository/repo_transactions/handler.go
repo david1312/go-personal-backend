@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/repository/repo_products"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -91,8 +92,9 @@ func (q *SqlRepository) SubmitTransaction(ctx context.Context, fp SubmitTransact
 	}
 
 	//insert into tbl transcation head
-	_, err = tx.ExecContext(ctx, `insert into tbltransaksihead (NoFaktur, Tagihan, TglTrans, IdOutlet, TipeTransaksi, MetodePembayaran, JadwalPemasangan, CustomerId, Catatan, Source ,CreateBy)
-	values (?,?,?,?,?,?,?,?,?,?, 'Customer')`, fp.NoFaktur, totalBayar, fp.ScheduleDate, fp.IdOutlet, fp.TranType, fp.PaymentMethod, fp.ScheduleTime, fp.CustomerId, fp.Notes, fp.Source)
+	paymentDue := time.Now().Add(24 * time.Hour) // updated later +24 from response midtrans api
+	_, err = tx.ExecContext(ctx, `insert into tbltransaksihead (NoFaktur, Tagihan, TglTrans, IdOutlet, TipeTransaksi, MetodePembayaran, JadwalPemasangan, CustomerId, Catatan, Source ,CreateBy, PaymentDue)
+	values (?,?,?,?,?,?,?,?,?,?, 'Customer', ?)`, fp.NoFaktur, totalBayar, fp.ScheduleDate, fp.IdOutlet, fp.TranType, fp.PaymentMethod, fp.ScheduleTime, fp.CustomerId, fp.Notes, fp.Source, paymentDue)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
@@ -205,7 +207,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 	args = append(args, fp.Limit, offsetNum)
 
 	query := `
-	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue
 	from tbltransaksihead a
 	join payment_method b on a.MetodePembayaran = b.id
 	where 1=1` + whereParams + `
@@ -229,6 +231,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 			&i.CreatedAt,
 			&i.PaymentMethodDesc,
 			&i.PaymentMethodIcon,
+			&i.PaymentDue,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

@@ -1,15 +1,18 @@
 package api
 
 import (
+	"net/http"
 	"semesta-ban/internal/api/auth"
 	cust "semesta-ban/internal/api/customers"
 	"semesta-ban/internal/api/master_data"
 	localMdl "semesta-ban/internal/api/middleware"
 	"semesta-ban/internal/api/products"
+	"semesta-ban/internal/api/ratings"
 	"semesta-ban/internal/api/transactions"
 	"semesta-ban/repository/repo_customers"
 	"semesta-ban/repository/repo_master_data"
 	"semesta-ban/repository/repo_products"
+	"semesta-ban/repository/repo_ratings"
 	"semesta-ban/repository/repo_transactions"
 
 	"github.com/go-chi/chi"
@@ -25,15 +28,17 @@ type ServerConfig struct {
 	AnonymousKey      string
 	BaseAssetsUrl     string
 	UploadPath        string
+	MaxFileSize       int
 	ProfilePicPath    string
 	ProfilePicMaxSize int
+	MidtransConfig    transactions.MidtransConfig
 }
 
 //todo add rate limiter
 //todo add expired token from config
 //todo add base url from config for profile picture , product picture
 //implement credential email from config
-func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
+func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	var (
 		r = chi.NewRouter()
 		// ul = NewUnitLimiter()
@@ -43,11 +48,13 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		prRepo            = repo_products.NewSqlRepository(db)
 		mdRepo            = repo_master_data.NewSqlRepository(db)
 		trRepo            = repo_transactions.NewSqlRepository(db)
+		rateRepo          = repo_ratings.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl)
-		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl)
+		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
+		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 	)
 
 	r.Use(cors.New(cors.Options{
@@ -132,6 +139,11 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		r.Post("/add", prodHandler.WishlistAdd)
 		r.Post("/remove", prodHandler.WishlistRemove)
 		r.Get("/me", prodHandler.WishlistMe)
+	})
+
+	r.Route("/v1/ratings", func(r chi.Router) {
+		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
+		r.Post("/product/submit", rateHandler.SubmitRatingProduct)
 	})
 
 	return r

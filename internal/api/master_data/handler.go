@@ -91,26 +91,28 @@ func (md *MasterDataHandler) GetListSizeBan(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	mappedData := make(map[string][]string)
+	mappedData := make(map[int][]UkuranBanTemp)
 	for _, m := range data {
-		mappedData[m.UkuranRing] = append(mappedData[m.UkuranRing], m.Id)
+		mappedData[m.Ranking] = append(mappedData[m.Ranking], UkuranBanTemp{RingBan: m.UkuranRing, Ukuran: m.Id})
 	}
-	keys := make([]string, 0, len(mappedData))
+	keys := make([]int, 0, len(mappedData))
 	for k := range mappedData {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	sort.Ints(keys)
 
 	for _, k := range keys {
 		tempListSize := []UkuranBan{}
+		tempIdRing := ""
 		for _, val := range mappedData[k] {
 			tempListSize = append(tempListSize, UkuranBan{
-				Ukuran: val,
+				Ukuran: val.Ukuran,
 			})
+			tempIdRing = val.RingBan
 		}
 
 		listSizeBan = append(listSizeBan, ListUkuranBan{
-			RingBan:    k,
+			RingBan:    tempIdRing,
 			ListUkuran: tempListSize,
 		},
 		)

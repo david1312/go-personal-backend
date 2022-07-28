@@ -37,8 +37,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 
 	if len(fp.MerkBan) > 0 {
 		inTotal := ""
-		arrUkuran := strings.Split(fp.MerkBan, ",")
-		for _, v := range arrUkuran {
+		for _, v := range fp.MerkBan {
 			inTotal += "?,"
 			args = append(args, v)
 		}
@@ -58,8 +57,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 
 	if len(fp.UkuranBan) > 0 && len(fp.ArrUkuran) == 0 {
 		inTotal := ""
-		arrUkuran := strings.Split(fp.UkuranBan, ",")
-		for _, v := range arrUkuran {
+		for _, v := range fp.UkuranBan {
 			inTotal += "?,"
 			args = append(args, v)
 		}
@@ -106,8 +104,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	args = append(args, fp.Limit, offsetNum)
 
 	query := `
-	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, e.URL, a.JenisBan,
-	(select exists(select x.product_id from wishlists x where x.customer_id = ` + fmt.Sprintf("%v", custId) + ` and x.product_id = a.KodePLU)) as isWishlist
+	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, e.URL, a.JenisBan
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
@@ -135,7 +132,6 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 			&i.NamaUkuran,
 			&i.DisplayImage,
 			&i.JenisBan,
-			&i.IsWishlist,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

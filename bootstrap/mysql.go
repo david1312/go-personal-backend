@@ -24,7 +24,7 @@ func NewMysqlDB(dbUrl string) *sqlx.DB {
 	}
 
 	db.SetConnMaxLifetime(time.Second * 30)
-    db.SetMaxIdleConns(0)
-    db.SetMaxOpenConns(100)
+	db.SetMaxIdleConns(0)
+	db.SetMaxOpenConns(100)
 	return db
 }
