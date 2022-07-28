@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/http"
 	"semesta-ban/internal/api/auth"
 	cust "semesta-ban/internal/api/customers"
 	"semesta-ban/internal/api/master_data"
@@ -30,13 +31,14 @@ type ServerConfig struct {
 	MaxFileSize       int
 	ProfilePicPath    string
 	ProfilePicMaxSize int
+	MidtransConfig    transactions.MidtransConfig
 }
 
 //todo add rate limiter
 //todo add expired token from config
 //todo add base url from config for profile picture , product picture
 //implement credential email from config
-func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
+func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	var (
 		r = chi.NewRouter()
 		// ul = NewUnitLimiter()
@@ -50,7 +52,7 @@ func NewServer(db *sqlx.DB, cnf ServerConfig) *chi.Mux {
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl)
-		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl)
+		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 	)

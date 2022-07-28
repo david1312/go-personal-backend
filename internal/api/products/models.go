@@ -8,16 +8,16 @@ import (
 )
 
 type GetProductsRequest struct {
-	Limit     int    `json:"limit"`
-	Page      int    `json:"page"`
-	Name      string `json:"name"`
+	Limit     int      `json:"limit"`
+	Page      int      `json:"page"`
+	Name      string   `json:"name"`
 	UkuranBan []string `json:"ukuran"`
 	MerkBan   []string `json:"merkban"`
-	MerkMotor []int  `json:"merkmotor"`
-	IdMotor   int    `json:"idmotor"`
-	MinPrice  int    `json:"minprice"`
-	MaxPrice  int    `json:"maxprice"`
-	OrderBy   string `json:"orderby"`
+	MerkMotor []int    `json:"merkmotor"`
+	IdMotor   int      `json:"idmotor"`
+	MinPrice  int      `json:"minprice"`
+	MaxPrice  int      `json:"maxprice"`
+	OrderBy   string   `json:"orderby"`
 }
 
 func (m *GetProductsRequest) Bind(r *http.Request) error {

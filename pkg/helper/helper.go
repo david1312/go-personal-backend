@@ -1,14 +1,18 @@
 package helper
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"regexp"
 	"semesta-ban/pkg/constants"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -148,4 +152,16 @@ func FormatCurrency(number int) string {
 	p := message.NewPrinter(language.English)
 	test := p.Sprintf("%d", number)
 	return "Rp" + strings.ReplaceAll(test, ",", ".")
+}
+
+func CreateHttpClient(ctx context.Context, timeout int, skipSSL bool) *http.Client {
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipSSL},
+	}
+
+	return &http.Client{
+		Timeout:   time.Duration(timeout) * time.Minute,
+		Transport: tr,
+	}
 }

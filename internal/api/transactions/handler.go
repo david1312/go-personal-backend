@@ -26,10 +26,12 @@ type TransactionsHandler struct {
 	mdRepo       repo_master_data.MasterDataRepository
 	trRepo       repo_transactions.TransactionsRepositoy
 	baseAssetUrl string
+	client       *http.Client
+	MidtransConfig
 }
 
-func NewTransactionsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, tr repo_transactions.TransactionsRepositoy, baseAssetUrl string) *TransactionsHandler {
-	return &TransactionsHandler{db: db, prodRepo: pr, baseAssetUrl: baseAssetUrl, mdRepo: md, trRepo: tr}
+func NewTransactionsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, tr repo_transactions.TransactionsRepositoy, baseAssetUrl string, cl *http.Client, midtransCfg MidtransConfig) *TransactionsHandler {
+	return &TransactionsHandler{db: db, prodRepo: pr, baseAssetUrl: baseAssetUrl, mdRepo: md, trRepo: tr, MidtransConfig: midtransCfg, client: cl}
 }
 
 func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http.Request) {
@@ -253,6 +255,7 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 			PaymentMethodDesc:    v.PaymentMethodDesc,
 			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + v.PaymentMethodIcon,
 			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
+			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
 			ListProduct:          mappedProductByInvoice[v.InvoiceId],
 		})
 	}

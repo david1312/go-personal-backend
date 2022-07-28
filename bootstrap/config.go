@@ -38,6 +38,13 @@ type Config struct {
 			Path    string `yaml:"path"`
 		} `yaml:"profile_pic"`
 	} `yaml:"assets"`
+
+	Midtrans struct {
+		Timeout    int    `yaml:"timeout"`
+		MerchantId string `yaml:"merchant_id"`
+		ClientKey  string `yaml:"client_key"`
+		ServerKey  string `yaml:"server_key"`
+	} `yaml:"midtrans"`
 }
 
 func LoadConfig(file string) (cnfg Config, err error) {

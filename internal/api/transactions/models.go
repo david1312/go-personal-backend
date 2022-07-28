@@ -79,6 +79,7 @@ type TransactionsResponse struct {
 	TotalAmountFormatted string         `json:"total_amount_formatted"`
 	PaymentMethodDesc    string         `json:"payment_method_desc"`
 	PaymentMethodIcon    string         `json:"payment_method_icon"`
+	PaymentDue           string         `json:"payment_due"`
 	CreatedAt            string         `json:"created_at"`
 	ListProduct          []ProductsData `json:"list_product"`
 }
@@ -99,4 +100,10 @@ type ProductsData struct {
 type ListProductsResponse struct {
 	DataInfo        products.DataInfo      `json:"info"`
 	TransactionData []TransactionsResponse `json:"data"`
+}
+
+type MidtransConfig struct {
+	MerchantId string
+	ClientKey  string
+	ServerKey  string
 }

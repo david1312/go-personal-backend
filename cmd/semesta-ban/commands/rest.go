@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"semesta-ban/bootstrap"
 	"semesta-ban/internal/api"
+	"semesta-ban/internal/api/transactions"
+	"semesta-ban/pkg/helper"
 	"semesta-ban/pkg/log"
 	"syscall"
 
@@ -25,8 +27,11 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 		Long:  `This command is used to start REST service`,
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg := dep.GetConfig()
+			ctx := context.Background()
 
-			handler := api.NewServer(dep.GetDB(), api.ServerConfig{
+			client := helper.CreateHttpClient(ctx, cfg.Midtrans.Timeout, false)
+
+			handler := api.NewServer(dep.GetDB(), client, api.ServerConfig{
 				EncKey:            cfg.Key.EncryptKey,
 				JWTKey:            cfg.Key.JWT,
 				AnonymousKey:      cfg.Key.Anonymous,
@@ -35,15 +40,16 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 				ProfilePicPath:    cfg.Assets.ProfilePic.Path,
 				ProfilePicMaxSize: cfg.Assets.ProfilePic.MaxSize,
 				MaxFileSize:       cfg.Assets.Common.MaxFileSize,
+				MidtransConfig: transactions.MidtransConfig{
+					MerchantId: cfg.Midtrans.MerchantId,
+					ClientKey:  cfg.Midtrans.ClientKey,
+					ServerKey:  cfg.Midtrans.ServerKey,
+				},
 			})
 			// application context, which will be cancelled upon receiving termination signal
-			actx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
+			actx, _ := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
 
 			srv := http.Server{Addr: cfg.Host.Address, Handler: handler}
-
-			//testing only
-			//testing your code here
-
 			//end testing
 
 			//implement graceful shutdown
@@ -62,7 +68,7 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 				log.Error(err)
 				return
 			case <-actx.Done():
-				err := srv.Shutdown(context.Background())
+				err := srv.Shutdown(ctx)
 				if err != nil {
 					log.Error("Shutdown error:", err)
 					return
