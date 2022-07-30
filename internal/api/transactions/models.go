@@ -106,4 +106,70 @@ type MidtransConfig struct {
 	MerchantId string
 	ClientKey  string
 	ServerKey  string
+	AuthKey    string
+}
+
+type TransferBNIRequest struct {
+	PaymentType            string             `json:"payment_type"`
+	TransactionDetailsData TransactionDetails `json:"transaction_details"`
+	BankTransferData       BankTransfer       `json:"bank_transfer"`
+}
+
+type TransactionDetails struct {
+	OrderId     string `json:"order_id"`
+	GrossAmount string `json:"gross_amount"`
+}
+
+type BankTransfer struct {
+	Bank string `json:"bank"`
+}
+
+type VirtualAccount struct {
+	Bank     string `json:"bank"`
+	VaNumber string `json:"va_number"`
+}
+
+type PaymentAmout struct {
+	PaidAt string `json:"paid_at"`
+	Amount string `json:"amount"`
+}
+type TransferBNIResponse struct {
+	StatusCode         string           `json:"status_code"`
+	StatusMessage      string           `json:"status_message"`
+	TransactionId      string           `json:"transaction_id"`
+	OrderId            string           `json:"order_id"`
+	MerchantId         string           `json:"merchant_id"`
+	GrossAmount        string           `json:"gross_amount"`
+	Currency           string           `json:"currency"`
+	PaymentType        string           `json:"payment_type"`
+	TransactionTime    string           `json:"transaction_time"`
+	TransactionStatus  string           `json:"transaction_status"`
+	VirtualAccountData []VirtualAccount `json:"va_numbers"`
+	FraudStatus        string           `json:"fraud_status"`
+}
+
+type PaymentCallbackRequest struct {
+	VirtualAccountData []VirtualAccount `json:"va_numbers"`
+	TransactionTime    string           `json:"transaction_time"`
+	TransactionStatus  string           `json:"transaction_status"`
+	TransactionId      string           `json:"transaction_id"`
+	StatusMessage      string           `json:"status_message"`
+	StatusCode         string           `json:"status_code"`
+	SignatureKey       string           `json:"signature_key"`
+	SettlementTime     string           `json:"settlement_time"`
+	PaymentType        string           `json:"payment_type"`
+	PaymentAmoutData   []PaymentAmout     `json:"payment_amounts"`
+	OrderId            string           `json:"order_id"`
+	MerchantId         string           `json:"merchant_id"`
+	GrossAmount        string           `json:"gross_amount"`
+	FraudStatus        string           `json:"fraud_status"`
+	Currency           string           `json:"currency"`
+}
+
+func (m *PaymentCallbackRequest) Bind(r *http.Request) error {
+	return m.ValidatePaymentCallbackRequest()
+}
+
+func (m *PaymentCallbackRequest) ValidatePaymentCallbackRequest() error {
+	return validation.ValidateStruct(m)
 }

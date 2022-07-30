@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"semesta-ban/bootstrap"
+	"semesta-ban/pkg/helper"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -43,6 +44,9 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 			test := p.Sprintf("%d\n", 2000000)
 			fix := strings.ReplaceAll(test, ",", ".")
 			fmt.Println(fix)
+
+			sEnc := helper.GenerateB64AuthMidtrans("SB-Mid-server-cXRk9vIv_uoZ0nfWgHnqozI7")
+			fmt.Println(sEnc)
 		},
 	}
 }

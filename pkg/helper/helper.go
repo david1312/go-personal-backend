@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	b64 "encoding/base64"
+
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -164,4 +166,11 @@ func CreateHttpClient(ctx context.Context, timeout int, skipSSL bool) *http.Clie
 		Timeout:   time.Duration(timeout) * time.Minute,
 		Transport: tr,
 	}
+}
+
+func GenerateB64AuthMidtrans(serverKey string) string {
+	if len(serverKey) == 0 {
+		return ""
+	}
+	return b64.StdEncoding.EncodeToString([]byte(serverKey + ":"))
 }
