@@ -20,6 +20,22 @@ const (
 	TrTypeKirim   = "Kirim Barang"
 
 	LimitOrderInHour = 3
+
+	FraudAccept    = "accept"
+	FraudDeny      = "deny"
+	FraudChallenge = "challenge"
+
+	PaymentBankTransfer = "bank_transfer"
+
+	BankBNI            = "bni"
+	DBPaymentSettle    = "Lunas"
+	DBPaymentNotSettle = "Belum Lunas"
+
+	MTransStatusSettlement = "settlement"
+	MTransStatusPending    = "pending"
+	MTransStatusExpire     = "expire"
+	MTransStatusCancel     = "cancel"
+	MTransStatusDeny       = "deny"
 )
 
 var (

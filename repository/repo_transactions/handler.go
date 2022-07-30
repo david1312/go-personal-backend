@@ -309,3 +309,14 @@ func (q *SqlRepository) GetProductByInvoices(ctx context.Context, listInvoiceId 
 
 	return
 }
+
+func (q *SqlRepository) UpdateInvoiceStatus(ctx context.Context, invoiceId, transStatus, paymentStatus string) (errCode string, err error) {
+	const queryUpdate = `update tbltransaksihead set StatusTransaksi =  ?, StatusPembayaran = ? where NoFaktur = ?` //todo enhan status pembayaran
+	_, err = q.db.ExecContext(ctx, queryUpdate, transStatus, paymentStatus, invoiceId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}

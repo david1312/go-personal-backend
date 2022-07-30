@@ -70,6 +70,9 @@ const (
 	ErrBackwardDate        = "ERR_BACKWARD_DATE"
 	ErrInvalidScheduleTime = "ERR_INVALID_SCHEDULE_TIME"
 	ErrInsufficientStock   = "ERR_INSUFFICIENT_STOCK"
+
+	//midtrans error
+	ErrRequestMidtrans = "ERR_REQUEST_MIDTRANS"
 )
 
 var mapper = map[ErrCode]string{
@@ -110,6 +113,7 @@ var mapper = map[ErrCode]string{
 	ErrBackwardDate:        "tidak bisa melakukan pemesanan di hari yang sudah lewat",
 	ErrInvalidScheduleTime: "format schedule_time tidak sesuai",
 	ErrInsufficientStock:   "transaksi gagal, stock barang tidak mencukupi",
+	ErrRequestMidtrans:     "transaksi berhasil terbuat namun terdapat gangguan saat melakukan request payment ke midtrans, segera hubungi admin",
 }
 
 //Message retrieve error messages from given error code

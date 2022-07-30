@@ -98,6 +98,10 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Get("/refresh", authHandler.RefreshToken)
 	})
 
+	r.Route("/v1/callback", func(r chi.Router) {
+		r.Post("/midtrans-payment", transHandler.CallbackPayment)
+	})
+
 	r.Route("/v1/users", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Get("/me", custHandler.GetProfile)

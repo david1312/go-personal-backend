@@ -44,6 +44,7 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 					MerchantId: cfg.Midtrans.MerchantId,
 					ClientKey:  cfg.Midtrans.ClientKey,
 					ServerKey:  cfg.Midtrans.ServerKey,
+					AuthKey:    helper.GenerateB64AuthMidtrans(cfg.Midtrans.ServerKey),
 				},
 			})
 			// application context, which will be cancelled upon receiving termination signal

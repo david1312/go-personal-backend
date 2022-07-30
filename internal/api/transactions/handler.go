@@ -1,8 +1,13 @@
 package transactions
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"semesta-ban/internal/api/products"
 	"semesta-ban/internal/api/response"
 	"semesta-ban/pkg/constants"
@@ -36,10 +41,12 @@ func NewTransactionsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md
 
 func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http.Request) {
 	var (
-		p        SubmitTransactionsRequest
-		ctx      = r.Context()
-		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
-		today    = time.Now()
+		p                SubmitTransactionsRequest
+		ctx              = r.Context()
+		authData         = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		today            = time.Now()
+		totalBayar       = 0
+		transferResponse = TransferBNIResponse{}
 	)
 
 	if err := render.Bind(r, &p); err != nil {
@@ -80,6 +87,7 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 
 	tempListProduct := []repo_transactions.Product{}
 	for _, v := range p.ListProduct {
+		totalBayar += int(v.Price)
 		tempListProduct = append(tempListProduct, repo_transactions.Product{
 			ProductId: v.ProductId,
 			Qty:       v.Qty,
@@ -104,6 +112,50 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
+	//testing payment
+	payload := &TransferBNIRequest{
+		PaymentType: constants.PaymentBankTransfer,
+		TransactionDetailsData: TransactionDetails{
+			OrderId:     newTransId,
+			GrossAmount: fmt.Sprintf("%v", totalBayar),
+		},
+		BankTransferData: BankTransfer{
+			Bank: constants.BankBNI,
+		},
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Basic "+tr.MidtransConfig.AuthKey)
+
+	res, err := tr.client.Do(req)
+	if err != nil {
+		if os.IsTimeout(err) {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+	if res != nil && res.Body != nil {
+		defer func(c io.Closer) {
+			err = c.Close()
+		}(res.Body)
+	}
+
+	_ = json.NewDecoder(res.Body).Decode(&transferResponse)
+	fmt.Println(transferResponse)
+	//end test
+	//todo update data to net table payment from this response
 
 	response.Yay(w, r, "success", http.StatusOK)
 
@@ -276,4 +328,30 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 		},
 	}, http.StatusOK)
 
+}
+
+func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Request) {
+	var (
+		p             PaymentCallbackRequest
+		ctx           = r.Context()
+		paymentStatus = constants.DBPaymentSettle
+		transStatus   = "Menunggu Kedatangan"
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	if p.TransactionStatus != constants.MTransStatusSettlement {
+		paymentStatus = constants.DBPaymentNotSettle
+		transStatus = "Menunggu Konfirmasi"
+	}
+	errCode, err := tr.trRepo.UpdateInvoiceStatus(ctx, p.OrderId, transStatus, paymentStatus)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("temporary log callback accepted ")
+	response.Yay(w, r, "success", http.StatusOK)
 }
