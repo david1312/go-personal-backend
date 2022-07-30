@@ -345,7 +345,7 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 
 	if p.TransactionStatus != constants.MTransStatusSettlement {
 		paymentStatus = constants.DBPaymentNotSettle
-		transStatus = "Menunggu Konfirmasi"
+		transStatus = "Menunggu Pembayaran"
 	}
 	errCode, err := tr.trRepo.UpdateInvoiceStatus(ctx, p.OrderId, transStatus, paymentStatus)
 	if err != nil {
