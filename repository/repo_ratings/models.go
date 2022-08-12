@@ -1,15 +1,6 @@
-package ratings
+package repo_ratings
 
-import (
-	"net/http"
-
-	validation "github.com/go-ozzo/ozzo-validation"
-)
-
-type RatingProductRequest struct {
-}
-
-type GetListRatingOutletRequest struct {
+type GetListRatingOutletRequestParam struct {
 	Limit       int   `json:"limit"`
 	Page        int   `json:"page"`
 	WithMedia   bool  `json:"with_media"`
@@ -17,17 +8,8 @@ type GetListRatingOutletRequest struct {
 	Ratings     []int `json:"ratings"`
 }
 
-func (m *GetListRatingOutletRequest) Bind(r *http.Request) error {
-	return m.ValidateGetListRatingOutletRequest()
-}
-
-func (m *GetListRatingOutletRequest) ValidateGetListRatingOutletRequest() error {
-	return validation.ValidateStruct(m)
-}
 
 type DataInfoRating struct {
-	AverageRating           string `json:"avg_rating"`
-	SatisficationPercentage string `json:"satisfication_percentage"`
 	SummaryRating           struct {
 		All         int `json:"all"`
 		WithMedia   int `json:"with_media"`

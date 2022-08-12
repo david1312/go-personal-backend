@@ -352,6 +352,8 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
+
+	//send notif firebase to gcm id
 	fmt.Println("temporary log callback accepted ")
 	response.Yay(w, r, "success", http.StatusOK)
 }

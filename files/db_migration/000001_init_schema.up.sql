@@ -135,6 +135,28 @@ create table product_ratings_img
     
     foreign key (id_ratings) references product_ratings (id)
 );
+
+create table outlet_ratings
+(
+    id              bigint primary key AUTO_INCREMENT,
+    customer_id              bigint not null,
+    outlet_id              bigint not null,
+    comment varchar(200),
+    rating tinyint not null,
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+    foreign key (customer_id) references customers (id),
+    foreign key (outlet_id) references outlets(id)
+);
+
+create table outlet_ratings_img
+(
+    id_ratings              bigint,
+    image              varchar(50) not null,
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+    foreign key (id_ratings) references outlet_ratings (id)
+);
 -- create type priority_events_enum as enum ('LOW','MEDIUM','HIGH','CRITICAL');
 -- create table events
 -- (

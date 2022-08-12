@@ -148,6 +148,8 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	r.Route("/v1/ratings", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Post("/product/submit", rateHandler.SubmitRatingProduct)
+		r.Post("/outlet/submit", rateHandler.SubmitRatingOutlet)
+		r.Post("/outlet/me", rateHandler.GetListRatingOutler)
 	})
 
 	return r

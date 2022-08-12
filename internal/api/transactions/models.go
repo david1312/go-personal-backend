@@ -158,7 +158,7 @@ type PaymentCallbackRequest struct {
 	SignatureKey       string           `json:"signature_key"`
 	SettlementTime     string           `json:"settlement_time"`
 	PaymentType        string           `json:"payment_type"`
-	PaymentAmoutData   []PaymentAmout     `json:"payment_amounts"`
+	PaymentAmoutData   []PaymentAmout   `json:"payment_amounts"`
 	OrderId            string           `json:"order_id"`
 	MerchantId         string           `json:"merchant_id"`
 	GrossAmount        string           `json:"gross_amount"`
