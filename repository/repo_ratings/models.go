@@ -8,9 +8,8 @@ type GetListRatingOutletRequestParam struct {
 	Ratings     []int `json:"ratings"`
 }
 
-
 type DataInfoRating struct {
-	SummaryRating           struct {
+	SummaryRating struct {
 		All         int `json:"all"`
 		WithMedia   int `json:"with_media"`
 		WithComment int `json:"with_comment"`

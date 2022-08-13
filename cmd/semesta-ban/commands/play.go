@@ -15,7 +15,7 @@ func init() {
 	registerCommand(startPlayground)
 }
 
-//todo create script for  migration db automation
+// todo create script for  migration db automation
 func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{
 		Use:   "play",

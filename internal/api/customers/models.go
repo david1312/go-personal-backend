@@ -23,6 +23,24 @@ func (m *LoginRequest) ValidateLoginRequest() error {
 	)
 }
 
+type SignInGoogleRequest struct {
+	DisplayName    string `json:"display_name"`
+	Email          string `json:"email"`
+	Id             string `json:"id"`
+	PhotoUrl       string `json:"photo_url"`
+	ServerAuthCode string `json:"server_auth_code"`
+}
+
+func (m *SignInGoogleRequest) Bind(r *http.Request) error {
+	return m.ValidateSignInGoogleRequest()
+}
+
+func (m *SignInGoogleRequest) ValidateSignInGoogleRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Email, validation.Required),
+	)
+}
+
 type LoginResponse struct {
 	Token        string    `json:"token"`
 	ExpiredAt    time.Time `json:"expired_at"`

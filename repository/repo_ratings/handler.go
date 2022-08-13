@@ -94,7 +94,7 @@ func (q *SqlRepository) SubmitRatingOutlet(ctx context.Context, custId int, outl
 	return
 }
 
-func (q *SqlRepository) GetListRatingOutlet(ctx context.Context, fp GetListRatingOutletRequestParam, outletId int) (res DataInfoRating, totalData int, errCode string, err error){
+func (q *SqlRepository) GetListRatingOutlet(ctx context.Context, fp GetListRatingOutletRequestParam, outletId int) (res DataInfoRating, totalData int, errCode string, err error) {
 
 	const query = `select (select count(id) from outlet_ratings) as rate_all, 
 	(select count(id) from outlet_ratings where rating = 5) as rate_five,

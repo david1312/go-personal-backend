@@ -30,7 +30,7 @@ type (
 	}
 )
 
-//New create a pointer to a new instance of `Error`
+// New create a pointer to a new instance of `Error`
 func New(err error, code ErrCode, message string) *Error {
 	return &Error{
 		Code:       code,
@@ -50,12 +50,12 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
-//Unwrap implementation of `Wrapped` interface
+// Unwrap implementation of `Wrapped` interface
 func (e Error) Unwrap() error {
 	return e.origin
 }
 
-//StackTrace implementation of `StackTracer` interface
+// StackTrace implementation of `StackTracer` interface
 func (e Error) StackTrace() string {
 	return e.stacktrace
 }
@@ -85,7 +85,7 @@ func Is(err error, code ErrCode) bool {
 	return false
 }
 
-//Wrap error but keep origin and stacktrace
+// Wrap error but keep origin and stacktrace
 func Wrap(err error, code ErrCode, message string) error {
 	if err == nil {
 		return New(err, code, message)
