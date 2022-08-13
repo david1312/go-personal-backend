@@ -204,7 +204,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 		return
 	}
 
-	args = append(args, fp.Limit, offsetNum)
+	args = append(args, 200, offsetNum)
 
 	query := `
 	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue
@@ -316,6 +316,39 @@ func (q *SqlRepository) UpdateInvoiceStatus(ctx context.Context, invoiceId, tran
 
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) UpdateInvoiceVA(ctx context.Context, invoiceId, virtualAcc string) (errCode string, err error) {
+	const queryUpdate = `update tbltransaksihead set VirtualAccount =  ? where NoFaktur = ?` //todo enhan status pembayaran
+	_, err = q.db.ExecContext(ctx, queryUpdate, virtualAcc, invoiceId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) GetInvoiceData(ctx context.Context, invoiceId string) (res Transactions, errCode string, err error) {
+	const query = `select a.VirtualAccount, a.MetodePembayaran, a.Tagihan, b.description,b.icon
+		from tbltransaksihead a
+		join payment_method b on a.MetodePembayaran = b.id
+		where a.NoFaktur = ?`
+	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
+
+	err = row.Scan(
+		&res.VirtualAccount,
+		&res.PaymentMethod,
+		&res.TotalAmount,
+		&res.PaymentMethodDesc,
+		&res.PaymentMethodIcon,
+	)
+
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
 		return
 	}
 	return

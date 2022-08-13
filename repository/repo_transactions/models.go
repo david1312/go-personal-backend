@@ -39,10 +39,12 @@ type Transactions struct {
 	InvoiceId         string    `json:"invoice_id"`
 	Status            string    `json:"status"`
 	TotalAmount       float64   `json:"total_amount"`
+	PaymentMethod     string    `json:"payment_method"`
 	PaymentMethodDesc string    `json:"payment_method_desc"`
 	PaymentMethodIcon string    `json:"payment_method_icon"`
 	CreatedAt         time.Time `json:"created_at"`
 	PaymentDue        time.Time
+	VirtualAccount    string
 }
 
 type ProductsData struct {
