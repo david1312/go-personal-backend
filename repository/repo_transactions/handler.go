@@ -207,7 +207,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 	args = append(args, 200, offsetNum)
 
 	query := `
-	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet 
 	from tbltransaksihead a
 	join payment_method b on a.MetodePembayaran = b.id
 	where 1=1` + whereParams + `
@@ -232,6 +232,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 			&i.PaymentMethodDesc,
 			&i.PaymentMethodIcon,
 			&i.PaymentDue,
+			&i.OutletId,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

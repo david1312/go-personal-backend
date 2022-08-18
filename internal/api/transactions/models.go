@@ -80,6 +80,7 @@ type TransactionsResponse struct {
 	PaymentMethodDesc    string         `json:"payment_method_desc"`
 	PaymentMethodIcon    string         `json:"payment_method_icon"`
 	PaymentDue           string         `json:"payment_due"`
+	OutletId             int            `json:"outlet_id"`
 	CreatedAt            string         `json:"created_at"`
 	ListProduct          []ProductsData `json:"list_product"`
 }

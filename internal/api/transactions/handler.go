@@ -312,6 +312,7 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 			TotalAmountFormatted: helper.FormatCurrency(int(v.TotalAmount)),
 			PaymentMethodDesc:    v.PaymentMethodDesc,
 			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + v.PaymentMethodIcon,
+			OutletId:             v.OutletId,
 			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
 			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
 			ListProduct:          mappedProductByInvoice[v.InvoiceId],
