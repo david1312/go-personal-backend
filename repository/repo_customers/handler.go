@@ -61,7 +61,7 @@ func (q *SqlRepository) CheckEmailExist(ctx context.Context, email string) (res 
 	return
 }
 
-func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, password, uid string) (errCode string, err error) {
+func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, password, uid string) (cleanUid, errCode string, err error) {
 	var lastCustId string
 	const query = `select cust_id from customers order by id desc limit 1`
 	row := q.db.DB.QueryRowContext(ctx, query)
@@ -76,7 +76,7 @@ func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, p
 	rowChecker := q.db.DB.QueryRowContext(ctx, queryChecker, uid)
 	err = rowChecker.Scan(&isUidExists)
 
-	cleanUid := uid
+	cleanUid = uid
 	if isUidExists {
 		cleanUid = uuid.New().String()
 	}
@@ -349,6 +349,72 @@ func (q *SqlRepository) UploadProfileImg(ctx context.Context, uid, imgName strin
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
+	}
+	return
+}
+
+func (q *SqlRepository) GetCustomerByEmail(ctx context.Context, email string) (res Customers, errCode string, err error) {
+	const query = `SELECT name, email, email_verified_at, gender, phone, phone_verified_at, avatar, birthdate, cust_id, uid FROM customers where email = ? AND deleted_at IS NULL`
+	row := q.db.DB.QueryRowContext(ctx, query, email)
+
+	err = row.Scan(
+		&res.Name,
+		&res.Email,
+		&res.EmailVerifiedAt,
+		&res.Gender,
+		&res.Phone,
+		&res.PhoneVerifiedAt,
+		&res.Avatar,
+		&res.Birthdate,
+		&res.CustId,
+		&res.Uid,
+	)
+
+	if err != nil && err != sql.ErrNoRows {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	} else if err != nil && err == sql.ErrNoRows {
+		err = nil
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) RegisterFromGoogleSignin(ctx context.Context, name, email, uid, avatar string) (cleanUid, errCode string, err error) {
+	var lastCustId string
+	const query = `select cust_id from customers order by id desc limit 1`
+	row := q.db.DB.QueryRowContext(ctx, query)
+	err = row.Scan(&lastCustId)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	//check uid exist prevent bug
+	var isUidExists bool
+	const queryChecker = `select EXISTS(select uid from customers where uid = ?)`
+	rowChecker := q.db.DB.QueryRowContext(ctx, queryChecker, uid)
+	err = rowChecker.Scan(&isUidExists)
+
+	cleanUid = uid
+	if isUidExists {
+		cleanUid = uuid.New().String()
+	}
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	newCustId := helper.GenerateCustomerId(lastCustId)
+
+	const queryInsert = `insert into customers (uid, name, email, is_active, email_verified_sent, cust_id, email_verified_at, avatar) 
+	VALUES (?, ?, ?, true, 1, ?, now(), ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, cleanUid,
+		name, email, newCustId, avatar,
+	)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
 	}
 	return
 }

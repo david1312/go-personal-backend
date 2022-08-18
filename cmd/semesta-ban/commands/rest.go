@@ -19,7 +19,7 @@ func init() {
 	registerCommand(startRestService)
 }
 
-//todo create script for  migration db automation
+// todo create script for  migration db automation
 func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{
 		Use:   "rest",

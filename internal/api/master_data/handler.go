@@ -53,9 +53,9 @@ func (md *MasterDataHandler) GetListOutlet(w http.ResponseWriter, r *http.Reques
 			Id:        1,
 			Name:      "Semesta Ban",
 			Address:   "Jl Raya Kuningan Losari KM 39,5, Desa, Bojongnegara, Kabupaten Cirebon, Jawa Barat 45188",
-			Latitude:  -6.890816046622402,
-			Longitude: 108.75284502302158,
-			MapUrl:    "https://goo.gl/maps/gEqkgKohXGhU8jXv8",
+			Latitude:  -6.8909125,
+			Longitude: 108.7525081,
+			MapUrl:    "https://goo.gl/maps/e2HJnDKKfzuCeMqZ9",
 		},
 	}, http.StatusOK)
 }

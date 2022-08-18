@@ -34,10 +34,10 @@ type ServerConfig struct {
 	MidtransConfig    transactions.MidtransConfig
 }
 
-//todo add rate limiter
-//todo add expired token from config
-//todo add base url from config for profile picture , product picture
-//implement credential email from config
+// todo add rate limiter
+// todo add expired token from config
+// todo add base url from config for profile picture , product picture
+// implement credential email from config
 func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	var (
 		r = chi.NewRouter()
@@ -77,6 +77,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	r.Route("/v1", func(r chi.Router) { //anonymous scope
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
 		r.Post("/login", custHandler.Login)
+		r.Post("/signin-google", custHandler.SignInGoogle)
 		r.Post("/register", custHandler.Register)
 		r.Route("/master-data", func(r chi.Router) {
 			r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
@@ -121,6 +122,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/submit", transHandler.SubmitTransactions)
 		r.Get("/inquiry/schedule", transHandler.InquirySchedule)
 		r.Post("/history", transHandler.GetHistoryTransactions)
+		r.Post("/payment-instruction", transHandler.GetPaymentInstruction)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
@@ -148,6 +150,8 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	r.Route("/v1/ratings", func(r chi.Router) {
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
 		r.Post("/product/submit", rateHandler.SubmitRatingProduct)
+		r.Post("/outlet/submit", rateHandler.SubmitRatingOutlet)
+		r.Post("/outlet/history", rateHandler.GetListRatingOutler)
 	})
 
 	return r

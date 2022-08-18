@@ -174,3 +174,23 @@ func GenerateB64AuthMidtrans(serverKey string) string {
 	}
 	return b64.StdEncoding.EncodeToString([]byte(serverKey + ":"))
 }
+
+func MappingBankName(paymentMethod string) string {
+	switch paymentMethod {
+	case "TF_BNI":
+		return "BNI"
+	case "TF_BCA":
+		return "BCA"
+	case "TF_BRI":
+		return "BRI"
+	case "TF_MANDIRI":
+		return "MANDIRI"
+	case "TF_PERMATA":
+		return "PERMATA"
+	case "TF_GOPAY":
+		return "GOPAY"
+	default:
+		return ""
+	}
+
+}

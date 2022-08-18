@@ -153,7 +153,13 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 	}
 
 	_ = json.NewDecoder(res.Body).Decode(&transferResponse)
-	fmt.Println(transferResponse)
+	// fmt.Println(transferResponse.VirtualAccountData[0].VaNumber)
+
+	errCode, err = tr.trRepo.UpdateInvoiceVA(ctx, newTransId, transferResponse.VirtualAccountData[0].VaNumber)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+		return
+	}
 	//end test
 	//todo update data to net table payment from this response
 
@@ -306,6 +312,7 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 			TotalAmountFormatted: helper.FormatCurrency(int(v.TotalAmount)),
 			PaymentMethodDesc:    v.PaymentMethodDesc,
 			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + v.PaymentMethodIcon,
+			OutletId:             v.OutletId,
 			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
 			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
 			ListProduct:          mappedProductByInvoice[v.InvoiceId],
@@ -352,6 +359,38 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
+
+	//send notif firebase to gcm id
 	fmt.Println("temporary log callback accepted ")
 	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *http.Request) {
+	var (
+		p   GetPaymentInstructionRequest
+		ctx = r.Context()
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	transaction, errCode, err := tr.trRepo.GetInvoiceData(ctx, p.InvoiceId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, GetPaymentInstructionResponse{
+		PaymentMethodDesc:    transaction.PaymentMethodDesc,
+		PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+		TotalAmountFormatted: helper.FormatCurrency(int(transaction.TotalAmount)),
+		VirtualAccNumber:     transaction.VirtualAccount,
+		AtmTitle:             "ATM " + helper.MappingBankName(transaction.PaymentMethod),
+		AtmInstruction:       constants.ATMInstructionBNI,
+		IBInstruction:        constants.InternetBankingInstructionBNI,
+		MBInstuction:         constants.MobileBankingInstructionBNI,
+	}, http.StatusOK)
+
 }

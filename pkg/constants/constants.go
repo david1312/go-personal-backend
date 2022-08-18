@@ -11,6 +11,7 @@ const (
 	MotorDir          = "motor/"
 	PaymentMethod     = "payment_method/"
 	RatingsProductDir = "rating_product/"
+	RatingOutletDir   = "rating_outlet/"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"
@@ -40,5 +41,5 @@ const (
 
 var (
 	ScheduleTime []string = []string{"08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"}
-	TransStatus  []string = []string{"Menunggu Pembayaran", "Menunggu Konfirmasi", "Menunggu Kedatangan", "Diproses", "Selesai"}
+	TransStatus  []string = []string{"Menunggu Pembayaran", "Menunggu Konfirmasi", "Menunggu Kedatangan", "Diproses", "Menunggu Diselesaikan", "Selesai"}
 )

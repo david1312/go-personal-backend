@@ -116,7 +116,7 @@ var mapper = map[ErrCode]string{
 	ErrRequestMidtrans:     "transaksi berhasil terbuat namun terdapat gangguan saat melakukan request payment ke midtrans, segera hubungi admin",
 }
 
-//Message retrieve error messages from given error code
+// Message retrieve error messages from given error code
 func Message(code ErrCode) string {
 	if s, ok := mapper[code]; ok {
 		return s
@@ -124,7 +124,7 @@ func Message(code ErrCode) string {
 	return mapper[ErrCodeUnexpected]
 }
 
-//Messages retrieve all registered mapping error messages
+// Messages retrieve all registered mapping error messages
 func Messages() map[ErrCode]string {
 	return mapper
 }

@@ -80,6 +80,7 @@ type TransactionsResponse struct {
 	PaymentMethodDesc    string         `json:"payment_method_desc"`
 	PaymentMethodIcon    string         `json:"payment_method_icon"`
 	PaymentDue           string         `json:"payment_due"`
+	OutletId             int            `json:"outlet_id"`
 	CreatedAt            string         `json:"created_at"`
 	ListProduct          []ProductsData `json:"list_product"`
 }
@@ -158,7 +159,7 @@ type PaymentCallbackRequest struct {
 	SignatureKey       string           `json:"signature_key"`
 	SettlementTime     string           `json:"settlement_time"`
 	PaymentType        string           `json:"payment_type"`
-	PaymentAmoutData   []PaymentAmout     `json:"payment_amounts"`
+	PaymentAmoutData   []PaymentAmout   `json:"payment_amounts"`
 	OrderId            string           `json:"order_id"`
 	MerchantId         string           `json:"merchant_id"`
 	GrossAmount        string           `json:"gross_amount"`
@@ -172,4 +173,28 @@ func (m *PaymentCallbackRequest) Bind(r *http.Request) error {
 
 func (m *PaymentCallbackRequest) ValidatePaymentCallbackRequest() error {
 	return validation.ValidateStruct(m)
+}
+
+type GetPaymentInstructionRequest struct {
+	InvoiceId string `json:"invoice_id"`
+}
+
+func (m *GetPaymentInstructionRequest) Bind(r *http.Request) error {
+	return m.ValidateGetPaymentInstructionRequest()
+}
+
+func (m *GetPaymentInstructionRequest) ValidateGetPaymentInstructionRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.InvoiceId, validation.Required))
+}
+
+type GetPaymentInstructionResponse struct {
+	PaymentMethodDesc    string   `json:"payment_method_desc"`
+	PaymentMethodIcon    string   `json:"payment_method_icon"`
+	TotalAmountFormatted string   `json:"total_amount_formatted"`
+	VirtualAccNumber     string   `json:"virtual_account"`
+	AtmTitle             string   `json:"atm_title"`
+	AtmInstruction       []string `json:"instructions_atm"`
+	IBInstruction        []string `json:"instructions_internet_banking"`
+	MBInstuction         []string `json:"instructions_mobile_banking"`
 }

@@ -24,7 +24,7 @@ type SortBy struct {
 	Label string `json:"label"`
 }
 
-//todo update list product sort by
+// todo update list product sort by
 var ListSortBy = []SortBy{{
 	Value: "latest",
 	Label: "Terbaru",

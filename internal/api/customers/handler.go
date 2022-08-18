@@ -21,7 +21,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-//todo move to config
+// todo move to config
 const CONFIG_SMTP_HOST = "mail.sunmorisemestaban.com"
 const CONFIG_SMTP_PORT = 465
 const CONFIG_SENDER_NAME = "PT. Sunmori Semesta Ban <support@sunmorisemestaban.com>"
@@ -76,7 +76,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	hashedTokenEmail := helper.GenerateHashString()
 
-	errCode, err = usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, authData.Uid)
+	cleanUid, errCode, err := usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, authData.Uid)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
@@ -88,7 +88,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	//generate token
 	expiredTime := time.Now().Add(24 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
-		Uid:      authData.Uid,
+		Uid:      cleanUid,
 		CustName: p.Name,
 
 		Expired: expiredTime,
@@ -97,7 +97,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	//generate refresh token
 	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
-		Uid:      authData.Uid,
+		Uid:      cleanUid,
 		CustName: p.Name,
 		Expired:  expiredTimeRefresh,
 	})
@@ -176,9 +176,12 @@ func (usr *UsersHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	if customer.Birthdate.Time.IsZero() {
 		birthdateVal = ""
 	}
-	avatar := usr.baseAssetUrl + usr.profilePicPath + customer.Avatar.String
-	if len(customer.Avatar.String) == 0 {
-		avatar = ""
+	avatar := ""
+
+	if len(customer.Avatar.String) > 0 && customer.Avatar.String[:3] == "pic" {
+		avatar = usr.baseAssetUrl + usr.profilePicPath + customer.Avatar.String
+	} else if len(customer.Avatar.String) > 0 && customer.Avatar.String[:3] != "pic" {
+		avatar = customer.Avatar.String
 	}
 
 	response.Yay(w, r, GetCustomerResponse{
@@ -491,6 +494,83 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 	}
 
 	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
+	var (
+		p   SignInGoogleRequest
+		ctx = r.Context()
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	customer, errCode, err := usr.custRepository.GetCustomerByEmail(ctx, p.Email)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if len(customer.Uid) > 0 {
+		//generate token
+		expiredTime := time.Now().Add(24 * time.Hour)
+		_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+			Uid:      customer.Uid,
+			CustName: customer.Name,
+			Expired:  expiredTime,
+		})
+
+		//generate refresh token
+		expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+		_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+			Uid:      customer.Uid,
+			CustName: customer.Name,
+			Expired:  expiredTimeRefresh,
+		})
+
+		response.Yay(w, r, LoginResponse{
+			Token:        tokenLogin,
+			ExpiredAt:    expiredTime,
+			RefreshToken: tokenRefresh,
+			RTExpired:    expiredTimeRefresh,
+		}, http.StatusOK)
+		return
+
+	}
+	authData := ctx.Value(localMdl.CtxKey).(localMdl.Token)
+
+	cleanUid, errCode, err := usr.custRepository.RegisterFromGoogleSignin(ctx, p.DisplayName, p.Email, authData.Uid, p.PhotoUrl)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	//generate token
+	expiredTime := time.Now().Add(24 * time.Hour)
+	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+		Uid:      cleanUid,
+		CustName: p.DisplayName,
+
+		Expired: expiredTime,
+	})
+
+	//generate refresh token
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
+		Uid:      cleanUid,
+		CustName: p.DisplayName,
+		Expired:  expiredTimeRefresh,
+	})
+
+	response.Yay(w, r, LoginResponse{
+		Token:        tokenLogin,
+		ExpiredAt:    expiredTime,
+		RefreshToken: tokenRefresh,
+		RTExpired:    expiredTimeRefresh,
+	}, http.StatusOK)
 
 }
 
