@@ -175,6 +175,13 @@ func GenerateB64AuthMidtrans(serverKey string) string {
 	return b64.StdEncoding.EncodeToString([]byte(serverKey + ":"))
 }
 
+func FormatInstallationTime(dateStr, timeStr string) string {
+	date, _ := time.Parse("2006-01-02", dateStr[:10])
+
+	dayName := MappingDaysNameId(date.Weekday().String())
+	return fmt.Sprintf("%v, %v, %v WIB", dayName, date.Format("02 January 2006"), timeStr)
+}
+
 func MappingBankName(paymentMethod string) string {
 	switch paymentMethod {
 	case "TF_BNI":
@@ -193,4 +200,31 @@ func MappingBankName(paymentMethod string) string {
 		return ""
 	}
 
+}
+
+func MappingDaysNameId(dayName string) string {
+	switch dayName {
+	case "Sunday":
+		return "Minggu"
+	case "Monday":
+		return "Senin"
+	case "Tuesday":
+		return "Selasa"
+	case "Wednesday":
+		return "Rabu"
+	case "Thursday":
+		return "Kamis"
+	case "Friday":
+		return "Jumat"
+	case "Saturday":
+		return "Sabtu"
+	default:
+		return ""
+	}
+}
+
+func DateEqual(date1, date2 time.Time) bool {
+    y1, m1, d1 := date1.Date()
+    y2, m2, d2 := date2.Date()
+    return y1 == y2 && m1 == m2 && d1 == d2
 }

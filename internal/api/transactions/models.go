@@ -198,3 +198,28 @@ type GetPaymentInstructionResponse struct {
 	IBInstruction        []string `json:"instructions_internet_banking"`
 	MBInstuction         []string `json:"instructions_mobile_banking"`
 }
+
+type ProductsDataPageJadwal struct {
+	KodePLU              int32   `json:"id"`
+	NamaBarang           string  `json:"nama_barang"`
+	NamaUkuran           string  `json:"ukuran"`
+	Qty                  int     `json:"qty"`
+	HargaSatuan          float64 `json:"harga_satuan"`
+	HargaSatuanFormatted string  `json:"harga_satuan_formatted"`
+	HargaTotal           float64 `json:"harga_total"`
+	HargaTotalFormatted  string  `json:"harga_total_formatted"`
+	Deskripsi            string  `json:"deskripsi"`
+	DisplayImage         string  `json:"display_image"`
+	JenisBan             string  `json:"jenis_ban"`
+}
+
+type GetTransactionsDetailResponse struct {
+	InvoiceId         string                   `json:"invoice_id"`
+	BannerInformation string                   `json:"banner_information"`
+	InstallationtTime string                   `json:"installation_time"`
+	OutletName        string                   `json:"outlet_name"`
+	CsNumber          string                   `json:"outlet_cs_number"`
+	OutletAddress     string                   `json:"outlet_address"`
+	RescheduleTime    string                   `json:"reschedule_time"`
+	ListProduct       []ProductsDataPageJadwal `json:"list_product"`
+}

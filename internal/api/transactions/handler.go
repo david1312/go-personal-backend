@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"semesta-ban/internal/api/products"
@@ -17,6 +18,8 @@ import (
 	"semesta-ban/repository/repo_products"
 	"semesta-ban/repository/repo_transactions"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	localMdl "semesta-ban/internal/api/middleware"
@@ -342,7 +345,7 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 		p             PaymentCallbackRequest
 		ctx           = r.Context()
 		paymentStatus = constants.DBPaymentSettle
-		transStatus   = "Menunggu Kedatangan"
+		transStatus   = "Menunggu Dipasang"
 	)
 
 	if err := render.Bind(r, &p); err != nil {
@@ -391,6 +394,75 @@ func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *h
 		AtmInstruction:       constants.ATMInstructionBNI,
 		IBInstruction:        constants.InternetBankingInstructionBNI,
 		MBInstuction:         constants.MobileBankingInstructionBNI,
+	}, http.StatusOK)
+
+}
+
+func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *http.Request) {
+	var (
+		p                      GetPaymentInstructionRequest
+		ctx                    = r.Context()
+		listProductByInvoiceId = []ProductsDataPageJadwal{}
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	transaction, errCode, err := tr.trRepo.GetTransactionDetail(ctx, p.InvoiceId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	listProduct, errCode, err := tr.trRepo.GetProductByInvoiceId(ctx, p.InvoiceId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	for _, m := range listProduct {
+		listProductByInvoiceId = append(listProductByInvoiceId, ProductsDataPageJadwal{
+			KodePLU:              m.KodePLU,
+			NamaBarang:           m.NamaBarang,
+			NamaUkuran:           m.NamaUkuran,
+			Qty:                  m.Qty,
+			HargaSatuan:          m.Harga,
+			HargaSatuanFormatted: helper.FormatCurrency(int(m.Harga)),
+			HargaTotal:           m.HargaTotal,
+			HargaTotalFormatted:  helper.FormatCurrency(int(m.HargaTotal)),
+			Deskripsi:            m.Deskripsi,
+			DisplayImage:         tr.baseAssetUrl + constants.ProductDir + m.DisplayImage,
+			JenisBan:             m.JenisBan,
+		},
+		)
+	}
+	
+	splitStr := strings.Split(transaction.InstallationTime, ":")
+	timeAdded, _ := strconv.Atoi(splitStr[1]) 
+	timeAdded = timeAdded + 15
+	rescheduleTime := fmt.Sprintf("%v:%v", splitStr[0],timeAdded)
+	//
+	date, _ := time.Parse("2006-01-02", transaction.InstallationDate[:10])
+	now := time.Now()
+	// nowZeroTime
+	bannerMsg:= ""
+	if helper.DateEqual(date,now){
+		bannerMsg = "Ban pilihan mu akan dipasang hari ini"
+	}else if date.After(now){
+		days := math.Ceil( date.Sub(now).Hours() / 24)
+		bannerMsg = fmt.Sprintf("Ban pilihan mu akan dipasang dalam %v hari", days)
+	}
+
+	response.Yay(w, r, GetTransactionsDetailResponse{
+		InvoiceId:         transaction.InvoiceId,
+		BannerInformation: bannerMsg,
+		InstallationtTime: helper.FormatInstallationTime(transaction.InstallationDate, transaction.InstallationTime),
+		OutletName:        transaction.OutletName,
+		CsNumber:          "081217950269", //todo
+		OutletAddress:     fmt.Sprintf("%v, %v, %v", transaction.OutletAddress, transaction.OutletDistrict, transaction.OutletCity),
+		RescheduleTime:    helper.FormatInstallationTime(transaction.InstallationDate, rescheduleTime),
+		ListProduct:       listProductByInvoiceId,
 	}, http.StatusOK)
 
 }

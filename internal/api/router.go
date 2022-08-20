@@ -123,6 +123,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Get("/inquiry/schedule", transHandler.InquirySchedule)
 		r.Post("/history", transHandler.GetHistoryTransactions)
 		r.Post("/payment-instruction", transHandler.GetPaymentInstruction)
+		r.Post("/detail", transHandler.GetTransactionDetail)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {

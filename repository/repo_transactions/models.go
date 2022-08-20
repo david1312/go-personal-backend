@@ -58,4 +58,16 @@ type ProductsData struct {
 	HargaTotal   float64 `json:"harga_total"`
 	Deskripsi    string  `json:"deskripsi"`
 	DisplayImage string  `json:"display_image"`
+	JenisBan     string
+}
+
+type GetTransactionsDetailData struct {
+	InvoiceId        string `json:"invoice_id"`
+	InstallationDate string `json:"installation_date"`
+	InstallationTime string `json:"installation_time"`
+	OutletName       string `json:"outlet_name"`
+	CsNumber         string `json:"outlet_cs_number"`
+	OutletAddress    string `json:"outlet_address"`
+	OutletDistrict   string `json:"outlet_district"`
+	OutletCity       string `json:"outlet_city"`
 }
