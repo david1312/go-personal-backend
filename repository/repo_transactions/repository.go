@@ -11,4 +11,6 @@ type TransactionsRepositoy interface {
 	UpdateInvoiceVA(ctx context.Context, invoiceId, virtualAcc string) (errCode string, err error)
 	UpdateInvoiceStatus(ctx context.Context, invoiceId, transStatus, paymentStatus string) (errCode string, err error)
 	GetInvoiceData(ctx context.Context, invoiceId string) (res Transactions, errCode string, err error)
+	GetProductByInvoiceId(ctx context.Context, invoiceId string) (res []ProductsData, errCode string, err error)
+	GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error)
 }

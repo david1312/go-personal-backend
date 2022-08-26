@@ -283,7 +283,7 @@ func (rh *RatingsHandler) GetListRatingOutler(w http.ResponseWriter, r *http.Req
 			)
 		}
 	}
-	if(p.WithMedia){
+	if p.WithMedia {
 		totalData = len(mappedListImageByRatingId)
 	}
 

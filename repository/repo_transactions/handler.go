@@ -354,3 +354,73 @@ func (q *SqlRepository) GetInvoiceData(ctx context.Context, invoiceId string) (r
 	}
 	return
 }
+
+func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId string) (res []ProductsData, errCode string, err error) {
+	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang, b.JenisBan
+	from tbltransaksidetail a
+	join tblmasterplu b on a.IdBarang = b.KodePlu
+	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
+	where a.NoFaktur = ? `
+
+	rows, err := q.db.QueryContext(ctx, query, invoiceId)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i ProductsData
+
+		if err = rows.Scan(
+			&i.InvoiceId,
+			&i.NamaBarang,
+			&i.NamaUkuran,
+			&i.Harga,
+			&i.Deskripsi,
+			&i.DisplayImage,
+			&i.Qty,
+			&i.HargaTotal,
+			&i.KodePLU,
+			&i.JenisBan,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error) {
+	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans
+	from tbltransaksihead a 
+	join outlets b on a.IdOutlet = b.id
+	where a.NoFaktur = ? `
+	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
+
+	err = row.Scan(
+		&res.InvoiceId,
+		&res.OutletName,
+		&res.OutletAddress,
+		&res.OutletDistrict,
+		&res.OutletCity,
+		&res.InstallationTime,
+		&res.InstallationDate,
+	)
+
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
+		return
+	}
+	return
+}
