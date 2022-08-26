@@ -303,6 +303,7 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 			HargaTotalFormatted:  helper.FormatCurrency(int(m.HargaTotal)),
 			Deskripsi:            m.Deskripsi,
 			DisplayImage:         tr.baseAssetUrl + constants.ProductDir + m.DisplayImage,
+			JenisBan:             m.JenisBan,
 		})
 
 	}
@@ -316,6 +317,8 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 			PaymentMethodDesc:    v.PaymentMethodDesc,
 			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + v.PaymentMethodIcon,
 			OutletId:             v.OutletId,
+			OutletName:           v.OutletName,
+			CsNumber:             constants.CSNumber,
 			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
 			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
 			ListProduct:          mappedProductByInvoice[v.InvoiceId],
@@ -437,32 +440,38 @@ func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *ht
 		},
 		)
 	}
-	
+
 	splitStr := strings.Split(transaction.InstallationTime, ":")
-	timeAdded, _ := strconv.Atoi(splitStr[1]) 
+	timeAdded, _ := strconv.Atoi(splitStr[1])
 	timeAdded = timeAdded + 15
-	rescheduleTime := fmt.Sprintf("%v:%v", splitStr[0],timeAdded)
+	rescheduleTime := fmt.Sprintf("%v:%v", splitStr[0], timeAdded)
 	//
 	date, _ := time.Parse("2006-01-02", transaction.InstallationDate[:10])
 	now := time.Now()
 	// nowZeroTime
-	bannerMsg:= ""
-	if helper.DateEqual(date,now){
+	bannerMsg := ""
+	if helper.DateEqual(date, now) {
 		bannerMsg = "Ban pilihan mu akan dipasang hari ini"
-	}else if date.After(now){
-		days := math.Ceil( date.Sub(now).Hours() / 24)
+	} else if date.After(now) {
+		days := math.Ceil(date.Sub(now).Hours() / 24)
 		bannerMsg = fmt.Sprintf("Ban pilihan mu akan dipasang dalam %v hari", days)
+	}
+	isEnableReview := false
+	if transaction.Status == constants.TransStatusBerhasil {
+		isEnableReview = true
 	}
 
 	response.Yay(w, r, GetTransactionsDetailResponse{
-		InvoiceId:         transaction.InvoiceId,
-		BannerInformation: bannerMsg,
-		InstallationtTime: helper.FormatInstallationTime(transaction.InstallationDate, transaction.InstallationTime),
-		OutletName:        transaction.OutletName,
-		CsNumber:          "081217950269", //todo
-		OutletAddress:     fmt.Sprintf("%v, %v, %v", transaction.OutletAddress, transaction.OutletDistrict, transaction.OutletCity),
-		RescheduleTime:    helper.FormatInstallationTime(transaction.InstallationDate, rescheduleTime),
-		ListProduct:       listProductByInvoiceId,
+		InvoiceId:          transaction.InvoiceId,
+		BannerInformation:  bannerMsg,
+		InstallationtTime:  helper.FormatInstallationTime(transaction.InstallationDate, transaction.InstallationTime),
+		OutletName:         transaction.OutletName,
+		CsNumber:           constants.CSNumber,
+		OutletAddress:      fmt.Sprintf("%v, %v, %v", transaction.OutletAddress, transaction.OutletDistrict, transaction.OutletCity),
+		RescheduleTime:     helper.FormatInstallationTime(transaction.InstallationDate, rescheduleTime),
+		IsEnableReview:     isEnableReview,
+		IsEnableReschedule: false,
+		ListProduct:        listProductByInvoiceId,
 	}, http.StatusOK)
 
 }

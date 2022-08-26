@@ -81,6 +81,8 @@ type TransactionsResponse struct {
 	PaymentMethodIcon    string         `json:"payment_method_icon"`
 	PaymentDue           string         `json:"payment_due"`
 	OutletId             int            `json:"outlet_id"`
+	OutletName           string         `json:"outlet_name"`
+	CsNumber             string         `json:"outlet_cs_number"`
 	CreatedAt            string         `json:"created_at"`
 	ListProduct          []ProductsData `json:"list_product"`
 }
@@ -96,6 +98,7 @@ type ProductsData struct {
 	HargaTotalFormatted  string  `json:"harga_total_formatted"`
 	Deskripsi            string  `json:"deskripsi"`
 	DisplayImage         string  `json:"display_image"`
+	JenisBan             string  `json:"jenis_ban"`
 }
 
 type ListProductsResponse struct {
@@ -214,12 +217,14 @@ type ProductsDataPageJadwal struct {
 }
 
 type GetTransactionsDetailResponse struct {
-	InvoiceId         string                   `json:"invoice_id"`
-	BannerInformation string                   `json:"banner_information"`
-	InstallationtTime string                   `json:"installation_time"`
-	OutletName        string                   `json:"outlet_name"`
-	CsNumber          string                   `json:"outlet_cs_number"`
-	OutletAddress     string                   `json:"outlet_address"`
-	RescheduleTime    string                   `json:"reschedule_time"`
-	ListProduct       []ProductsDataPageJadwal `json:"list_product"`
+	InvoiceId          string                   `json:"invoice_id"`
+	BannerInformation  string                   `json:"banner_information"`
+	InstallationtTime  string                   `json:"installation_time"`
+	OutletName         string                   `json:"outlet_name"`
+	CsNumber           string                   `json:"outlet_cs_number"`
+	OutletAddress      string                   `json:"outlet_address"`
+	RescheduleTime     string                   `json:"reschedule_time"`
+	IsEnableReview     bool                     `json:"is_enable_review"`
+	IsEnableReschedule bool                     `json:"is_enable_reschedule"`
+	ListProduct        []ProductsDataPageJadwal `json:"list_product"`
 }

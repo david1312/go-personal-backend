@@ -37,9 +37,13 @@ const (
 	MTransStatusExpire     = "expire"
 	MTransStatusCancel     = "cancel"
 	MTransStatusDeny       = "deny"
+
+	CSNumber = "081217950269"
+
+	TransStatusBerhasil = "Berhasil"
 )
 
 var (
 	ScheduleTime []string = []string{"08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"}
-	TransStatus  []string = []string{"Menunggu Pembayaran", "Menunggu Dipasang", "Diproses", "Beri Ulasan", "Pesanan Dibatalkan", "Selesai"}
+	TransStatus  []string = []string{"Menunggu Pembayaran", "Menunggu Dipasang", "Diproses", "Berhasil", "Pesanan Dibatalkan", "Selesai"}
 )
