@@ -207,9 +207,10 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 	args = append(args, 200, offsetNum)
 
 	query := `
-	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet 
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name
 	from tbltransaksihead a
 	join payment_method b on a.MetodePembayaran = b.id
+	join outlets c on a.IdOutlet = c.id
 	where 1=1` + whereParams + `
 	` + fmt.Sprintf("order by %v", orderBy) + `  limit ? offset ? `
 
@@ -233,6 +234,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 			&i.PaymentMethodIcon,
 			&i.PaymentDue,
 			&i.OutletId,
+			&i.OutletName,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -266,7 +268,7 @@ func (q *SqlRepository) GetProductByInvoices(ctx context.Context, listInvoiceId 
 	trimmed := inTotal[:len(inTotal)-1]
 	whereParams += " a.NoFaktur in(" + trimmed + ") "
 
-	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang
+	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang, b.JenisBan
 	from tbltransaksidetail a
 	join tblmasterplu b on a.IdBarang = b.KodePlu
 	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
@@ -293,6 +295,7 @@ func (q *SqlRepository) GetProductByInvoices(ctx context.Context, listInvoiceId 
 			&i.Qty,
 			&i.HargaTotal,
 			&i.KodePLU,
+			&i.JenisBan,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -402,7 +405,7 @@ func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId str
 }
 
 func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error) {
-	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans
+	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi
 	from tbltransaksihead a 
 	join outlets b on a.IdOutlet = b.id
 	where a.NoFaktur = ? `
@@ -416,6 +419,7 @@ func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId stri
 		&res.OutletCity,
 		&res.InstallationTime,
 		&res.InstallationDate,
+		&res.Status,
 	)
 
 	if err != nil {

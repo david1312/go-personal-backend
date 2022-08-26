@@ -45,7 +45,8 @@ type Transactions struct {
 	CreatedAt         time.Time `json:"created_at"`
 	PaymentDue        time.Time
 	VirtualAccount    string
-	OutletId          int `json:"outlet_id"`
+	OutletId          int    `json:"outlet_id"`
+	OutletName        string `json:"outlet_name"`
 }
 
 type ProductsData struct {
@@ -70,4 +71,5 @@ type GetTransactionsDetailData struct {
 	OutletAddress    string `json:"outlet_address"`
 	OutletDistrict   string `json:"outlet_district"`
 	OutletCity       string `json:"outlet_city"`
+	Status           string `json:"status"`
 }
