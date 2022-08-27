@@ -157,6 +157,20 @@ create table outlet_ratings_img
     
     foreign key (id_ratings) references outlet_ratings (id)
 );
+
+create table merchants
+(
+    id              int primary key AUTO_INCREMENT,
+    outlet_id              bigint not null,
+    password        varchar(200) not null,
+    email           varchar(200) null default null,
+    phone varchar(250) NULL DEFAULT NULL,
+    avatar          varchar(100) default 'default.png',
+    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      timestamp NULL DEFAULT NULL,
+    foreign key (outlet_id) references outlets(id)
+);
 -- create type priority_events_enum as enum ('LOW','MEDIUM','HIGH','CRITICAL');
 -- create table events
 -- (

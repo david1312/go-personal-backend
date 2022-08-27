@@ -3,12 +3,9 @@ package commands
 import (
 	"fmt"
 	"semesta-ban/bootstrap"
-	"semesta-ban/pkg/helper"
-	"strings"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func init() {
@@ -36,17 +33,24 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 			// 	fmt.Println(d.Format("2006-01-02"))
 			// 	i++
 			// }
-			a := "asd hehe KOK DQW-sad asdsad DDDASD aaDD diprosesS"
-			a = strings.Title(strings.ToLower(a))
-			fmt.Println(a)
 
-			p := message.NewPrinter(language.English)
-			test := p.Sprintf("%d\n", 2000000)
-			fix := strings.ReplaceAll(test, ",", ".")
-			fmt.Println(fix)
+			// a := "asd hehe KOK DQW-sad asdsad DDDASD aaDD diprosesS"
+			// a = strings.Title(strings.ToLower(a))
+			// fmt.Println(a)
 
-			sEnc := helper.GenerateB64AuthMidtrans("SB-Mid-server-cXRk9vIv_uoZ0nfWgHnqozI7")
-			fmt.Println(sEnc)
+			// p := message.NewPrinter(language.English)
+			// test := p.Sprintf("%d\n", 2000000)
+			// fix := strings.ReplaceAll(test, ",", ".")
+			// fmt.Println(fix)
+
+			// sEnc := helper.GenerateB64AuthMidtrans("SB-Mid-server-cXRk9vIv_uoZ0nfWgHnqozI7")
+			// fmt.Println(sEnc)
+
+			hashedPass, err := bcrypt.GenerateFromPassword([]byte("merchant1"), bcrypt.DefaultCost)
+			if err != nil {
+				return
+			}
+			fmt.Println(string(hashedPass))
 		},
 	}
 }

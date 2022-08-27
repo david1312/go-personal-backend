@@ -454,10 +454,6 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 	}
 	defer file.Close()
 
-	// fmt.Printf("Uploaded File: %+v\n", handler.Filename)
-	// fmt.Printf("File Size: %+v\n", handler.Size)
-	// fmt.Printf("MIME Header: %+v\n", handler.Header)
-
 	if handler.Size > int64(helper.ConvertFileSizeToMb(usr.profilePicMaxSize)) {
 		errMsg := fmt.Sprintf("%s%v mb", crashy.Message(crashy.ErrCode(crashy.ErrExceededFileSize)), usr.profilePicMaxSize)
 		response.Nay(w, r, crashy.New(errors.New(crashy.ErrExceededFileSize), crashy.ErrExceededFileSize, errMsg), http.StatusBadRequest)
@@ -485,7 +481,7 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 
 	tempFile.Write(fileBytes)
 	tempFile.Chmod(0604)
-	fmt.Printf("success upload %s to the server x \n", fileName)
+	log.Infof("success upload %s to the server x \n", fileName)
 
 	errCode, err := usr.custRepository.UploadProfileImg(ctx, authData.Uid, fileName)
 	if err != nil {

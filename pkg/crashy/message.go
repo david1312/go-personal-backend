@@ -73,6 +73,9 @@ const (
 
 	//midtrans error
 	ErrRequestMidtrans = "ERR_REQUEST_MIDTRANS"
+
+	//merchant
+	ErrInvalidUserMerchant = "ERR_INVALID_USER_MERCHANT"
 )
 
 var mapper = map[ErrCode]string{
@@ -114,6 +117,9 @@ var mapper = map[ErrCode]string{
 	ErrInvalidScheduleTime: "format schedule_time tidak sesuai",
 	ErrInsufficientStock:   "transaksi gagal, stock barang tidak mencukupi",
 	ErrRequestMidtrans:     "transaksi berhasil terbuat namun terdapat gangguan saat melakukan request payment ke midtrans, segera hubungi admin",
+
+	//merchant
+	ErrInvalidUserMerchant: "username atau password yang anda masukan salah",
 }
 
 // Message retrieve error messages from given error code
