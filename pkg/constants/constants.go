@@ -12,7 +12,8 @@ const (
 	PaymentMethod     = "payment_method/"
 	RatingsProductDir = "rating_product/"
 	RatingOutletDir   = "rating_outlet/"
-	MerchantDir   = "merchant/"
+	MerchantDir       = "merchant/"
+	PromoDir          = "promo/"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"
@@ -42,6 +43,8 @@ const (
 	CSNumber = "081217950269"
 
 	TransStatusBerhasil = "Berhasil"
+
+	StaticPromoBanner = "banner-promo-agustus-2022.png"
 )
 
 var (

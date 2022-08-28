@@ -23,13 +23,13 @@ func (m *LoginRequest) ValidateLoginRequest() error {
 }
 
 type MerchantDataResponse struct {
-	Username       string `json:"username"`
-	OutletId       int    `json:"outlet_id"`
-	OutletName     string `json:"outlet_name"`
-	OutletAvatar   string `json:"outlet_avatar"`
-	OutletEmail    string `json:"outlet_email"`
-	CsNumber       string `json:"outlet_cs_number"`
-	OutletAddress  string `json:"outlet_address"`
-	OutletCity     string `json:"outlet_city"`
-	OutletGmapUrl  string `json:"outlet_gmap_url"`
+	Username      string `json:"username"`
+	OutletId      int    `json:"outlet_id"`
+	OutletName    string `json:"outlet_name"`
+	OutletAvatar  string `json:"outlet_avatar"`
+	OutletEmail   string `json:"outlet_email"`
+	CsNumber      string `json:"outlet_cs_number"`
+	OutletAddress string `json:"outlet_address"`
+	OutletCity    string `json:"outlet_city"`
+	OutletGmapUrl string `json:"outlet_gmap_url"`
 }

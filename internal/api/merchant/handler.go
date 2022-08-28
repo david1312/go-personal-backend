@@ -76,21 +76,21 @@ func (mrc *MerchantHandler) GetProfileMerchant(w http.ResponseWriter, r *http.Re
 		authData = ctx.Value(localMdl.CtxKey).(localMdl.MerchantToken)
 	)
 
-	merchant, errCode, err := mrc.merchRepo.GetMerchantProfile(ctx, authData.Username )
+	merchant, errCode, err := mrc.merchRepo.GetMerchantProfile(ctx, authData.Username)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	
+
 	response.Yay(w, r, MerchantDataResponse{
-		Username: merchant.Username,
-		OutletId: merchant.OutletId,
-		OutletName: merchant.OutletName,
-		OutletAvatar: mrc.baseAssetUrl + constants.MerchantDir + merchant.OutletAvatar,
-		OutletEmail: merchant.OutletEmail,
-		CsNumber: merchant.CsNumber,
+		Username:      merchant.Username,
+		OutletId:      merchant.OutletId,
+		OutletName:    merchant.OutletName,
+		OutletAvatar:  mrc.baseAssetUrl + constants.MerchantDir + merchant.OutletAvatar,
+		OutletEmail:   merchant.OutletEmail,
+		CsNumber:      merchant.CsNumber,
 		OutletAddress: merchant.OutletAddress,
-		OutletCity: merchant.OutletCity,
+		OutletCity:    merchant.OutletCity,
 		OutletGmapUrl: merchant.OutletGmapUrl,
 	}, http.StatusOK)
 }

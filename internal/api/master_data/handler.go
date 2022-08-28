@@ -250,10 +250,9 @@ func (md *MasterDataHandler) GetListPaymentMethod(w http.ResponseWriter, r *http
 
 }
 
-
 func (md *MasterDataHandler) GetTopRankMotor(w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx           = r.Context()
+		ctx       = r.Context()
 		listMotor = []Motor{}
 	)
 
@@ -271,4 +270,14 @@ func (md *MasterDataHandler) GetTopRankMotor(w http.ResponseWriter, r *http.Requ
 	}
 
 	response.Yay(w, r, listMotor, http.StatusOK)
+}
+
+func (md *MasterDataHandler) GetImgAsset(w http.ResponseWriter, r *http.Request) {
+
+	response.Yay(w, r, ImageAssetResponse{
+		PromoBannerData: PromoBanner{
+			Alt:      "Promo Banner",
+			ImageUrl: md.baseAssetUrl + cn.MotorDir + cn.StaticPromoBanner,
+		},
+	}, http.StatusOK)
 }

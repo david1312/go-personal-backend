@@ -243,7 +243,7 @@ func (q *SqlRepository) GetListMotorByBrand(ctx context.Context, idBrandMotor in
 	return
 }
 
-func (q *SqlRepository) GetListTopRankpMotor(ctx context.Context) (res []Motor, errCode string, err error){
+func (q *SqlRepository) GetListTopRankpMotor(ctx context.Context) (res []Motor, errCode string, err error) {
 	const query = `select a.id,a.nama,a.icon from tblmotor a order by ranking asc limit 8`
 	rows, err := q.db.QueryContext(ctx, query)
 	if err != nil {

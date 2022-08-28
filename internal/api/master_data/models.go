@@ -81,3 +81,12 @@ type ListPaymentMethod struct {
 	Category          string          `json:"category"`
 	ListPaymentMethod []PaymentMethod `json:"list_payment_method"`
 }
+
+type PromoBanner struct {
+	Alt      string `json:"alt"`
+	ImageUrl string `json:"img_url"`
+}
+
+type ImageAssetResponse struct {
+	PromoBannerData PromoBanner `json:"promo_banner"`
+}
