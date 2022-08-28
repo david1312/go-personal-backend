@@ -243,6 +243,40 @@ func (q *SqlRepository) GetListMotorByBrand(ctx context.Context, idBrandMotor in
 	return
 }
 
+func (q *SqlRepository) GetListTopRankpMotor(ctx context.Context) (res []Motor, errCode string, err error){
+	const query = `select a.id,a.nama,a.icon from tblmotor a order by ranking asc limit 8`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i Motor
+
+		if err = rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.Icon,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
 func (q *SqlRepository) GetListPaymentMethod(ctx context.Context) (res []PaymentMethod, errCode string, err error) {
 	const query = `select a.id, a.description, a.is_default, a.icon,b.name as category
 	from payment_method a

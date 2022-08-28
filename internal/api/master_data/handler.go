@@ -249,3 +249,26 @@ func (md *MasterDataHandler) GetListPaymentMethod(w http.ResponseWriter, r *http
 	response.Yay(w, r, listPaymentMethod, http.StatusOK)
 
 }
+
+
+func (md *MasterDataHandler) GetTopRankMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx           = r.Context()
+		listMotor = []Motor{}
+	)
+
+	data, errCode, err := md.mdRepo.GetListTopRankpMotor(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	for _, val := range data {
+		listMotor = append(listMotor, Motor{
+			Id:   val.Id,
+			Nama: val.Name,
+			Icon: md.baseAssetUrl + cn.MotorDir + val.Icon,
+		})
+	}
+
+	response.Yay(w, r, listMotor, http.StatusOK)
+}
