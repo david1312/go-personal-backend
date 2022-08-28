@@ -5,12 +5,14 @@ import (
 	"semesta-ban/internal/api/auth"
 	cust "semesta-ban/internal/api/customers"
 	"semesta-ban/internal/api/master_data"
+	"semesta-ban/internal/api/merchant"
 	localMdl "semesta-ban/internal/api/middleware"
 	"semesta-ban/internal/api/products"
 	"semesta-ban/internal/api/ratings"
 	"semesta-ban/internal/api/transactions"
 	"semesta-ban/repository/repo_customers"
 	"semesta-ban/repository/repo_master_data"
+	"semesta-ban/repository/repo_merchant"
 	"semesta-ban/repository/repo_products"
 	"semesta-ban/repository/repo_ratings"
 	"semesta-ban/repository/repo_transactions"
@@ -55,6 +57,10 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
+
+		//merchant
+		merchRepo       = repo_merchant.NewSqlRepository(db)
+		merchantHandler = merchant.NewMerchantHandler(merchRepo, prRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicMaxSize)
 	)
 
 	r.Use(cors.New(cors.Options{
@@ -89,6 +95,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Get("/motor-brand", masterDataHandler.GetListMerkMotor)
 			r.Get("/motor-list-by-brand", masterDataHandler.GetListMotorByBrand)
 			r.Get("/payment-method", masterDataHandler.GetListPaymentMethod)
+			r.Get("/toprank-motor", masterDataHandler.GetTopRankMotor)
 			// r.Get("/outlets", prodHandler.GetListProducts)
 		})
 
@@ -155,5 +162,22 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/outlet/history", rateHandler.GetListRatingOutler)
 	})
 
+	r.Route("/v1/merchant/auth", func(r chi.Router) { //anonymous scope
+		r.Use(jwt.AuthMiddlewareMerchant(localMdl.GuardAnonymous))
+		r.Post("/login", merchantHandler.LoginMerchant)
+
+	})
+
+	r.Route("/v1/merchant", func(r chi.Router) { //anonymous scope
+		r.Use(jwt.AuthMiddlewareMerchant(localMdl.GuardAccess))
+		r.Get("/me", merchantHandler.GetProfileMerchant)
+
+	})
+
+	// r.Route("/v1/merchant", func(r chi.Router) { //anonymous scope
+	// 	r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
+	// 	r.Post("/me", merchantHandler.LoginMerchant)
+
+	// })
 	return r
 }

@@ -12,6 +12,7 @@ const (
 	PaymentMethod     = "payment_method/"
 	RatingsProductDir = "rating_product/"
 	RatingOutletDir   = "rating_outlet/"
+	MerchantDir   = "merchant/"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"

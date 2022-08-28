@@ -101,6 +101,52 @@ func (j *JWT) AuthMiddleware(typ GuardType) func(handler http.Handler) http.Hand
 	}
 }
 
+func (j *JWT) AuthMiddlewareMerchant(typ GuardType) func(handler http.Handler) http.Handler {
+	return func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			authHeader := r.Header.Get("Authorization")
+
+			if len(authHeader) == 0 || !strings.HasPrefix(authHeader, AuthPrefix) {
+				response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCodeUnauthorized, "invalid token"), http.StatusUnauthorized)
+				return
+			}
+
+			jwtToken, err := jwtauth.VerifyRequest(j.JWTAuth, r, TokenFromHeader)
+			if err != nil {
+				response.Nay(w, r, crashy.New(err, crashy.ErrCodeUnauthorized, "error verifying token"), http.StatusUnauthorized)
+				return
+			}
+
+			var claims MerchantToken
+			b, err := json.Marshal(jwtToken.Claims) //Encode Token
+			if err != nil {
+				response.Nay(w, r, crashy.New(err, crashy.ErrCodeUnauthorized, "invalid token"), http.StatusUnauthorized)
+				return
+			}
+
+			err = json.Unmarshal(b, &claims)
+			if err != nil {
+				response.Nay(w, r, crashy.New(err, crashy.ErrCodeDataRead, "unable to parse token"), http.StatusBadRequest)
+				return
+			}
+
+			if typ == GuardAccess && len(claims.Username) < 1 {
+				response.Nay(w, r, crashy.New(err, crashy.ErrCodeUnauthorized, "invalid token"), http.StatusUnauthorized)
+				return
+			}
+
+			err = claims.Valid()
+			if err != nil {
+				response.Nay(w, r, crashy.New(err, crashy.ErrCodeUnauthorized, "token expired"), http.StatusUnauthorized)
+				return
+			}
+			ctx := context.WithValue(r.Context(), CtxKey, claims)
+			handler.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
 func TokenFromHeader(r *http.Request) string {
 	return r.Header.Get("Authorization")[7:]
 }

@@ -12,6 +12,7 @@ import (
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
+	"semesta-ban/pkg/log"
 	"semesta-ban/repository/repo_products"
 	rateRepo "semesta-ban/repository/repo_ratings"
 
@@ -102,7 +103,7 @@ func (rh *RatingsHandler) SubmitRatingProduct(w http.ResponseWriter, r *http.Req
 
 		tempFile.Write(fileBytes)
 		tempFile.Chmod(0604)
-		fmt.Printf("success upload %s to the server x \n", fileName)
+		log.Infof("success upload %s to the server x \n", fileName)
 		fileNameList = append(fileNameList, fileName)
 
 		// Read data from f
@@ -187,7 +188,7 @@ func (rh *RatingsHandler) SubmitRatingOutlet(w http.ResponseWriter, r *http.Requ
 
 		tempFile.Write(fileBytes)
 		tempFile.Chmod(0604)
-		fmt.Printf("success upload %s to the server x \n", fileName)
+		log.Infof("success upload %s to the server x \n", fileName)
 		fileNameList = append(fileNameList, fileName)
 
 		// Read data from f
