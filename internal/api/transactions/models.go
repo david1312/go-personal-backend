@@ -236,3 +236,10 @@ type SubmitTransactionResponse struct {
 	Status    string `json:"status"`
 	InvoiceId string `json:"invoice_id"`
 }
+
+type GetSummaryTransactionCountResponse struct {
+	WaitingPayment int `json:"waiting_payment"`
+	WaitingProcess int `json:"waiting_to_process"`
+	OnProgress     int `json:"on_progress"`
+	Succedd        int `json:"succeed"`
+}

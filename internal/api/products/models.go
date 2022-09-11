@@ -216,3 +216,17 @@ type ListItemCartResponse struct {
 	CartId    int            `json:"cart_id"`
 	CartsItem []CartResponse `json:"data"`
 }
+
+type ProductCommonRequest struct {
+	Id int `json:"id"`
+}
+
+func (m *ProductCommonRequest) Bind(r *http.Request) error {
+	return m.ValidateProductCommonRequest()
+}
+
+func (m *ProductCommonRequest) ValidateProductCommonRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+	)
+}

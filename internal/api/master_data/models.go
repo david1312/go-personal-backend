@@ -90,3 +90,7 @@ type PromoBanner struct {
 type ImageAssetResponse struct {
 	PromoBannerData PromoBanner `json:"promo_banner"`
 }
+
+type TireType struct {
+	Value string `json:"value"`
+}

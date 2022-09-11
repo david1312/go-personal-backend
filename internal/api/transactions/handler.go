@@ -483,3 +483,29 @@ func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *ht
 	}, http.StatusOK)
 
 }
+
+func (tr *TransactionsHandler) GetCountTransaction(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	custId, errCode, err := tr.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	res, errCode, err := tr.trRepo.GetCountTransactionData(ctx, custId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, GetSummaryTransactionCountResponse{
+		WaitingPayment: res.WaitingPayment,
+		WaitingProcess: res.WaitingProcess,
+		OnProgress:     res.OnProgress,
+		Succedd:        res.Succedd,
+	}, http.StatusOK)
+}

@@ -2,8 +2,10 @@ package products
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"semesta-ban/internal/api/response"
+	"semesta-ban/pkg/constants"
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
@@ -22,10 +24,12 @@ type ProductsHandler struct {
 	prodRepo     repo_products.ProductsRepository
 	mdRepo       repo_master_data.MasterDataRepository
 	baseAssetUrl string
+	uploadPath   string
+	imgMaxSize   int
 }
 
-func NewProductsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, baseAssetUrl string) *ProductsHandler {
-	return &ProductsHandler{db: db, prodRepo: pr, baseAssetUrl: baseAssetUrl, mdRepo: md}
+func NewProductsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, baseAssetUrl, uploadPath string, maxSize int) *ProductsHandler {
+	return &ProductsHandler{db: db, prodRepo: pr, baseAssetUrl: baseAssetUrl, uploadPath: uploadPath, mdRepo: md, imgMaxSize: maxSize}
 }
 
 func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Request) {
@@ -537,4 +541,99 @@ func (prd *ProductsHandler) CartMe(w http.ResponseWriter, r *http.Request) {
 		},
 	}, http.StatusOK)
 
+}
+
+func (prd *ProductsHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   ProductCommonRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := prd.prodRepo.DeleteProductById(ctx, p.Id)
+
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		ctx          = r.Context()
+		sku          = r.FormValue("sku")
+		name         = r.FormValue("name")
+		brandId      = r.FormValue("brand_id")
+		tireType     = r.FormValue("tire_type")
+		size         = r.FormValue("size")
+		price        = r.FormValue("price")
+		stock        = r.FormValue("stock")
+		description  = r.FormValue("description")
+		fileNameList = []string{}
+	)
+
+	// validate input
+	if len(sku) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "sku cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(name) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(brandId) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "brand cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(tireType) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "tire type cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(size) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "size cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(price) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "price cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(stock) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "price cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(description) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "description cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	//check all file size before uploading
+	for _, fh := range r.MultipartForm.File["photos"] {
+		if fh.Size > int64(helper.ConvertFileSizeToMb(prd.imgMaxSize)) {
+			errMsg := fmt.Sprintf("%s%v mb", crashy.Message(crashy.ErrCode(crashy.ErrExceededFileSize)), prd.imgMaxSize)
+			response.Nay(w, r, crashy.New(errors.New(crashy.ErrExceededFileSize), crashy.ErrExceededFileSize, errMsg), http.StatusBadRequest)
+			return
+		}
+
+	}
+
+	fileNameList, errCode, err := helper.UploadImage(r, "photos", prd.uploadPath, constants.ProductDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	errCode, err = prd.prodRepo.AddProduct(ctx, sku, name, brandId, tireType, size, price, stock, description, fileNameList)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
 }

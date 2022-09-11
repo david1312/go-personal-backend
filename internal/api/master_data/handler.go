@@ -281,3 +281,11 @@ func (md *MasterDataHandler) GetImgAsset(w http.ResponseWriter, r *http.Request)
 		},
 	}, http.StatusOK)
 }
+
+func (md *MasterDataHandler) GetTireType(w http.ResponseWriter, r *http.Request) {
+
+	response.Yay(w, r, []TireType{
+		{Value: "TUBE TYPE"},
+		{Value: "TUBE LESS"},
+	}, http.StatusOK)
+}

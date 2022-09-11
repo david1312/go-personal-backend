@@ -432,3 +432,27 @@ func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId stri
 	}
 	return
 }
+
+func (q *SqlRepository) GetCountTransactionData(ctx context.Context, custId int) (res GetSummaryTransactionCount, errCode string, err error) {
+	const query = `select 
+	COALESCE(SUM(IF(StatusTransaksi = 'Menunggu Pembayaran', 1, 0)),0) AS wait_payment,
+	COALESCE(SUM(IF(StatusTransaksi = 'Menunggu Dipasang', 1, 0)),0) AS wait_process,
+	COALESCE(SUM(IF(StatusTransaksi = 'Diproses', 1, 0)),0) AS process,
+	COALESCE(SUM(IF(StatusTransaksi = 'Berhasil', 1, 0)),0) AS success
+	from tbltransaksihead where CustomerId = ?`
+
+	row := q.db.DB.QueryRowContext(ctx, query, custId)
+
+	err = row.Scan(
+		&res.WaitingPayment,
+		&res.WaitingProcess,
+		&res.OnProgress,
+		&res.Succedd,
+	)
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
+		return
+	}
+
+	return
+}

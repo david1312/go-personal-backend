@@ -76,3 +76,10 @@ type GetTransactionsDetailData struct {
 	PaymentMethodDesc string `json:"payment_method_desc"`
 	PaymentMethodIcon string `json:"payment_method_icon"`
 }
+
+type GetSummaryTransactionCount struct {
+	WaitingPayment       int   `json:"waiting_payment"`
+	WaitingProcess        int   `json:"waiting_to_process"`
+	OnProgress        int   `json:"on_progress"`
+	Succedd        int   `json:"succeed"`
+}

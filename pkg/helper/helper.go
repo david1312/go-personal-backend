@@ -7,9 +7,12 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"semesta-ban/pkg/constants"
+	"semesta-ban/pkg/crashy"
+	"semesta-ban/pkg/log"
 	"strconv"
 	"strings"
 	"time"
@@ -227,4 +230,45 @@ func DateEqual(date1, date2 time.Time) bool {
 	y1, m1, d1 := date1.Date()
 	y2, m2, d2 := date2.Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
+}
+
+func UploadImage(r *http.Request, fieldName, uploadPath, directory string) (fileNameList []string, errCode string, err error) {
+	for _, fh := range r.MultipartForm.File[fieldName] {
+		f, errTemp := fh.Open()
+		if err != nil {
+			// Handle error
+			err = errTemp
+			errCode = crashy.ErrFileNotFound
+			break
+		}
+
+		tempFile, errTemp := ioutil.TempFile(uploadPath+directory, "pic-*.png")
+		if err != nil {
+			err = errTemp
+			errCode = crashy.ErrUploadFile
+			break
+		}
+		defer tempFile.Close()
+
+		// read all of the contents of our uploaded file into a
+		// byte array
+		fileBytes, errTemp := ioutil.ReadAll(f)
+		if err != nil {
+			err = errTemp
+			errCode = crashy.ErrUploadFile
+			break
+		}
+		// write this byte array to our temporary file
+		fileName := GetUploadedFileName(tempFile.Name())
+
+		tempFile.Write(fileBytes)
+		tempFile.Chmod(0604)
+		log.Infof("success upload %s to the server x \n", fileName)
+		fileNameList = append(fileNameList, fileName)
+
+		// Read data from f
+		f.Close()
+	}
+	return
+
 }

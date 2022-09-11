@@ -94,7 +94,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
-	 where 1 = 1 ` + whereParams
+	 where 1 = 1 and a.DeletedAt is null ` + whereParams
 	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -109,7 +109,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
-	where 1 = 1 ` + whereParams + ` and e.DeletedAt IS NULL
+	where 1 = 1 and a.DeletedAt is null  ` + whereParams + ` and e.DeletedAt IS NULL
 	` + fmt.Sprintf("order by %v", orderBy) + `  limit ? offset ? `
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
@@ -501,5 +501,52 @@ func (q *SqlRepository) CartMe(ctx context.Context, cartId int, fp ProductsParam
 		return
 	}
 	return
+}
 
+func (q *SqlRepository) DeleteProductById(ctx context.Context, productId int) (errCode string, err error) {
+	const query = `update tblmasterplu set DeletedAt = now() where KodePLU = ?`
+	_, err = q.db.ExecContext(ctx, query, productId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) AddProduct(ctx context.Context, sku, name, brandId, tireType, size, price, stock, description string, photoList []string) (errCode string, err error) {
+	tx, err := q.db.BeginTx(ctx, nil)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, `insert into tblmasterplu (KodeBarang, NamaBarang, IDMerk, JenisBan, IDUkuranRing, HargaJual, HargaJualFinal, StokAll, Deskripsi)
+	values (?,?,?,?,?,?,?,?,?)`, sku, name, brandId, tireType, size, price, price, stock, description)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	//insert list image if included
+	if len(photoList) > 0 {
+		isDisplay := true
+		for _, v := range photoList {
+			_, err = tx.ExecContext(ctx, "insert into tblurlgambar (KodeBarang, URL, isDisplay) values (?,?,?)",
+				sku, v, isDisplay)
+			if err != nil {
+				errCode = crashy.ErrCodeUnexpected
+				return
+			}
+			isDisplay = false
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
 }
