@@ -256,12 +256,19 @@ func (rh *RatingsHandler) GetListRatingOutler(w http.ResponseWriter, r *http.Req
 	}
 
 	for _, v := range listRating {
+		avatar := ""
+
+		if len(v.CustomerAvatar.String) > 0 && v.CustomerAvatar.String[:3] == "pic" {
+			avatar = rh.baseAssetUrl + constants.UserDir + v.CustomerAvatar.String
+		} else if len(v.CustomerAvatar.String) > 0 && v.CustomerAvatar.String[:3] != "pic" {
+			avatar = v.CustomerAvatar.String
+		}
 		if p.WithMedia {
 			if len(mappedListImageByRatingId[v.IdRating]) > 0 {
 				listRatingTemp = append(listRatingTemp, ListRating{
 					IdRating:       v.IdRating,
 					CustomerName:   v.CustomerName,
-					CustomerAvatar: rh.baseAssetUrl + constants.UserDir + v.CustomerAvatar.String,
+					CustomerAvatar: avatar,
 					Rating:         v.Rating,
 					OutletName:     v.OutletName,
 					Comment:        v.Comment,
@@ -274,7 +281,7 @@ func (rh *RatingsHandler) GetListRatingOutler(w http.ResponseWriter, r *http.Req
 			listRatingTemp = append(listRatingTemp, ListRating{
 				IdRating:       v.IdRating,
 				CustomerName:   v.CustomerName,
-				CustomerAvatar: rh.baseAssetUrl + constants.UserDir + v.CustomerAvatar.String,
+				CustomerAvatar: avatar,
 				Rating:         v.Rating,
 				OutletName:     v.OutletName,
 				Comment:        v.Comment,

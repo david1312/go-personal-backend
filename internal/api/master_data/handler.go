@@ -277,7 +277,7 @@ func (md *MasterDataHandler) GetImgAsset(w http.ResponseWriter, r *http.Request)
 	response.Yay(w, r, ImageAssetResponse{
 		PromoBannerData: PromoBanner{
 			Alt:      "Promo Banner",
-			ImageUrl: md.baseAssetUrl + cn.MotorDir + cn.StaticPromoBanner,
+			ImageUrl: md.baseAssetUrl + cn.PromoDir + cn.StaticPromoBanner,
 		},
 	}, http.StatusOK)
 }

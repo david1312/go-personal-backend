@@ -226,5 +226,13 @@ type GetTransactionsDetailResponse struct {
 	RescheduleTime     string                   `json:"reschedule_time"`
 	IsEnableReview     bool                     `json:"is_enable_review"`
 	IsEnableReschedule bool                     `json:"is_enable_reschedule"`
+	PaymentMethod      string                   `json:"payment_method"`
+	PaymentMethodDesc  string                   `json:"payment_method_desc"`
+	PaymentMethodIcon  string                   `json:"payment_method_icon"`
 	ListProduct        []ProductsDataPageJadwal `json:"list_product"`
+}
+
+type SubmitTransactionResponse struct {
+	Status    string `json:"status"`
+	InvoiceId string `json:"invoice_id"`
 }

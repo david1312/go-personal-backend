@@ -405,9 +405,10 @@ func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId str
 }
 
 func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error) {
-	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi
+	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi, c.description as payment_desc, c.icon, a.MetodePembayaran
 	from tbltransaksihead a 
 	join outlets b on a.IdOutlet = b.id
+	join payment_method c on a.MetodePembayaran = c.id
 	where a.NoFaktur = ? `
 	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
 
@@ -420,6 +421,9 @@ func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId stri
 		&res.InstallationTime,
 		&res.InstallationDate,
 		&res.Status,
+		&res.PaymentMethodDesc,
+		&res.PaymentMethodIcon,
+		&res.PaymentMethod,
 	)
 
 	if err != nil {

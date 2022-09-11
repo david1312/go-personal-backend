@@ -166,7 +166,10 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 	//end test
 	//todo update data to net table payment from this response
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, SubmitTransactionResponse{
+		Status:    "success",
+		InvoiceId: newTransId,
+	}, http.StatusOK)
 
 }
 
@@ -456,10 +459,12 @@ func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *ht
 		days := math.Ceil(date.Sub(now).Hours() / 24)
 		bannerMsg = fmt.Sprintf("Ban pilihan mu akan dipasang dalam %v hari", days)
 	}
-	isEnableReview := false
-	if transaction.Status == constants.TransStatusBerhasil {
-		isEnableReview = true
-	}
+	// isEnableReview := false
+	// if transaction.Status == constants.TransStatusBerhasil {
+	// 	isEnableReview = true
+	// }
+	// fmt.Println(transaction.Status)
+	// fmt.Println(transaction.InstallationDate +" " + transaction.InstallationTime)
 
 	response.Yay(w, r, GetTransactionsDetailResponse{
 		InvoiceId:          transaction.InvoiceId,
@@ -469,8 +474,11 @@ func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *ht
 		CsNumber:           constants.CSNumber,
 		OutletAddress:      fmt.Sprintf("%v, %v, %v", transaction.OutletAddress, transaction.OutletDistrict, transaction.OutletCity),
 		RescheduleTime:     helper.FormatInstallationTime(transaction.InstallationDate, rescheduleTime),
-		IsEnableReview:     isEnableReview,
+		IsEnableReview:     true,
 		IsEnableReschedule: false,
+		PaymentMethod:      transaction.PaymentMethod,
+		PaymentMethodDesc:  transaction.PaymentMethodDesc,
+		PaymentMethodIcon:  tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
 		ListProduct:        listProductByInvoiceId,
 	}, http.StatusOK)
 

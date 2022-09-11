@@ -63,13 +63,16 @@ type ProductsData struct {
 }
 
 type GetTransactionsDetailData struct {
-	InvoiceId        string `json:"invoice_id"`
-	InstallationDate string `json:"installation_date"`
-	InstallationTime string `json:"installation_time"`
-	OutletName       string `json:"outlet_name"`
-	CsNumber         string `json:"outlet_cs_number"`
-	OutletAddress    string `json:"outlet_address"`
-	OutletDistrict   string `json:"outlet_district"`
-	OutletCity       string `json:"outlet_city"`
-	Status           string `json:"status"`
+	InvoiceId         string `json:"invoice_id"`
+	InstallationDate  string `json:"installation_date"`
+	InstallationTime  string `json:"installation_time"`
+	OutletName        string `json:"outlet_name"`
+	CsNumber          string `json:"outlet_cs_number"`
+	OutletAddress     string `json:"outlet_address"`
+	OutletDistrict    string `json:"outlet_district"`
+	OutletCity        string `json:"outlet_city"`
+	Status            string `json:"status"`
+	PaymentMethod     string `json:"payment_method"`
+	PaymentMethodDesc string `json:"payment_method_desc"`
+	PaymentMethodIcon string `json:"payment_method_icon"`
 }
