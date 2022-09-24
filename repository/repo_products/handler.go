@@ -28,6 +28,9 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 		offsetNum   = (fp.Page - 1) * fp.Limit
 		orderBy     = "a.NamaBarang"
 	)
+	fmt.Println(fp.Page)
+	fmt.Println(fp.Limit)
+	fmt.Println(offsetNum)
 
 	if len(fp.Name) > 0 {
 		lowerName := strings.ToLower(fp.Name)

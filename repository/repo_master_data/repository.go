@@ -11,4 +11,7 @@ type MasterDataRepository interface {
 	GetListMotorByBrand(ctx context.Context, idBrandMotor int) (res []Motor, errCode string, err error)
 	GetListPaymentMethod(ctx context.Context) (res []PaymentMethod, errCode string, err error)
 	GetListTopRankpMotor(ctx context.Context) (res []Motor, errCode string, err error)
+
+	//
+	AddBrandMotor(ctx context.Context, name, icon string) (errCode string, err error)
 }

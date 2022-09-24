@@ -509,3 +509,201 @@ func (tr *TransactionsHandler) GetCountTransaction(w http.ResponseWriter, r *htt
 		Succedd:        res.Succedd,
 	}, http.StatusOK)
 }
+
+func (tr *TransactionsHandler) EPUpdateTransactionStatus(w http.ResponseWriter, r *http.Request) {
+	var (
+		p   TransactionCommonRequest
+		ctx = r.Context()
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := tr.trRepo.UpdateTransactionStatus(ctx, p.InvoiceId, p.Status, p.Notes)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (tr *TransactionsHandler) EPMerchantGetTransactionDetail(w http.ResponseWriter, r *http.Request) {
+	var (
+		p                      GetPaymentInstructionRequest
+		ctx                    = r.Context()
+		listProductByInvoiceId = []ProductsDataPageJadwal{}
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	transaction, errCode, err := tr.trRepo.GetTransactionDetail(ctx, p.InvoiceId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	listProduct, errCode, err := tr.trRepo.GetProductByInvoiceId(ctx, p.InvoiceId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	for _, m := range listProduct {
+		listProductByInvoiceId = append(listProductByInvoiceId, ProductsDataPageJadwal{
+			KodePLU:              m.KodePLU,
+			NamaBarang:           m.NamaBarang,
+			NamaUkuran:           m.NamaUkuran,
+			Qty:                  m.Qty,
+			HargaSatuan:          m.Harga,
+			HargaSatuanFormatted: helper.FormatCurrency(int(m.Harga)),
+			HargaTotal:           m.HargaTotal,
+			HargaTotalFormatted:  helper.FormatCurrency(int(m.HargaTotal)),
+			Deskripsi:            m.Deskripsi,
+			DisplayImage:         tr.baseAssetUrl + constants.ProductDir + m.DisplayImage,
+			JenisBan:             m.JenisBan,
+		},
+		)
+	}
+
+	splitStr := strings.Split(transaction.InstallationTime, ":")
+	timeAdded, _ := strconv.Atoi(splitStr[1])
+	timeAdded = timeAdded + 15
+	rescheduleTime := fmt.Sprintf("%v:%v", splitStr[0], timeAdded)
+	//
+	date, _ := time.Parse("2006-01-02", transaction.InstallationDate[:10])
+	now := time.Now()
+	// nowZeroTime
+	bannerMsg := ""
+	if helper.DateEqual(date, now) {
+		bannerMsg = "Ban pilihan mu akan dipasang hari ini"
+	} else if date.After(now) {
+		days := math.Ceil(date.Sub(now).Hours() / 24)
+		bannerMsg = fmt.Sprintf("Ban pilihan mu akan dipasang dalam %v hari", days)
+	}
+	// isEnableReview := false
+	// if transaction.Status == constants.TransStatusBerhasil {
+	// 	isEnableReview = true
+	// }
+	// fmt.Println(transaction.Status)
+	// fmt.Println(transaction.InstallationDate +" " + transaction.InstallationTime)
+
+	response.Yay(w, r, GetTransactionsDetaiMerchantlResponse{
+		InvoiceId:          transaction.InvoiceId,
+		Status: transaction.Status,
+		BannerInformation:  bannerMsg,
+		InstallationtTime:  helper.FormatInstallationTime(transaction.InstallationDate, transaction.InstallationTime),
+		OutletName:         transaction.OutletName,
+		CsNumber:           constants.CSNumber,
+		OutletAddress:      fmt.Sprintf("%v, %v, %v", transaction.OutletAddress, transaction.OutletDistrict, transaction.OutletCity),
+		RescheduleTime:     helper.FormatInstallationTime(transaction.InstallationDate, rescheduleTime),
+		IsEnableReview:     true,
+		IsEnableReschedule: false,
+		PaymentMethod:      transaction.PaymentMethod,
+		PaymentMethodDesc:  transaction.PaymentMethodDesc,
+		PaymentMethodIcon:  tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+		ListProduct:        listProductByInvoiceId,
+	}, http.StatusOK)
+
+}
+
+func (tr *TransactionsHandler) EPMerchantGetHistoryTransactions(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx                   = r.Context()
+		fp                    GetListTransactionRequest
+		listTransactionRes    = []TransactionsResponse{}
+		listProductByInvoices = []repo_transactions.ProductsData{}
+	)
+
+	if err := render.Bind(r, &fp); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	limit := fp.Limit
+	if limit < 1 {
+		limit = 10
+	} else if limit > 50 {
+		limit = 50
+	}
+	page := fp.Page
+	if page < 1 {
+		page = 1
+	}
+
+	listTransaction, totalData, listInvoiceId, errCode, err := tr.trRepo.GetHistoryTransactionMerchant(ctx, repo_transactions.GetListTransactionsParam{
+		Limit:              limit,
+		Page:               page,
+		StatusTransactions: fp.TransStatus,
+	})
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	//get list product for each invoice
+	if len(listInvoiceId) > 0 {
+		listProductByInvoices, errCode, err = tr.trRepo.GetProductByInvoices(ctx, listInvoiceId)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	mappedProductByInvoice := make(map[string][]ProductsData)
+	for _, m := range listProductByInvoices {
+		mappedProductByInvoice[m.InvoiceId] = append(mappedProductByInvoice[m.InvoiceId], ProductsData{
+			KodePLU:              m.KodePLU,
+			NamaBarang:           m.NamaBarang,
+			NamaUkuran:           m.NamaUkuran,
+			Qty:                  m.Qty,
+			HargaSatuan:          m.Harga,
+			HargaSatuanFormatted: helper.FormatCurrency(int(m.Harga)),
+			HargaTotal:           m.HargaTotal,
+			HargaTotalFormatted:  helper.FormatCurrency(int(m.HargaTotal)),
+			Deskripsi:            m.Deskripsi,
+			DisplayImage:         tr.baseAssetUrl + constants.ProductDir + m.DisplayImage,
+			JenisBan:             m.JenisBan,
+		})
+
+	}
+
+	for _, v := range listTransaction {
+		listTransactionRes = append(listTransactionRes, TransactionsResponse{
+			InvoiceId:            v.InvoiceId,
+			Status:               v.Status,
+			TotalAmount:          v.TotalAmount,
+			TotalAmountFormatted: helper.FormatCurrency(int(v.TotalAmount)),
+			PaymentMethodDesc:    v.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + v.PaymentMethodIcon,
+			OutletId:             v.OutletId,
+			OutletName:           v.OutletName,
+			CsNumber:             constants.CSNumber,
+			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
+			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
+			ListProduct:          mappedProductByInvoice[v.InvoiceId],
+		})
+	}
+
+	response.Yay(w, r, ListProductsResponse{
+		TransactionData: listTransactionRes,
+		DataInfo: products.DataInfo{
+			CurrentPage: page,
+			MaxPage: func() int {
+				maxPage := float64(totalData) / float64(limit)
+				if helper.IsFloatNoDecimal(maxPage) {
+					return int(maxPage)
+				}
+				return int(maxPage) + 1
+			}(),
+			Limit:       limit,
+			TotalRecord: totalData,
+		},
+	}, http.StatusOK)
+
+}

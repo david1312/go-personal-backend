@@ -315,3 +315,13 @@ func (q *SqlRepository) GetListPaymentMethod(ctx context.Context) (res []Payment
 	}
 	return
 }
+
+func (q *SqlRepository) AddBrandMotor(ctx context.Context, name, icon string) (errCode string, err error) {
+	const queryInsert = `insert into tblmerkmotor (nama, icon) VALUES (?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, name, icon)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}

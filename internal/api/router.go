@@ -55,7 +55,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
-		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
+		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 
 		//merchant
@@ -178,6 +178,16 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Route("/products", func(r chi.Router) {
 			r.Post("/delete", prodHandler.DeleteProduct)
 			r.Post("/add", prodHandler.AddProduct)
+		})
+
+		r.Route("/transactions", func(r chi.Router) {
+			r.Post("/update-status", transHandler.EPUpdateTransactionStatus)
+			r.Post("/history", transHandler.EPMerchantGetHistoryTransactions)
+			r.Post("/detail", transHandler.EPMerchantGetTransactionDetail)
+		})
+
+		r.Route("/master-data", func(r chi.Router) {
+			r.Post("/brand-motor/add", masterDataHandler.EPAddBrandMotor)
 		})
 
 	})

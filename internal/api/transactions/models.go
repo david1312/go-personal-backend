@@ -243,3 +243,36 @@ type GetSummaryTransactionCountResponse struct {
 	OnProgress     int `json:"on_progress"`
 	Succedd        int `json:"succeed"`
 }
+
+type TransactionCommonRequest struct {
+	InvoiceId string `json:"invoice_id"`
+	Status    string `json:"status"`
+	Notes     string `json:"notes"`
+}
+
+func (m *TransactionCommonRequest) Bind(r *http.Request) error {
+	return m.ValidateTransactionCommonRequest()
+}
+
+func (m *TransactionCommonRequest) ValidateTransactionCommonRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.InvoiceId, validation.Required),
+		validation.Field(&m.Status, validation.Required))
+}
+
+type GetTransactionsDetaiMerchantlResponse struct {
+	InvoiceId          string                   `json:"invoice_id"`
+	Status               string         `json:"status"`
+	BannerInformation  string                   `json:"banner_information"`
+	InstallationtTime  string                   `json:"installation_time"`
+	OutletName         string                   `json:"outlet_name"`
+	CsNumber           string                   `json:"outlet_cs_number"`
+	OutletAddress      string                   `json:"outlet_address"`
+	RescheduleTime     string                   `json:"reschedule_time"`
+	IsEnableReview     bool                     `json:"is_enable_review"`
+	IsEnableReschedule bool                     `json:"is_enable_reschedule"`
+	PaymentMethod      string                   `json:"payment_method"`
+	PaymentMethodDesc  string                   `json:"payment_method_desc"`
+	PaymentMethodIcon  string                   `json:"payment_method_icon"`
+	ListProduct        []ProductsDataPageJadwal `json:"list_product"`
+}

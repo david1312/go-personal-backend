@@ -232,6 +232,48 @@ func DateEqual(date1, date2 time.Time) bool {
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 
+func UploadSingleImage(r *http.Request, fieldName, uploadPath, directory string, maxSize int) (fileName, errCode string, err error) {
+	r.ParseMultipartForm(10 << 20)
+	// FormFile returns the first file for the given key `myFile`
+	// it also returns the FileHeader so we can get the Filename,
+	// the Header and the size of the file
+	file, handler, err := r.FormFile(fieldName)
+	if err != nil {
+		errCode = crashy.ErrFileNotFound
+		return
+	}
+	defer file.Close()
+
+	if handler.Size > int64(ConvertFileSizeToMb(maxSize)) {
+		errCode = crashy.ErrExceededFileSize
+		return
+	}
+
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	tempFile, err := ioutil.TempFile(uploadPath+directory, "pic-*.png")
+	if err != nil {
+		errCode = crashy.ErrUploadFile
+		return
+	}
+	defer tempFile.Close()
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		errCode = crashy.ErrUploadFile
+		return
+	}
+	// write this byte array to our temporary file
+	fileName = GetUploadedFileName(tempFile.Name())
+
+	tempFile.Write(fileBytes)
+	tempFile.Chmod(0604)
+	log.Infof("success upload %s to the server x \n", fileName)
+	return
+}
+
 func UploadImage(r *http.Request, fieldName, uploadPath, directory string) (fileNameList []string, errCode string, err error) {
 	for _, fh := range r.MultipartForm.File[fieldName] {
 		f, errTemp := fh.Open()

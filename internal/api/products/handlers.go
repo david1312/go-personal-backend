@@ -625,7 +625,7 @@ func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 
 	fileNameList, errCode, err := helper.UploadImage(r, "photos", prd.uploadPath, constants.ProductDir)
 	if err != nil {
-		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
 		return
 	}
 

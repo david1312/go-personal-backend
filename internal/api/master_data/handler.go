@@ -10,6 +10,7 @@ import (
 
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
+	"semesta-ban/pkg/helper"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,10 +19,12 @@ type MasterDataHandler struct {
 	db           *sqlx.DB
 	mdRepo       repo_master_data.MasterDataRepository
 	baseAssetUrl string
+	uploadPath   string
+	imgMaxSize   int
 }
 
-func NewMasterDataHandler(db *sqlx.DB, md repo_master_data.MasterDataRepository, baseAssetUrl string) *MasterDataHandler {
-	return &MasterDataHandler{db: db, mdRepo: md, baseAssetUrl: baseAssetUrl}
+func NewMasterDataHandler(db *sqlx.DB, md repo_master_data.MasterDataRepository, baseAssetUrl, uploadPth string, imgMaxSize int) *MasterDataHandler {
+	return &MasterDataHandler{db: db, mdRepo: md, baseAssetUrl: baseAssetUrl, uploadPath: uploadPth, imgMaxSize: imgMaxSize}
 }
 
 func (md *MasterDataHandler) GetListMerkBan(w http.ResponseWriter, r *http.Request) {
@@ -288,4 +291,30 @@ func (md *MasterDataHandler) GetTireType(w http.ResponseWriter, r *http.Request)
 		{Value: "TUBE TYPE"},
 		{Value: "TUBE LESS"},
 	}, http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPAddBrandMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx  = r.Context()
+		name = r.FormValue("name")
+	)
+
+	// validate input
+	if len(name) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.MotorBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.AddBrandMotor(ctx, name, fileName)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
 }
