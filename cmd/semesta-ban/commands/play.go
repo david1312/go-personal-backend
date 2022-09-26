@@ -1,11 +1,11 @@
 package commands
 
 import (
-	"fmt"
+	"log"
+	"os"
 	"semesta-ban/bootstrap"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func init() {
@@ -46,11 +46,16 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 			// sEnc := helper.GenerateB64AuthMidtrans("SB-Mid-server-cXRk9vIv_uoZ0nfWgHnqozI7")
 			// fmt.Println(sEnc)
 
-			hashedPass, err := bcrypt.GenerateFromPassword([]byte("merchant1"), bcrypt.DefaultCost)
-			if err != nil {
-				return
+			// hashedPass, err := bcrypt.GenerateFromPassword([]byte("merchant1"), bcrypt.DefaultCost)
+			// if err != nil {
+			// 	return
+			// }
+			// fmt.Println(string(hashedPass))
+
+			e := os.Remove("suzuki.png")
+			if e != nil {
+				log.Fatal(e)
 			}
-			fmt.Println(string(hashedPass))
 		},
 	}
 }

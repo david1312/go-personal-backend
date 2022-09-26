@@ -188,14 +188,17 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 
 		r.Route("/master-data", func(r chi.Router) {
 			r.Post("/brand-motor/add", masterDataHandler.EPAddBrandMotor)
+			r.Post("/brand-motor/delete", masterDataHandler.EPRemoveBrandMotor)
+			r.Post("/brand-motor/update", masterDataHandler.EPUpdateBrandMotor)
+			r.Post("/brand-motor/update-image", masterDataHandler.EPUpdateBrandMotorIcon)
+
+			r.Post("/tire-brand/add", masterDataHandler.EPAddTireBrand)
+			r.Post("/tire-brand/delete", masterDataHandler.EPRemoveTireBrand)
+			r.Post("/tire-brand/update", masterDataHandler.EPUpdateTireBrand)
+			r.Post("/tire-brand/update-image", masterDataHandler.EPUpdateTireBrandIcon)
 		})
 
 	})
 
-	// r.Route("/v1/merchant", func(r chi.Router) { //anonymous scope
-	// 	r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
-	// 	r.Post("/me", merchantHandler.LoginMerchant)
-
-	// })
 	return r
 }

@@ -262,7 +262,7 @@ func (m *TransactionCommonRequest) ValidateTransactionCommonRequest() error {
 
 type GetTransactionsDetaiMerchantlResponse struct {
 	InvoiceId          string                   `json:"invoice_id"`
-	Status               string         `json:"status"`
+	Status             string                   `json:"status"`
 	BannerInformation  string                   `json:"banner_information"`
 	InstallationtTime  string                   `json:"installation_time"`
 	OutletName         string                   `json:"outlet_name"`

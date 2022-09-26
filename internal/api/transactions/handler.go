@@ -595,7 +595,7 @@ func (tr *TransactionsHandler) EPMerchantGetTransactionDetail(w http.ResponseWri
 
 	response.Yay(w, r, GetTransactionsDetaiMerchantlResponse{
 		InvoiceId:          transaction.InvoiceId,
-		Status: transaction.Status,
+		Status:             transaction.Status,
 		BannerInformation:  bannerMsg,
 		InstallationtTime:  helper.FormatInstallationTime(transaction.InstallationDate, transaction.InstallationTime),
 		OutletName:         transaction.OutletName,

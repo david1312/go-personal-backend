@@ -7,11 +7,13 @@ import (
 	"semesta-ban/repository/repo_master_data"
 	"sort"
 	"strconv"
+	"strings"
 
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
 
+	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -317,4 +319,207 @@ func (md *MasterDataHandler) EPAddBrandMotor(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPRemoveBrandMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   MasterDataCommonRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	brandExists, errCode, err := md.mdRepo.CheckBrandMotorUsed(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrBrandMotorUsed, crashy.Message(crashy.ErrBrandMotorUsed)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.RemoveBrandMotor(ctx, p.Id, md.uploadPath, cn.MotorBrandDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateBrandMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   UpdateBrandMotorReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := md.mdRepo.UpdateBrandMotor(ctx, p.Id, p.Name)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateBrandMotorIcon(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		id  = r.FormValue("id")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	idMotor, _ := strconv.Atoi(id)
+	brandExists, errCode, err := md.mdRepo.CheckBrandMotorExist(ctx, idMotor)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if !brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrInvalidBrandMotor, crashy.Message(crashy.ErrInvalidBrandMotor)), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.MotorBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.UpdateBrandMotorImage(ctx, idMotor, fileName, md.uploadPath, cn.MotorBrandDir)
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (md *MasterDataHandler) EPAddTireBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx     = r.Context()
+		id      = r.FormValue("id")
+		name    = r.FormValue("name")
+		ranking = r.FormValue("ranking")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(name) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(ranking) == 0 {
+		ranking = "99"
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.TireBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.AddTireBrand(ctx, strings.ToUpper(id), name, fileName, ranking)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPRemoveTireBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   MasterDataCommonRequestSec
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	brandExists, errCode, err := md.mdRepo.CheckTireBrandUsed(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrTireBrandUsed, crashy.Message(crashy.ErrTireBrandUsed)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.RemoveTireBrand(ctx, p.Id, md.uploadPath, cn.TireBrandDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateTireBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   UpdateTireBrandReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := md.mdRepo.UpdateTireBrand(ctx, p.Id, p.Name, p.Ranking)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+
+func (md *MasterDataHandler) EPUpdateTireBrandIcon(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		id  = r.FormValue("id")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	brandExists, errCode, err := md.mdRepo.CheckTireBrandExist(ctx, id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if !brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrInvalidTireBrand, crashy.Message(crashy.ErrInvalidTireBrand)), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.TireBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.UpdateTireBrandImage(ctx, id, fileName, md.uploadPath, cn.TireBrandDir)
+
+	response.Yay(w, r, "success", http.StatusOK)
+
 }

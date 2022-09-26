@@ -476,7 +476,6 @@ func (q *SqlRepository) GetHistoryTransactionMerchant(ctx context.Context, fp Ge
 		orderBy     = "CreateDate desc "
 	)
 
-	
 	if len(fp.StatusTransactions) > 0 {
 		inTotal := ""
 		for _, v := range fp.StatusTransactions {

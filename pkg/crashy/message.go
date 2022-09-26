@@ -76,6 +76,10 @@ const (
 
 	//merchant
 	ErrInvalidUserMerchant = "ERR_INVALID_USER_MERCHANT"
+	ErrBrandMotorUsed      = "ERR_BRAND_MOTOR_USED"
+	ErrInvalidBrandMotor   = "ERR_INVALID_BRAND_MOTOR"
+	ErrTireBrandUsed     = "ERR_TIRE_BRAND_USED"
+	ErrInvalidTireBrand   = "ERR_INVALID_TIRE_BRAND"
 )
 
 var mapper = map[ErrCode]string{
@@ -117,6 +121,10 @@ var mapper = map[ErrCode]string{
 	ErrInvalidScheduleTime: "format schedule_time tidak sesuai",
 	ErrInsufficientStock:   "transaksi gagal, stock barang tidak mencukupi",
 	ErrRequestMidtrans:     "transaksi berhasil terbuat namun terdapat gangguan saat melakukan request payment ke midtrans, segera hubungi admin",
+	ErrBrandMotorUsed:      "Mohon maaf, brand yang ingin dihapus sedang dipakai oleh motor tertentu. Mohon pastikan brand yang ingin dihapus tidak terikat dengan motor manapun",
+	ErrInvalidBrandMotor:   "Id merk motor yang anda input tidak terdaftar didalam sistem",
+	ErrTireBrandUsed: "Mohon maaf, merk ban yang ingin dihapus masih terpakai didalam produk tertentu. Mohon pastikan merk ban yang ingin dihapus tidak terikat dengan produk manapun",
+	ErrInvalidTireBrand:   "Id merk ban yang anda input tidak terdaftar didalam sistem",
 
 	//merchant
 	ErrInvalidUserMerchant: "username atau password yang anda masukan salah",

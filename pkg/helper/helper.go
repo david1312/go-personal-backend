@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
@@ -313,4 +314,15 @@ func UploadImage(r *http.Request, fieldName, uploadPath, directory string) (file
 	}
 	return
 
+}
+
+func RemoveFile(fileName, uploadPath, directory string) {
+	err := os.Remove(uploadPath + directory + fileName)
+	if err != nil {
+		log.Infof("failed to remove the file %s : %v \n", fileName, err)
+	} else {
+		log.Infof("success remove file %s from the storage \n", fileName)
+	}
+
+	return
 }

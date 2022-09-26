@@ -3,6 +3,7 @@ package repo_master_data
 import (
 	"context"
 	"semesta-ban/pkg/crashy"
+	"semesta-ban/pkg/helper"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -320,6 +321,161 @@ func (q *SqlRepository) AddBrandMotor(ctx context.Context, name, icon string) (e
 	const queryInsert = `insert into tblmerkmotor (nama, icon) VALUES (?, ?) `
 
 	_, err = q.db.ExecContext(ctx, queryInsert, name, icon)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) CheckBrandMotorUsed(ctx context.Context, idMotor int) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT * FROM tblmotor WHERE id_merk_motor = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, idMotor)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) RemoveBrandMotor(ctx context.Context, idMotor int, uploadPath, dirFile string) (errCode string, err error) {
+	err = q.removeBrandMotor(ctx, idMotor, uploadPath, dirFile)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	const query = `delete from tblmerkmotor where id = ? `
+
+	_, err = q.db.ExecContext(ctx, query, idMotor)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) UpdateBrandMotor(ctx context.Context, idMotor int, name string) (errCode string, err error) {
+	const query = `update tblmerkmotor set nama = ? where id = ? `
+	_, err = q.db.ExecContext(ctx, query, name, idMotor)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) UpdateBrandMotorImage(ctx context.Context, idMotor int, fileName, uploadPath, dirFile string) (errCode string, err error) {
+	_ = q.removeBrandMotor(ctx, idMotor, uploadPath, dirFile)
+
+	const query = `update tblmerkmotor set icon = ? where id = ? `
+	_, err = q.db.ExecContext(ctx, query, fileName, idMotor)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) removeBrandMotor(ctx context.Context, id int, uploadPath, dirFile string) error {
+	var temp = Motor{}
+	const querySelect = `SELECT icon from tblmerkmotor where id = ?`
+	row := q.db.DB.QueryRowContext(ctx, querySelect, id)
+
+	err := row.Scan(
+		&temp.Icon,
+	)
+	if err != nil {
+		return err
+	}
+	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
+	return nil
+}
+
+func (q *SqlRepository) CheckBrandMotorExist(ctx context.Context, idMotor int) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT id FROM tblmerkmotor WHERE id = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, idMotor)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) AddTireBrand(ctx context.Context, id, name, icon, ranking string) (errCode string, err error) {
+	const queryInsert = `insert into tblmerkban (IDMerk, Merk, Icon, Ranking) VALUES (?, ?, ?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, id, name, icon, ranking)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) CheckTireBrandUsed(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error){
+	const query = `select exists(select KodePLU from tblmasterplu where IDMerk = ? limit 1)`
+	row := q.db.DB.QueryRowContext(ctx, query, idMerkBan)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) RemoveTireBrand(ctx context.Context, idMerkBan, uploadPath, dirFile string) (errCode string, err error){
+	_ = q.removeTireBrand(ctx, idMerkBan, uploadPath, dirFile)
+
+	const query = `delete from tblmerkban where IDMerk = ? `
+	_, err = q.db.ExecContext(ctx, query, idMerkBan)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) removeTireBrand(ctx context.Context, id, uploadPath, dirFile string) error {
+	var temp = Motor{}
+	const querySelect = `SELECT Icon from tblmerkban where IDMerk = ?`
+	row := q.db.DB.QueryRowContext(ctx, querySelect, id)
+
+	err := row.Scan(
+		&temp.Icon,
+	)
+	if err != nil {
+		return err
+	}
+	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
+	return nil
+}
+
+func (q *SqlRepository) UpdateTireBrand(ctx context.Context, idMerkBan, name string, ranking int) (errCode string, err error){
+	const query = `update tblmerkban set Merk = ?, Ranking = ? where IDMerk = ? `
+	_, err = q.db.ExecContext(ctx, query, name, ranking, idMerkBan)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) CheckTireBrandExist(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error){
+	const query = `select exists(select IDMerk from tblmerkban where IDMerk = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, idMerkBan)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) UpdateTireBrandImage(ctx context.Context, idMerkBan, fileName, uploadPath, dirFile string) (errCode string, err error) {
+	_ = q.removeTireBrand(ctx, idMerkBan, uploadPath, dirFile)
+
+	const query = `update tblmerkban set Icon = ? where IDMerk = ? `
+	_, err = q.db.ExecContext(ctx, query, fileName, idMerkBan)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 	}

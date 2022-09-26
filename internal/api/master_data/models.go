@@ -1,5 +1,11 @@
 package master_data
 
+import (
+	"net/http"
+
+	validation "github.com/go-ozzo/ozzo-validation"
+)
+
 type Outlet struct {
 	Id        int     `json:"id"`
 	Name      string  `json:"name"`
@@ -93,4 +99,66 @@ type ImageAssetResponse struct {
 
 type TireType struct {
 	Value string `json:"value"`
+}
+
+type MasterDataCommonRequest struct {
+	Id int `json:"id"`
+}
+
+func (m *MasterDataCommonRequest) Bind(r *http.Request) error {
+	return m.ValidateMasterDataCommonRequest()
+}
+
+func (m *MasterDataCommonRequest) ValidateMasterDataCommonRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+	)
+}
+
+type MasterDataCommonRequestSec struct {
+	Id string `json:"id"`
+}
+
+func (m *MasterDataCommonRequestSec) Bind(r *http.Request) error {
+	return m.ValidateMasterDataCommonRequestSec()
+}
+
+func (m *MasterDataCommonRequestSec) ValidateMasterDataCommonRequestSec() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+	)
+}
+
+type UpdateBrandMotorReq struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func (m *UpdateBrandMotorReq) Bind(r *http.Request) error {
+	return m.ValidateUpdateBrandMotorReq()
+}
+
+func (m *UpdateBrandMotorReq) ValidateUpdateBrandMotorReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+	)
+}
+
+type UpdateTireBrandReq struct {
+	Id   string    `json:"id"`
+	Name string `json:"name"`
+	Ranking int `json:"ranking"`
+}
+
+func (m *UpdateTireBrandReq) Bind(r *http.Request) error {
+	return m.ValidateUpdateTireBrandReq()
+}
+
+func (m *UpdateTireBrandReq) ValidateUpdateTireBrandReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.Ranking, validation.Required),
+	)
 }
