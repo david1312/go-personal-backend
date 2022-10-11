@@ -1,0 +1,268 @@
+{"level":"info","msg":"server is running on :8090 at local env","time":"2022-09-24T18:42:53+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000001","time":"2022-09-24T18:43:02+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000022","time":"2022-09-26T16:54:25+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000023","time":"2022-09-26T16:54:44+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000024","time":"2022-09-26T17:03:41+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000025","time":"2022-09-26T17:12:17+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000026","time":"2022-09-26T18:48:47+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000027","time":"2022-09-26T18:49:11+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000028","time":"2022-09-26T18:49:25+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000029","time":"2022-09-26T18:49:33+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000030","time":"2022-09-26T18:49:35+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000031","time":"2022-09-26T18:49:41+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/9PNt7cFiXE-000032","time":"2022-09-26T18:56:42+07:00"}
+{"level":"info","msg":"server is running on :8090 at local env","time":"2022-09-26T20:09:46+07:00"}
+{"level":"error","msg":"server error: listen tcp :8090: bind: address already in use","time":"2022-09-26T20:09:46+07:00"}
+{"level":"info","msg":"Server shutdown gracefully.","time":"2022-09-26T20:10:24+07:00"}
+{"level":"info","msg":"server is running on :8090 at local env","time":"2022-09-26T20:10:31+07:00"}
+{"level":"error","msg":"error: http: no such file, request-id: zelda.id.domainesia.com/AxJHt0YnSy-000001","time":"2022-09-26T20:10:35+07:00"}
+{"level":"info","msg":"success upload pic-4123706117.png to the server x \n","time":"2022-09-26T20:10:46+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/AxJHt0YnSy-000004","time":"2022-09-26T20:21:56+07:00"}
+{"level":"error","msg":"error: Token Expired, request-id: zelda.id.domainesia.com/AxJHt0YnSy-000005","time":"2022-09-26T20:21:57+07:00"}
+{"level":"info","msg":"success upload pic-4011197202.png to the server x \n","time":"2022-09-26T20:22:25+07:00"}
+{"level":"info","msg":"success upload pic-3833601118.png to the server x \n","time":"2022-09-26T20:25:12+07:00"}
+{"level":"error","msg":"error: Error 1062: Duplicate entry 'TS' for key 'PRIMARY', request-id: zelda.id.domainesia.com/AxJHt0YnSy-000012","time":"2022-09-26T20:25:12+07:00"}
+{"level":"info","msg":"success upload pic-3879787145.png to the server x \n","time":"2022-09-26T20:25:20+07:00"}
+1
+10
+0
+1
+10
+0
+1
+10
+0
+{"level":"error","msg":"error: \u003cnil\u003e, request-id: zelda.id.domainesia.com/AxJHt0YnSy-000064","time":"2022-09-26T22:13:09+07:00"}
+temporary log callback accepted 
+temporary log callback accepted 
+temporary log callback accepted 
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+10
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+{"level":"info","msg":"success upload pic-294244638.png to the server x \n","time":"2022-09-27T15:17:22+07:00"}
+1
+100
+0
+1
+100
+0
+2
+10
+10
+1
+10
+0
+1
+100
+0
+1
+100
+0
+2
+10
+10
+1
+100
+0
+1
+10
+0
+{"level":"info","msg":"success upload pic-3799299391.png to the server x \n","time":"2022-09-27T15:26:34+07:00"}
+{"level":"info","msg":"success upload pic-1400929665.png to the server x \n","time":"2022-09-27T15:26:34+07:00"}
+1
+100
+0
+1
+100
+0
+1
+100
+0
+1
+100
+0
+{"level":"info","msg":"success upload pic-545215996.png to the server x \n","time":"2022-09-27T15:29:12+07:00"}
+{"level":"info","msg":"success upload pic-3394310992.png to the server x \n","time":"2022-09-27T15:39:01+07:00"}
+{"level":"error","msg":"error: id: cannot be blank., request-id: zelda.id.domainesia.com/AxJHt0YnSy-000375","time":"2022-09-27T15:47:10+07:00"}
+{"level":"info","msg":"success remove file pic-3394310992.png from the storage \n","time":"2022-09-27T15:47:43+07:00"}
+1
+10
+0
+{"level":"info","msg":"Server shutdown gracefully.","time":"2022-09-27T16:11:49+07:00"}
+{"level":"info","msg":"server is running on :8090 at local env","time":"2022-09-27T16:12:17+07:00"}
+temporary log callback accepted 
+{"level":"error","msg":"error: \u003cnil\u003e, request-id: zelda.id.domainesia.com/7yEfLYceP0-000015","time":"2022-09-27T16:15:43+07:00"}
+{"level":"error","msg":"error: \u003cnil\u003e, request-id: zelda.id.domainesia.com/7yEfLYceP0-000017","time":"2022-09-27T16:16:00+07:00"}
+1
+100
+0
+1
+100
+0
+{"level":"info","msg":"success remove file pic-3778730786.png from the storage \n","time":"2022-09-27T16:26:44+07:00"}
+{"level":"info","msg":"success remove file pic-545215996.png from the storage \n","time":"2022-09-27T16:31:34+07:00"}
+{"level":"info","msg":"success remove file pic-4011197202.png from the storage \n","time":"2022-09-27T16:31:37+07:00"}
+{"level":"info","msg":"success remove file pic-3879787145.png from the storage \n","time":"2022-09-27T16:33:14+07:00"}
+1
+100
+0
+1
+100
+0
+1
+100
+0
+2
+10
+10
+1
+10
+0
+1
+100
+0
+{"level":"error","msg":"error: http: no such file, request-id: zelda.id.domainesia.com/7yEfLYceP0-000083","time":"2022-09-27T16:44:29+07:00"}
+{"level":"error","msg":"error: render: unable to automatically decode the request content type, request-id: zelda.id.domainesia.com/7yEfLYceP0-000088","time":"2022-09-27T16:46:23+07:00"}
+{"level":"error","msg":"error: render: unable to automatically decode the request content type, request-id: zelda.id.domainesia.com/7yEfLYceP0-000137","time":"2022-09-27T16:56:47+07:00"}
+{"level":"error","msg":"error: render: unable to automatically decode the request content type, request-id: zelda.id.domainesia.com/7yEfLYceP0-000144","time":"2022-09-27T16:57:32+07:00"}
+{"level":"error","msg":"error: render: unable to automatically decode the request content type, request-id: zelda.id.domainesia.com/7yEfLYceP0-000149","time":"2022-09-27T16:58:22+07:00"}
+1
+100
+0
+1
+100
+0
+{"level":"error","msg":"error: render: unable to automatically decode the request content type, request-id: zelda.id.domainesia.com/7yEfLYceP0-000163","time":"2022-09-27T17:01:25+07:00"}
+{"level":"error","msg":"error: \u003cnil\u003e, request-id: zelda.id.domainesia.com/7yEfLYceP0-000165","time":"2022-09-27T17:01:38+07:00"}

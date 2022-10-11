@@ -13,4 +13,8 @@ type TransactionsRepositoy interface {
 	GetInvoiceData(ctx context.Context, invoiceId string) (res Transactions, errCode string, err error)
 	GetProductByInvoiceId(ctx context.Context, invoiceId string) (res []ProductsData, errCode string, err error)
 	GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error)
+	//
+	GetCountTransactionData(ctx context.Context, custId int) (res GetSummaryTransactionCount, errCode string, err error)
+	UpdateTransactionStatus(ctx context.Context, invoiceId, status, notes string) (errCode string, err error)
+	GetHistoryTransactionMerchant(ctx context.Context, fp GetListTransactionsParam) (res []Transactions, totalData int, listInvoice []string, errCode string, err error)
 }

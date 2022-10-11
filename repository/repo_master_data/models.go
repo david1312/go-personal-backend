@@ -35,3 +35,25 @@ type PaymentMethod struct {
 	Icon         string `json:"icon"`
 	CategoryName string `json:"category_name"`
 }
+
+type MotorMD struct {
+	Id            int    `json:"id"`
+	Name          string `json:"name"`
+	BrandMotor    string `json:"brand_motor"`
+	CategoryMotor string `json:"category_motor"`
+	Icon          string `json:"icon"`
+}
+
+type ListMotorRequestRepo struct {
+	Limit           int    `json:"limit"`
+	Page            int    `json:"page"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	IdCategoryMotor int    `json:"id_jenis_motor"`
+}
+
+type CategoryMotor struct {
+	Id   int    `json:"limit"`
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+}

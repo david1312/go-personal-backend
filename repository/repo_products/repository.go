@@ -23,4 +23,8 @@ type ProductsRepository interface {
 	CartItemUpdate(ctx context.Context, cartItemId, qty int, isSelected bool) (errCode string, err error)
 	CartItemRemove(ctx context.Context, cartItemId int) (errCode string, err error)
 	CartMe(ctx context.Context, cartId int, fp ProductsParamsTemp) (res []Products, totalData int, errCode string, err error)
+
+	//merchant
+	DeleteProductById(ctx context.Context, productId int) (errCode string, err error)
+	AddProduct(ctx context.Context, sku, name, brandId, tireType, size, price, stock, description string, photoList []string) (errCode string, err error)
 }

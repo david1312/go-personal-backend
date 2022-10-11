@@ -1,5 +1,12 @@
 package master_data
 
+import (
+	"net/http"
+	"semesta-ban/internal/api/products"
+
+	validation "github.com/go-ozzo/ozzo-validation"
+)
+
 type Outlet struct {
 	Id        int     `json:"id"`
 	Name      string  `json:"name"`
@@ -89,4 +96,127 @@ type PromoBanner struct {
 
 type ImageAssetResponse struct {
 	PromoBannerData PromoBanner `json:"promo_banner"`
+}
+
+type TireType struct {
+	Value string `json:"value"`
+}
+
+type MasterDataCommonRequest struct {
+	Id int `json:"id"`
+}
+
+func (m *MasterDataCommonRequest) Bind(r *http.Request) error {
+	return m.ValidateMasterDataCommonRequest()
+}
+
+func (m *MasterDataCommonRequest) ValidateMasterDataCommonRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+	)
+}
+
+type MasterDataCommonRequestSec struct {
+	Id string `json:"id"`
+}
+
+func (m *MasterDataCommonRequestSec) Bind(r *http.Request) error {
+	return m.ValidateMasterDataCommonRequestSec()
+}
+
+func (m *MasterDataCommonRequestSec) ValidateMasterDataCommonRequestSec() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+	)
+}
+
+type UpdateBrandMotorReq struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func (m *UpdateBrandMotorReq) Bind(r *http.Request) error {
+	return m.ValidateUpdateBrandMotorReq()
+}
+
+func (m *UpdateBrandMotorReq) ValidateUpdateBrandMotorReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+	)
+}
+
+type UpdateTireBrandReq struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Ranking int    `json:"ranking"`
+}
+
+func (m *UpdateTireBrandReq) Bind(r *http.Request) error {
+	return m.ValidateUpdateTireBrandReq()
+}
+
+func (m *UpdateTireBrandReq) ValidateUpdateTireBrandReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.Ranking, validation.Required),
+	)
+}
+
+type ListMotorRequest struct {
+	Limit           int    `json:"limit"`
+	Page            int    `json:"page"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	IdCategoryMotor int    `json:"id_category_motor"`
+}
+
+func (m *ListMotorRequest) Bind(r *http.Request) error {
+	return m.ValidateListMotorRequest()
+}
+
+func (m *ListMotorRequest) ValidateListMotorRequest() error {
+	return validation.ValidateStruct(m)
+}
+
+type ListMotoMD struct {
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	BrandMotor      string `json:"brand_motor"`
+	IdCategoryMotor int    `json:"id_category_motor"`
+	CategoryMotor   string `json:"category_motor"`
+	Icon            string `json:"icon"`
+}
+
+type ListMotorResponse struct {
+	DataInfo  products.DataInfo `json:"info"`
+	ListMotor []ListMotoMD      `json:"data"`
+}
+
+type CategoryMotorResponse struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+}
+
+type UpdateMotorReq struct {
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	IdCategoryMotor int    `json:"id_category_motor"`
+}
+
+func (m *UpdateMotorReq) Bind(r *http.Request) error {
+	return m.ValidateUpdateMotorReq()
+}
+
+func (m *UpdateMotorReq) ValidateUpdateMotorReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.IdBrandMotor, validation.Required),
+		validation.Field(&m.IdCategoryMotor, validation.Required),
+	)
 }

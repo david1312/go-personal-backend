@@ -53,9 +53,9 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		rateRepo          = repo_ratings.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
-		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl)
+		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
-		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl)
+		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 
 		//merchant
@@ -97,6 +97,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Get("/payment-method", masterDataHandler.GetListPaymentMethod)
 			r.Get("/toprank-motor", masterDataHandler.GetTopRankMotor)
 			r.Get("/asset-img", masterDataHandler.GetImgAsset)
+			r.Get("/tire-type", masterDataHandler.GetTireType)
 			// r.Get("/outlets", prodHandler.GetListProducts)
 		})
 
@@ -132,6 +133,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/history", transHandler.GetHistoryTransactions)
 		r.Post("/payment-instruction", transHandler.GetPaymentInstruction)
 		r.Post("/detail", transHandler.GetTransactionDetail)
+		r.Get("/count", transHandler.GetCountTransaction)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
@@ -173,12 +175,39 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Use(jwt.AuthMiddlewareMerchant(localMdl.GuardAccess))
 		r.Get("/me", merchantHandler.GetProfileMerchant)
 
+		r.Route("/products", func(r chi.Router) {
+			r.Post("/delete", prodHandler.DeleteProduct)
+			r.Post("/add", prodHandler.AddProduct)
+		})
+
+		r.Route("/transactions", func(r chi.Router) {
+			r.Post("/update-status", transHandler.EPUpdateTransactionStatus)
+			r.Post("/history", transHandler.EPMerchantGetHistoryTransactions)
+			r.Post("/detail", transHandler.EPMerchantGetTransactionDetail)
+		})
+
+		r.Route("/master-data", func(r chi.Router) {
+			r.Post("/brand-motor/add", masterDataHandler.EPAddBrandMotor)
+			r.Post("/brand-motor/delete", masterDataHandler.EPRemoveBrandMotor)
+			r.Post("/brand-motor/update", masterDataHandler.EPUpdateBrandMotor)
+			r.Post("/brand-motor/update-image", masterDataHandler.EPUpdateBrandMotorIcon)
+
+			r.Post("/tire-brand/add", masterDataHandler.EPAddTireBrand)
+			r.Post("/tire-brand/delete", masterDataHandler.EPRemoveTireBrand)
+			r.Post("/tire-brand/update", masterDataHandler.EPUpdateTireBrand)
+			r.Post("/tire-brand/update-image", masterDataHandler.EPUpdateTireBrandIcon)
+
+			r.Post("/motor", masterDataHandler.EPListMotor)
+			r.Post("/motor/add", masterDataHandler.EPMotorAdd)
+			r.Post("/motor/update", masterDataHandler.EPMotorUpdate)
+			r.Post("/motor/update-image", masterDataHandler.EPMotorUpdateImage)
+			r.Post("/motor/delete", masterDataHandler.EPMotorRemove)
+
+			r.Get("/category-motor", masterDataHandler.EPCategoryMotor)
+
+		})
+
 	})
 
-	// r.Route("/v1/merchant", func(r chi.Router) { //anonymous scope
-	// 	r.Use(jwt.AuthMiddleware(localMdl.GuardAccess))
-	// 	r.Post("/me", merchantHandler.LoginMerchant)
-
-	// })
 	return r
 }

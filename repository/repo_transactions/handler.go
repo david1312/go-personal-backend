@@ -405,9 +405,10 @@ func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId str
 }
 
 func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error) {
-	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi
+	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi, c.description as payment_desc, c.icon, a.MetodePembayaran
 	from tbltransaksihead a 
 	join outlets b on a.IdOutlet = b.id
+	join payment_method c on a.MetodePembayaran = c.id
 	where a.NoFaktur = ? `
 	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
 
@@ -420,11 +421,128 @@ func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId stri
 		&res.InstallationTime,
 		&res.InstallationDate,
 		&res.Status,
+		&res.PaymentMethodDesc,
+		&res.PaymentMethodIcon,
+		&res.PaymentMethod,
 	)
 
 	if err != nil {
 		errCode = crashy.ErrCodeDataRead
 		return
 	}
+	return
+}
+
+func (q *SqlRepository) GetCountTransactionData(ctx context.Context, custId int) (res GetSummaryTransactionCount, errCode string, err error) {
+	const query = `select 
+	COALESCE(SUM(IF(StatusTransaksi = 'Menunggu Pembayaran', 1, 0)),0) AS wait_payment,
+	COALESCE(SUM(IF(StatusTransaksi = 'Menunggu Dipasang', 1, 0)),0) AS wait_process,
+	COALESCE(SUM(IF(StatusTransaksi = 'Diproses', 1, 0)),0) AS process,
+	COALESCE(SUM(IF(StatusTransaksi = 'Berhasil', 1, 0)),0) AS success
+	from tbltransaksihead where CustomerId = ?`
+
+	row := q.db.DB.QueryRowContext(ctx, query, custId)
+
+	err = row.Scan(
+		&res.WaitingPayment,
+		&res.WaitingProcess,
+		&res.OnProgress,
+		&res.Succedd,
+	)
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) UpdateTransactionStatus(ctx context.Context, invoiceId, status, notes string) (errCode string, err error) {
+	const query = `update tbltransaksihead set StatusTransaksi = ?, Catatan = ? where NoFaktur = ?`
+	_, err = q.db.ExecContext(ctx, query, status, notes, invoiceId)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) GetHistoryTransactionMerchant(ctx context.Context, fp GetListTransactionsParam) (res []Transactions, totalData int, listInvoice []string, errCode string, err error) {
+	var (
+		args        = make([]interface{}, 0)
+		whereParams = ""
+		offsetNum   = (fp.Page - 1) * fp.Limit
+		orderBy     = "CreateDate desc "
+	)
+
+	if len(fp.StatusTransactions) > 0 {
+		inTotal := ""
+		for _, v := range fp.StatusTransactions {
+			inTotal += "?,"
+			args = append(args, v)
+		}
+		trimmed := inTotal[:len(inTotal)-1]
+		whereParams += " and a.StatusTransaksi in(" + trimmed + ") "
+	}
+
+	queryRecords := `
+	select count(a.NoFaktur)
+	from tbltransaksihead a
+	join payment_method b on a.MetodePembayaran = b.id
+	where 1=1 ` + whereParams
+	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	args = append(args, 200, offsetNum)
+
+	query := `
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name
+	from tbltransaksihead a
+	join payment_method b on a.MetodePembayaran = b.id
+	join outlets c on a.IdOutlet = c.id
+	where 1=1` + whereParams + `
+	` + fmt.Sprintf("order by %v", orderBy) + `  limit ? offset ? `
+
+	rows, err := q.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i Transactions
+
+		if err = rows.Scan(
+			&i.InvoiceId,
+			&i.Status,
+			&i.TotalAmount,
+			&i.CreatedAt,
+			&i.PaymentMethodDesc,
+			&i.PaymentMethodIcon,
+			&i.PaymentDue,
+			&i.OutletId,
+			&i.OutletName,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		listInvoice = append(listInvoice, i.InvoiceId)
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
 	return
 }

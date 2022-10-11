@@ -3,14 +3,18 @@ package master_data
 import (
 	"errors"
 	"net/http"
+	"semesta-ban/internal/api/products"
 	"semesta-ban/internal/api/response"
 	"semesta-ban/repository/repo_master_data"
 	"sort"
 	"strconv"
+	"strings"
 
 	cn "semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
+	"semesta-ban/pkg/helper"
 
+	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,10 +22,12 @@ type MasterDataHandler struct {
 	db           *sqlx.DB
 	mdRepo       repo_master_data.MasterDataRepository
 	baseAssetUrl string
+	uploadPath   string
+	imgMaxSize   int
 }
 
-func NewMasterDataHandler(db *sqlx.DB, md repo_master_data.MasterDataRepository, baseAssetUrl string) *MasterDataHandler {
-	return &MasterDataHandler{db: db, mdRepo: md, baseAssetUrl: baseAssetUrl}
+func NewMasterDataHandler(db *sqlx.DB, md repo_master_data.MasterDataRepository, baseAssetUrl, uploadPth string, imgMaxSize int) *MasterDataHandler {
+	return &MasterDataHandler{db: db, mdRepo: md, baseAssetUrl: baseAssetUrl, uploadPath: uploadPth, imgMaxSize: imgMaxSize}
 }
 
 func (md *MasterDataHandler) GetListMerkBan(w http.ResponseWriter, r *http.Request) {
@@ -277,7 +283,449 @@ func (md *MasterDataHandler) GetImgAsset(w http.ResponseWriter, r *http.Request)
 	response.Yay(w, r, ImageAssetResponse{
 		PromoBannerData: PromoBanner{
 			Alt:      "Promo Banner",
-			ImageUrl: md.baseAssetUrl + cn.MotorDir + cn.StaticPromoBanner,
+			ImageUrl: md.baseAssetUrl + cn.PromoDir + cn.StaticPromoBanner,
 		},
 	}, http.StatusOK)
+}
+
+func (md *MasterDataHandler) GetTireType(w http.ResponseWriter, r *http.Request) {
+
+	response.Yay(w, r, []TireType{
+		{Value: "TUBE TYPE"},
+		{Value: "TUBE LESS"},
+	}, http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPAddBrandMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx  = r.Context()
+		name = r.FormValue("name")
+	)
+
+	// validate input
+	if len(name) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.MotorBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.AddBrandMotor(ctx, name, fileName)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPRemoveBrandMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   MasterDataCommonRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	brandExists, errCode, err := md.mdRepo.CheckBrandMotorUsed(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrBrandMotorUsed, crashy.Message(crashy.ErrBrandMotorUsed)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.RemoveBrandMotor(ctx, p.Id, md.uploadPath, cn.MotorBrandDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateBrandMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   UpdateBrandMotorReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := md.mdRepo.UpdateBrandMotor(ctx, p.Id, p.Name)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateBrandMotorIcon(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		id  = r.FormValue("id")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	idMotor, _ := strconv.Atoi(id)
+	brandExists, errCode, err := md.mdRepo.CheckBrandMotorExist(ctx, idMotor)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if !brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrInvalidBrandMotor, crashy.Message(crashy.ErrInvalidBrandMotor)), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.MotorBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.UpdateBrandMotorImage(ctx, idMotor, fileName, md.uploadPath, cn.MotorBrandDir)
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (md *MasterDataHandler) EPAddTireBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx     = r.Context()
+		id      = r.FormValue("id")
+		name    = r.FormValue("name")
+		ranking = r.FormValue("ranking")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(name) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(ranking) == 0 {
+		ranking = "99"
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.TireBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.AddTireBrand(ctx, strings.ToUpper(id), name, fileName, ranking)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPRemoveTireBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   MasterDataCommonRequestSec
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	brandExists, errCode, err := md.mdRepo.CheckTireBrandUsed(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrTireBrandUsed, crashy.Message(crashy.ErrTireBrandUsed)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.RemoveTireBrand(ctx, p.Id, md.uploadPath, cn.TireBrandDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateTireBrand(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   UpdateTireBrandReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := md.mdRepo.UpdateTireBrand(ctx, p.Id, p.Name, p.Ranking)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPUpdateTireBrandIcon(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		id  = r.FormValue("id")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	brandExists, errCode, err := md.mdRepo.CheckTireBrandExist(ctx, id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if !brandExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrInvalidTireBrand, crashy.Message(crashy.ErrInvalidTireBrand)), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.TireBrandDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.UpdateTireBrandImage(ctx, id, fileName, md.uploadPath, cn.TireBrandDir)
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (md *MasterDataHandler) EPListMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx    = r.Context()
+		fp     ListMotorRequest
+		result = []ListMotoMD{}
+	)
+
+	if err := render.Bind(r, &fp); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	limit := fp.Limit
+	if limit < 1 {
+		limit = 10
+	} else if limit > 100 {
+		limit = 100
+	}
+	page := fp.Page
+	if page < 1 {
+		page = 1
+	}
+
+	res, totalData, errCode, err := md.mdRepo.GetListMotor(ctx, repo_master_data.ListMotorRequestRepo{
+		Limit:           limit,
+		Page:            page,
+		Name:            fp.Name,
+		IdBrandMotor:    fp.IdBrandMotor,
+		IdCategoryMotor: fp.IdCategoryMotor,
+	})
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	for _, v := range res {
+		result = append(result, ListMotoMD{
+			Id:            v.Id,
+			Name:          v.Name,
+			BrandMotor:    v.BrandMotor,
+			CategoryMotor: v.CategoryMotor,
+			Icon:          md.baseAssetUrl + cn.MotorDir + v.Icon,
+		})
+	}
+
+	response.Yay(w, r, ListMotorResponse{
+		ListMotor: result,
+		DataInfo: products.DataInfo{
+			CurrentPage: page,
+			MaxPage: func() int {
+				maxPage := float64(totalData) / float64(limit)
+				if helper.IsFloatNoDecimal(maxPage) {
+					return int(maxPage)
+				}
+				return int(maxPage) + 1
+			}(),
+			Limit:       limit,
+			TotalRecord: totalData,
+		},
+	}, http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPCategoryMotor(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx    = r.Context()
+		result = []CategoryMotorResponse{}
+	)
+
+	res, errCode, err := md.mdRepo.GetListCategoryMotor(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	for _, v := range res {
+		result = append(result, CategoryMotorResponse{
+			Id:   v.Id,
+			Name: v.Name,
+			Icon: md.baseAssetUrl + cn.MotorDir + v.Icon,
+		})
+	}
+
+	response.Yay(w, r, result, http.StatusOK)
+
+}
+
+func (md *MasterDataHandler) EPMotorAdd(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx             = r.Context()
+		name            = r.FormValue("name")
+		idBrandMotor    = r.FormValue("id_brand_motor")
+		idCategoryMotor = r.FormValue("id_category_motor")
+	)
+
+	// validate input
+	if len(idBrandMotor) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id brand motor cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(name) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "name cannot be blank"), http.StatusBadRequest)
+		return
+	}
+	if len(idCategoryMotor) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id category motor cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.MotorDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.MotorAdd(ctx, name, idBrandMotor, idCategoryMotor, fileName)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPMotorUpdate(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   UpdateMotorReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := md.mdRepo.MotorUpdate(ctx, p.Id, p.Name, p.IdBrandMotor, p.IdCategoryMotor)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPMotorUpdateImage(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		id  = r.FormValue("id")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	motorExists, errCode, err := md.mdRepo.MotorCheckExists(ctx, id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if !motorExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCommonInvalid, crashy.Message(crashy.ErrCommonInvalid)), http.StatusBadRequest)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", md.uploadPath, cn.MotorDir, md.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.MotorUpdateImage(ctx, id, fileName, md.uploadPath, cn.MotorDir)
+
+	response.Yay(w, r, "success", http.StatusOK)
+
+}
+
+func (md *MasterDataHandler) EPMotorRemove(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   MasterDataCommonRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+	idStr := strconv.Itoa(p.Id)
+	motorUsed, errCode, err := md.mdRepo.MotorCheckUsed(ctx, idStr)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if motorUsed {
+		response.Nay(w, r, crashy.New(err, crashy.ErrMotorUsed, crashy.Message(crashy.ErrMotorUsed)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.MotorRemove(ctx, idStr, md.uploadPath, cn.MotorDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
 }

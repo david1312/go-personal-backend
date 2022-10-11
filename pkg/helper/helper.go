@@ -7,9 +7,13 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"semesta-ban/pkg/constants"
+	"semesta-ban/pkg/crashy"
+	"semesta-ban/pkg/log"
 	"strconv"
 	"strings"
 	"time"
@@ -227,4 +231,98 @@ func DateEqual(date1, date2 time.Time) bool {
 	y1, m1, d1 := date1.Date()
 	y2, m2, d2 := date2.Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
+}
+
+func UploadSingleImage(r *http.Request, fieldName, uploadPath, directory string, maxSize int) (fileName, errCode string, err error) {
+	r.ParseMultipartForm(10 << 20)
+	// FormFile returns the first file for the given key `myFile`
+	// it also returns the FileHeader so we can get the Filename,
+	// the Header and the size of the file
+	file, handler, err := r.FormFile(fieldName)
+	if err != nil {
+		errCode = crashy.ErrFileNotFound
+		return
+	}
+	defer file.Close()
+
+	if handler.Size > int64(ConvertFileSizeToMb(maxSize)) {
+		errCode = crashy.ErrExceededFileSize
+		return
+	}
+
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	tempFile, err := ioutil.TempFile(uploadPath+directory, "pic-*.png")
+	if err != nil {
+		errCode = crashy.ErrUploadFile
+		return
+	}
+	defer tempFile.Close()
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		errCode = crashy.ErrUploadFile
+		return
+	}
+	// write this byte array to our temporary file
+	fileName = GetUploadedFileName(tempFile.Name())
+
+	tempFile.Write(fileBytes)
+	tempFile.Chmod(0604)
+	log.Infof("success upload %s to the server x \n", fileName)
+	return
+}
+
+func UploadImage(r *http.Request, fieldName, uploadPath, directory string) (fileNameList []string, errCode string, err error) {
+	for _, fh := range r.MultipartForm.File[fieldName] {
+		f, errTemp := fh.Open()
+		if err != nil {
+			// Handle error
+			err = errTemp
+			errCode = crashy.ErrFileNotFound
+			break
+		}
+
+		tempFile, errTemp := ioutil.TempFile(uploadPath+directory, "pic-*.png")
+		if err != nil {
+			err = errTemp
+			errCode = crashy.ErrUploadFile
+			break
+		}
+		defer tempFile.Close()
+
+		// read all of the contents of our uploaded file into a
+		// byte array
+		fileBytes, errTemp := ioutil.ReadAll(f)
+		if err != nil {
+			err = errTemp
+			errCode = crashy.ErrUploadFile
+			break
+		}
+		// write this byte array to our temporary file
+		fileName := GetUploadedFileName(tempFile.Name())
+
+		tempFile.Write(fileBytes)
+		tempFile.Chmod(0604)
+		log.Infof("success upload %s to the server x \n", fileName)
+		fileNameList = append(fileNameList, fileName)
+
+		// Read data from f
+		f.Close()
+	}
+	return
+
+}
+
+func RemoveFile(fileName, uploadPath, directory string) {
+	err := os.Remove(uploadPath + directory + fileName)
+	if err != nil {
+		log.Infof("failed to remove the file %s : %v \n", fileName, err)
+	} else {
+		log.Infof("success remove file %s from the storage \n", fileName)
+	}
+
+	return
 }
