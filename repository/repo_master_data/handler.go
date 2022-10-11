@@ -4,6 +4,7 @@ import (
 	"context"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -412,7 +413,7 @@ func (q *SqlRepository) AddTireBrand(ctx context.Context, id, name, icon, rankin
 	return
 }
 
-func (q *SqlRepository) CheckTireBrandUsed(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error){
+func (q *SqlRepository) CheckTireBrandUsed(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error) {
 	const query = `select exists(select KodePLU from tblmasterplu where IDMerk = ? limit 1)`
 	row := q.db.DB.QueryRowContext(ctx, query, idMerkBan)
 	err = row.Scan(&exists)
@@ -424,7 +425,7 @@ func (q *SqlRepository) CheckTireBrandUsed(ctx context.Context, idMerkBan string
 	return
 }
 
-func (q *SqlRepository) RemoveTireBrand(ctx context.Context, idMerkBan, uploadPath, dirFile string) (errCode string, err error){
+func (q *SqlRepository) RemoveTireBrand(ctx context.Context, idMerkBan, uploadPath, dirFile string) (errCode string, err error) {
 	_ = q.removeTireBrand(ctx, idMerkBan, uploadPath, dirFile)
 
 	const query = `delete from tblmerkban where IDMerk = ? `
@@ -450,7 +451,7 @@ func (q *SqlRepository) removeTireBrand(ctx context.Context, id, uploadPath, dir
 	return nil
 }
 
-func (q *SqlRepository) UpdateTireBrand(ctx context.Context, idMerkBan, name string, ranking int) (errCode string, err error){
+func (q *SqlRepository) UpdateTireBrand(ctx context.Context, idMerkBan, name string, ranking int) (errCode string, err error) {
 	const query = `update tblmerkban set Merk = ?, Ranking = ? where IDMerk = ? `
 	_, err = q.db.ExecContext(ctx, query, name, ranking, idMerkBan)
 	if err != nil {
@@ -459,7 +460,7 @@ func (q *SqlRepository) UpdateTireBrand(ctx context.Context, idMerkBan, name str
 	return
 }
 
-func (q *SqlRepository) CheckTireBrandExist(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error){
+func (q *SqlRepository) CheckTireBrandExist(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error) {
 	const query = `select exists(select IDMerk from tblmerkban where IDMerk = ?)`
 	row := q.db.DB.QueryRowContext(ctx, query, idMerkBan)
 	err = row.Scan(&exists)
@@ -476,6 +477,206 @@ func (q *SqlRepository) UpdateTireBrandImage(ctx context.Context, idMerkBan, fil
 
 	const query = `update tblmerkban set Icon = ? where IDMerk = ? `
 	_, err = q.db.ExecContext(ctx, query, fileName, idMerkBan)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) GetListMotor(ctx context.Context, fp ListMotorRequestRepo) (res []MotorMD, totalData int, errCode string, err error) {
+	var (
+		args        = make([]interface{}, 0)
+		whereParams = ""
+		offsetNum   = (fp.Page - 1) * fp.Limit
+	)
+
+	if len(fp.Name) > 0 {
+		lowerName := strings.ToLower(fp.Name)
+		whereParams += "and LOWER(a.nama) LIKE CONCAT('%', ?, '%') "
+		args = append(args, lowerName)
+	}
+
+	if fp.IdBrandMotor > 0 {
+		whereParams += "and a.id_merk_motor = ? "
+		args = append(args, fp.IdBrandMotor)
+	}
+
+	if fp.IdCategoryMotor > 0 {
+		whereParams += "and a.id_kategori_motor = ? "
+		args = append(args, fp.IdCategoryMotor)
+	}
+
+	queryRecords := `select count(a.id)
+	from tblmotor a 
+	inner join tblmerkmotor b on a.id_merk_motor = b.id
+	inner join tblkategorimotor c on a.id_kategori_motor = c.id
+	where 1=1 ` + whereParams
+	err = q.db.QueryRowContext(ctx, queryRecords, args...).Scan(&totalData)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	query := `select a.id, a.nama, b.nama as brand, c.nama as kategori, a.icon
+	from tblmotor a 
+	inner join tblmerkmotor b on a.id_merk_motor = b.id
+	inner join tblkategorimotor c on a.id_kategori_motor = c.id
+	where 1=1 ` + whereParams + ` 
+	order by a.nama asc
+	limit ? offset ?`
+	args = append(args, fp.Limit, offsetNum)
+
+	rows, err := q.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i MotorMD
+
+		if err = rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.BrandMotor,
+			&i.CategoryMotor,
+			&i.Icon,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) GetListCategoryMotor(ctx context.Context) (res []CategoryMotor, errCode string, err error) {
+	const query = `select id, nama, icon from tblkategorimotor`
+
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i CategoryMotor
+
+		if err = rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.Icon,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) MotorAdd(ctx context.Context, name, idBrandMotor, idCategoryMotor, icon string) (errCode string, err error) {
+	const queryInsert = `insert into tblmotor (nama, id_merk_motor, id_kategori_motor, icon) VALUES (?, ?, ?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, name, idBrandMotor, idCategoryMotor, icon)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+
+	return
+}
+
+func (q *SqlRepository) MotorUpdate(ctx context.Context, idMotor int, name string, idBrandMotor, idCategoryMotor int) (errCode string, err error) {
+	const query = `update tblmotor set nama = ?, id_merk_motor = ?, id_kategori_motor = ? where id = ? `
+	_, err = q.db.ExecContext(ctx, query, name, idBrandMotor, idCategoryMotor, idMotor)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) MotorCheckExists(ctx context.Context, idMotor string) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT * FROM tblmotor WHERE id = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, idMotor)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) MotorUpdateImage(ctx context.Context, idMotor, fileName, uploadPath, dirFile string) (errCode string, err error) {
+	_ = q.removeMotorImage(ctx, idMotor, uploadPath, dirFile)
+
+	const query = `update tblmotor set icon = ? where id = ? `
+	_, err = q.db.ExecContext(ctx, query, fileName, idMotor)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) removeMotorImage(ctx context.Context, id string, uploadPath, dirFile string) error {
+	var temp = Motor{}
+	const querySelect = `SELECT icon from tblmotor where id = ?`
+	row := q.db.DB.QueryRowContext(ctx, querySelect, id)
+
+	err := row.Scan(
+		&temp.Icon,
+	)
+	if err != nil {
+		return err
+	}
+	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
+	return nil
+}
+
+func (q *SqlRepository) MotorCheckUsed(ctx context.Context, idMotor string) (exists bool, errCode string, err error) {
+	const query = `select exists(select id from motor_x_size_ban where id_motor = ? limit 1)`
+	row := q.db.DB.QueryRowContext(ctx, query, idMotor)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) MotorRemove(ctx context.Context, idMotor, uploadPath, dirFile string) (errCode string, err error) {
+	err = q.removeMotorImage(ctx, idMotor, uploadPath, dirFile)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	const query = `delete from tblmotor where id = ? `
+
+	_, err = q.db.ExecContext(ctx, query, idMotor)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 	}

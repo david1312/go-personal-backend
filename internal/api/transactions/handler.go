@@ -459,10 +459,10 @@ func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *ht
 		days := math.Ceil(date.Sub(now).Hours() / 24)
 		bannerMsg = fmt.Sprintf("Ban pilihan mu akan dipasang dalam %v hari", days)
 	}
-	// isEnableReview := false
-	// if transaction.Status == constants.TransStatusBerhasil {
-	// 	isEnableReview = true
-	// }
+	isEnableReview := false
+	if transaction.Status == constants.TransStatusBerhasil {
+		isEnableReview = true
+	}
 	// fmt.Println(transaction.Status)
 	// fmt.Println(transaction.InstallationDate +" " + transaction.InstallationTime)
 
@@ -474,7 +474,7 @@ func (tr *TransactionsHandler) GetTransactionDetail(w http.ResponseWriter, r *ht
 		CsNumber:           constants.CSNumber,
 		OutletAddress:      fmt.Sprintf("%v, %v, %v", transaction.OutletAddress, transaction.OutletDistrict, transaction.OutletCity),
 		RescheduleTime:     helper.FormatInstallationTime(transaction.InstallationDate, rescheduleTime),
-		IsEnableReview:     true,
+		IsEnableReview:     isEnableReview,
 		IsEnableReschedule: false,
 		PaymentMethod:      transaction.PaymentMethod,
 		PaymentMethodDesc:  transaction.PaymentMethodDesc,

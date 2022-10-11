@@ -2,6 +2,7 @@ package master_data
 
 import (
 	"net/http"
+	"semesta-ban/internal/api/products"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 )
@@ -146,9 +147,9 @@ func (m *UpdateBrandMotorReq) ValidateUpdateBrandMotorReq() error {
 }
 
 type UpdateTireBrandReq struct {
-	Id   string    `json:"id"`
-	Name string `json:"name"`
-	Ranking int `json:"ranking"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Ranking int    `json:"ranking"`
 }
 
 func (m *UpdateTireBrandReq) Bind(r *http.Request) error {
@@ -160,5 +161,62 @@ func (m *UpdateTireBrandReq) ValidateUpdateTireBrandReq() error {
 		validation.Field(&m.Id, validation.Required),
 		validation.Field(&m.Name, validation.Required),
 		validation.Field(&m.Ranking, validation.Required),
+	)
+}
+
+type ListMotorRequest struct {
+	Limit           int    `json:"limit"`
+	Page            int    `json:"page"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	IdCategoryMotor int    `json:"id_category_motor"`
+}
+
+func (m *ListMotorRequest) Bind(r *http.Request) error {
+	return m.ValidateListMotorRequest()
+}
+
+func (m *ListMotorRequest) ValidateListMotorRequest() error {
+	return validation.ValidateStruct(m)
+}
+
+type ListMotoMD struct {
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	BrandMotor      string `json:"brand_motor"`
+	IdCategoryMotor int    `json:"id_category_motor"`
+	CategoryMotor   string `json:"category_motor"`
+	Icon            string `json:"icon"`
+}
+
+type ListMotorResponse struct {
+	DataInfo  products.DataInfo `json:"info"`
+	ListMotor []ListMotoMD      `json:"data"`
+}
+
+type CategoryMotorResponse struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+}
+
+type UpdateMotorReq struct {
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	IdBrandMotor    int    `json:"id_brand_motor"`
+	IdCategoryMotor int    `json:"id_category_motor"`
+}
+
+func (m *UpdateMotorReq) Bind(r *http.Request) error {
+	return m.ValidateUpdateMotorReq()
+}
+
+func (m *UpdateMotorReq) ValidateUpdateMotorReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.IdBrandMotor, validation.Required),
+		validation.Field(&m.IdCategoryMotor, validation.Required),
 	)
 }

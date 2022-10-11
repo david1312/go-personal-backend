@@ -27,4 +27,15 @@ type MasterDataRepository interface {
 	UpdateTireBrand(ctx context.Context, idMerkBan, name string, ranking int) (errCode string, err error)
 	CheckTireBrandExist(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error)
 	UpdateTireBrandImage(ctx context.Context, idMerkBan, fileName, uploadPath, dirFile string) (errCode string, err error)
+
+	//motor related
+	GetListMotor(ctx context.Context, fp ListMotorRequestRepo) (res []MotorMD, totalData int, errCode string, err error)
+	MotorAdd(ctx context.Context, name, idBrandMotor, idCategoryMotor, icon string) (errCode string, err error)
+	MotorUpdate(ctx context.Context, idMotor int, name string, idBrandMotor, idCategoryMotor int) (errCode string, err error)
+	MotorCheckExists(ctx context.Context, idMotor string) (exists bool, errCode string, err error)
+	MotorCheckUsed(ctx context.Context, idMotor string) (exists bool, errCode string, err error)
+	MotorUpdateImage(ctx context.Context, idMotor, fileName, uploadPath, dirFile string) (errCode string, err error)
+	MotorRemove(ctx context.Context, idMotor, uploadPath, dirFile string) (errCode string, err error)
+
+	GetListCategoryMotor(ctx context.Context) (res []CategoryMotor, errCode string, err error)
 }

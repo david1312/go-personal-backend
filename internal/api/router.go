@@ -196,6 +196,15 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Post("/tire-brand/delete", masterDataHandler.EPRemoveTireBrand)
 			r.Post("/tire-brand/update", masterDataHandler.EPUpdateTireBrand)
 			r.Post("/tire-brand/update-image", masterDataHandler.EPUpdateTireBrandIcon)
+
+			r.Post("/motor", masterDataHandler.EPListMotor)
+			r.Post("/motor/add", masterDataHandler.EPMotorAdd)
+			r.Post("/motor/update", masterDataHandler.EPMotorUpdate)
+			r.Post("/motor/update-image", masterDataHandler.EPMotorUpdateImage)
+			r.Post("/motor/delete", masterDataHandler.EPMotorRemove)
+
+			r.Get("/category-motor", masterDataHandler.EPCategoryMotor)
+
 		})
 
 	})

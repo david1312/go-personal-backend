@@ -14,6 +14,7 @@ const (
 	RatingOutletDir   = "rating_outlet/"
 	MerchantDir       = "merchant/"
 	PromoDir          = "promo/"
+	MotorCategoryDir  = "motor_category"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"
