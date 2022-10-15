@@ -186,6 +186,11 @@ func FormatInstallationTime(dateStr, timeStr string) string {
 	return fmt.Sprintf("%v, %v, %v WIB", dayName, date.Format("02 January 2006"), timeStr)
 }
 
+func FormatDateTime(dateStr string) string {
+	date, _ := time.Parse("2006-01-02", dateStr[:10])
+	return fmt.Sprintf("%v", date.Format("2006-01-02"))
+}
+
 func MappingBankName(paymentMethod string) string {
 	switch paymentMethod {
 	case "TF_BNI":

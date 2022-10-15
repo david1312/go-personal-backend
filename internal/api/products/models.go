@@ -101,6 +101,9 @@ type ProductsResponse struct {
 	IsWishList     bool    `json:"is_wishlist"`
 	JenisBan       string  `json:"jenis_ban"`
 	DisplayImage   string  `json:"display_image"`
+	IdTireBrand    string  `json:"id_tire_brand"`
+	Stock          int     `json:"stock"`
+	Deskripsi      string  `json:"deskripsi"`
 }
 
 type ProductDetailResponse struct {
@@ -121,6 +124,7 @@ type ProductDetailResponse struct {
 }
 
 type ProductImage struct {
+	Id        int    `json:"id"`
 	Url       string `json:"url"`
 	IsDisplay string `json:"is_display"`
 }
@@ -226,6 +230,47 @@ func (m *ProductCommonRequest) Bind(r *http.Request) error {
 }
 
 func (m *ProductCommonRequest) ValidateProductCommonRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+	)
+}
+
+type UpdateProductRequest struct {
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	IdTIreBrand string `json:"id_tire_brand"`
+	TireType    string `json:"tire_type"`
+	Size        string `json:"size"`
+	Price       int    `json:"price"`
+	Stock       int    `json:"stock"`
+	Description string `json:"description"`
+}
+
+func (m *UpdateProductRequest) Bind(r *http.Request) error {
+	return m.ValidateUpdateProductRequest()
+}
+
+func (m *UpdateProductRequest) ValidateUpdateProductRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Id, validation.Required),
+		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.IdTIreBrand, validation.Required),
+		validation.Field(&m.TireType, validation.Required),
+		validation.Field(&m.Size, validation.Required),
+		validation.Field(&m.Stock, validation.Required),
+		validation.Field(&m.Description, validation.Required),
+	)
+}
+
+type DeleteProductImageReq struct {
+	Id int `json:"id"`
+}
+
+func (m *DeleteProductImageReq) Bind(r *http.Request) error {
+	return m.ValidateDeleteProductImageReq()
+}
+
+func (m *DeleteProductImageReq) ValidateDeleteProductImageReq() error {
 	return validation.ValidateStruct(m,
 		validation.Field(&m.Id, validation.Required),
 	)

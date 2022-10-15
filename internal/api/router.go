@@ -178,6 +178,10 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Route("/products", func(r chi.Router) {
 			r.Post("/delete", prodHandler.DeleteProduct)
 			r.Post("/add", prodHandler.AddProduct)
+			r.Post("/update", prodHandler.EPProductUpdate)
+			r.Post("/images-add", prodHandler.EPProductAddImage)
+			r.Post("/images-delete", prodHandler.EpProductDeleteImage)
+			r.Post("/images-update", prodHandler.EpProductUpdateImage)
 		})
 
 		r.Route("/transactions", func(r chi.Router) {

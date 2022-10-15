@@ -561,11 +561,13 @@ func (md *MasterDataHandler) EPListMotor(w http.ResponseWriter, r *http.Request)
 
 	for _, v := range res {
 		result = append(result, ListMotoMD{
-			Id:            v.Id,
-			Name:          v.Name,
-			BrandMotor:    v.BrandMotor,
-			CategoryMotor: v.CategoryMotor,
-			Icon:          md.baseAssetUrl + cn.MotorDir + v.Icon,
+			Id:              v.Id,
+			Name:            v.Name,
+			IdBrandMotor:    v.IdBrandMotor,
+			BrandMotor:      v.BrandMotor,
+			IdCategoryMotor: v.IdCategoryMotor,
+			CategoryMotor:   v.CategoryMotor,
+			Icon:            md.baseAssetUrl + cn.MotorDir + v.Icon,
 		})
 	}
 

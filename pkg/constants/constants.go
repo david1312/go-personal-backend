@@ -14,7 +14,7 @@ const (
 	RatingOutletDir   = "rating_outlet/"
 	MerchantDir       = "merchant/"
 	PromoDir          = "promo/"
-	MotorCategoryDir  = "motor_category"
+	MotorCategoryDir  = "motor_category/"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"
@@ -46,6 +46,8 @@ const (
 	TransStatusBerhasil = "Berhasil"
 
 	StaticPromoBanner = "banner-promo-agustus-2022.png"
+
+	DefaultImgPng = "default.png"
 )
 
 var (

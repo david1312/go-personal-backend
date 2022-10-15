@@ -82,6 +82,8 @@ const (
 	ErrInvalidTireBrand    = "ERR_INVALID_TIRE_BRAND"
 	ErrCommonInvalid       = "ERR_INVALID_COMMON"
 	ErrMotorUsed           = "ERR_MOTOR_USED"
+
+	ErrMinimumPhoto = "ERR_MINIMUM_PHOTO"
 )
 
 var mapper = map[ErrCode]string{
@@ -132,6 +134,7 @@ var mapper = map[ErrCode]string{
 
 	//merchant
 	ErrInvalidUserMerchant: "username atau password yang anda masukan salah",
+	ErrMinimumPhoto:        "1 Produk minimal memiliki 1 gambar / foto barang",
 }
 
 // Message retrieve error messages from given error code

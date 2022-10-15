@@ -2,6 +2,7 @@ package repo_master_data
 
 import (
 	"context"
+	"semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
 	"strings"
@@ -387,6 +388,9 @@ func (q *SqlRepository) removeBrandMotor(ctx context.Context, id int, uploadPath
 	if err != nil {
 		return err
 	}
+	if temp.Icon == constants.DefaultImgPng {
+		return nil
+	}
 	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
 	return nil
 }
@@ -446,6 +450,9 @@ func (q *SqlRepository) removeTireBrand(ctx context.Context, id, uploadPath, dir
 	)
 	if err != nil {
 		return err
+	}
+	if temp.Icon == constants.DefaultImgPng {
+		return nil
 	}
 	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
 	return nil
@@ -517,7 +524,7 @@ func (q *SqlRepository) GetListMotor(ctx context.Context, fp ListMotorRequestRep
 		return
 	}
 
-	query := `select a.id, a.nama, b.nama as brand, c.nama as kategori, a.icon
+	query := `select a.id, a.nama, b.nama as brand, c.nama as kategori, a.icon, a.id_merk_motor, a.id_kategori_motor
 	from tblmotor a 
 	inner join tblmerkmotor b on a.id_merk_motor = b.id
 	inner join tblkategorimotor c on a.id_kategori_motor = c.id
@@ -543,6 +550,8 @@ func (q *SqlRepository) GetListMotor(ctx context.Context, fp ListMotorRequestRep
 			&i.BrandMotor,
 			&i.CategoryMotor,
 			&i.Icon,
+			&i.IdBrandMotor,
+			&i.IdCategoryMotor,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -650,6 +659,9 @@ func (q *SqlRepository) removeMotorImage(ctx context.Context, id string, uploadP
 	)
 	if err != nil {
 		return err
+	}
+	if temp.Icon == constants.DefaultImgPng {
+		return nil
 	}
 	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
 	return nil
