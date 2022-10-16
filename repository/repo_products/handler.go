@@ -106,7 +106,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 	args = append(args, fp.Limit, offsetNum)
 
 	query := `
-	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, e.URL, a.JenisBan, a.IDMerk, a.StokAll, a.Deskripsi
+	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, COALESCE(e.URL, 'default.png'), a.JenisBan, a.IDMerk, a.StokAll, a.Deskripsi
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi

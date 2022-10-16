@@ -6,3 +6,8 @@ config.prod.yaml
 
 #asset related
 /b6350926-8a8a-49ac-ab44-b52fd01fd2bb
+repository/.DS_Store
+.DS_Store
+internal/.DS_Store
+internal/api/.DS_Store
+repository/.DS_Store
