@@ -776,7 +776,7 @@ func (prd *ProductsHandler) EpProductUpdateImage(w http.ResponseWriter, r *http.
 		return
 	}
 
-	fileName, errCode, err := helper.UploadSingleImage(r, "photo", prd.uploadPath, cn.ProductDir, prd.imgMaxSize)
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", prd.uploadPath, cn.ProductDir, prd.imgMaxSize)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
 		return
