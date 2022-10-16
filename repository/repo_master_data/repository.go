@@ -11,6 +11,7 @@ type MasterDataRepository interface {
 	GetListMotorByBrand(ctx context.Context, idBrandMotor int) (res []Motor, errCode string, err error)
 	GetListPaymentMethod(ctx context.Context) (res []PaymentMethod, errCode string, err error)
 	GetListTopRankpMotor(ctx context.Context) (res []Motor, errCode string, err error)
+	GetListUkuranBanRaw(ctx context.Context) (res []UkuranRingBan, errCode string, err error)
 
 	//merk motor related
 	AddBrandMotor(ctx context.Context, name, icon string) (errCode string, err error)
@@ -36,6 +37,11 @@ type MasterDataRepository interface {
 	MotorCheckUsed(ctx context.Context, idMotor string) (exists bool, errCode string, err error)
 	MotorUpdateImage(ctx context.Context, idMotor, fileName, uploadPath, dirFile string) (errCode string, err error)
 	MotorRemove(ctx context.Context, idMotor, uploadPath, dirFile string) (errCode string, err error)
+
+	//tire size
+	TireSizeExist(ctx context.Context, id string) (exists bool, errCode string, err error)
+	TireSizeAdd(ctx context.Context, id, idRing, idSize string) (errCode string, err error)
+	TireSizeUsed(ctx context.Context, id string) (exists bool, errCode string, err error)
 
 	GetListCategoryMotor(ctx context.Context) (res []CategoryMotor, errCode string, err error)
 }

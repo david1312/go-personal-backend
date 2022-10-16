@@ -92,6 +92,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Get("/outlet", masterDataHandler.GetListOutlet)
 			r.Get("/sort-by", masterDataHandler.GetListSortBy)
 			r.Get("/tire-size", masterDataHandler.GetListSizeBan)
+			r.Get("/tire-size-raw", masterDataHandler.EPGetListTireSizeRaw)
 			r.Get("/motor-brand", masterDataHandler.GetListMerkMotor)
 			r.Get("/motor-list-by-brand", masterDataHandler.GetListMotorByBrand)
 			r.Get("/payment-method", masterDataHandler.GetListPaymentMethod)
@@ -208,6 +209,9 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Post("/motor/delete", masterDataHandler.EPMotorRemove)
 
 			r.Get("/category-motor", masterDataHandler.EPCategoryMotor)
+
+			r.Post("/tire-size/add", masterDataHandler.EPTireSizeAdd)
+			r.Post("/tire-size/delete", masterDataHandler.EPTireSizeDelete)
 
 		})
 

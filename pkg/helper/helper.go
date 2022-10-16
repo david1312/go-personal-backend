@@ -331,3 +331,10 @@ func RemoveFile(fileName, uploadPath, directory string) {
 
 	return
 }
+
+func GetIdRingBan(ringBan string) (res string) {
+	splitted := strings.Split(ringBan, " ")
+
+	res = splitted[1]
+	return
+}

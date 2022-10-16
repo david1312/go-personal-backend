@@ -84,6 +84,9 @@ const (
 	ErrMotorUsed           = "ERR_MOTOR_USED"
 
 	ErrMinimumPhoto = "ERR_MINIMUM_PHOTO"
+
+	ErrTireSizeExists = "ERR_TIRE_SIZE_EXISTS"
+	ErrTireSizeUsed   = "ERR_TIRE_SIZE_USED"
 )
 
 var mapper = map[ErrCode]string{
@@ -135,6 +138,9 @@ var mapper = map[ErrCode]string{
 	//merchant
 	ErrInvalidUserMerchant: "username atau password yang anda masukan salah",
 	ErrMinimumPhoto:        "1 Produk minimal memiliki 1 gambar / foto barang",
+
+	ErrTireSizeExists: "Ukuran ban yang ingin ditambahkan sudah terdaftar",
+	ErrTireSizeUsed:   "Hapus gagal, ukuran ban yang ingin dihapus sedang dipakai dalam matriks relasi motor dengan ukuran ban atau dipakai oleh produk tertentu.",
 }
 
 // Message retrieve error messages from given error code

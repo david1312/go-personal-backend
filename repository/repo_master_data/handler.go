@@ -694,3 +694,87 @@ func (q *SqlRepository) MotorRemove(ctx context.Context, idMotor, uploadPath, di
 	}
 	return
 }
+
+func (q *SqlRepository) GetListUkuranBanRaw(ctx context.Context) (res []UkuranRingBan, errCode string, err error) {
+	const query = `select IDUkuranBan from tblmasterukuranban order by IDUkuranBan asc`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i UkuranRingBan
+
+		if err = rows.Scan(
+			&i.IdUkuranBan,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) TireSizeExist(ctx context.Context, id string) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT * FROM tblbanukuranring WHERE id = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+func (q *SqlRepository) TireSizeAdd(ctx context.Context, id, idRing, idSize string) (errCode string, err error) {
+	const queryInsert = `insert into tblbanukuranring (id, id_ring_ban, id_ukuran_ban) VALUES (?, ?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, id, idRing, idSize)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists bool, errCode string, err error){
+	var(
+		matriksExists = false
+		productExists = false
+	)
+	exists = false
+	const query = `select exists(select id from motor_x_size_ban where id_ukuran_ring = ? limit 1)`
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(&matriksExists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	const querySec = `select exists(select KodePlu from tblmasterplu where IDUkuranRing = ? limit 1)`
+	rowSec := q.db.DB.QueryRowContext(ctx, querySec, id)
+	err = rowSec.Scan(&productExists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	if(productExists || matriksExists){
+		exists = true
+	}
+	return
+}
