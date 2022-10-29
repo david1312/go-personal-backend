@@ -86,7 +86,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	expiredTime := time.Now().Add(3 * time.Minute)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -95,7 +95,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	expiredTimeRefresh := time.Now().Add(time.Minute * 4)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -129,7 +129,7 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	expiredTime := time.Now().Add(3 * time.Minute)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,
@@ -137,7 +137,7 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	expiredTimeRefresh := time.Now().Add(time.Minute * 4 )
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,
