@@ -749,8 +749,8 @@ func (q *SqlRepository) TireSizeAdd(ctx context.Context, id, idRing, idSize stri
 	return
 }
 
-func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists bool, errCode string, err error){
-	var(
+func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists bool, errCode string, err error) {
+	var (
 		matriksExists = false
 		productExists = false
 	)
@@ -773,8 +773,18 @@ func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists boo
 		return
 	}
 
-	if(productExists || matriksExists){
+	if productExists || matriksExists {
 		exists = true
+	}
+	return
+}
+
+func (q *SqlRepository) TireSizeDelete(ctx context.Context, id string) (errCode string, err error){
+	const query = `delete from tblbanukuranring where id = ? `
+
+	_, err = q.db.ExecContext(ctx, query, id)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
 	}
 	return
 }

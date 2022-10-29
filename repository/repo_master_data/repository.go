@@ -42,6 +42,7 @@ type MasterDataRepository interface {
 	TireSizeExist(ctx context.Context, id string) (exists bool, errCode string, err error)
 	TireSizeAdd(ctx context.Context, id, idRing, idSize string) (errCode string, err error)
 	TireSizeUsed(ctx context.Context, id string) (exists bool, errCode string, err error)
+	TireSizeDelete(ctx context.Context, id string) (errCode string, err error)
 
 	GetListCategoryMotor(ctx context.Context) (res []CategoryMotor, errCode string, err error)
 }

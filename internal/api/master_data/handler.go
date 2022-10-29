@@ -797,8 +797,6 @@ func (md *MasterDataHandler) EPTireSizeDelete(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-
-
 	sizeUsed, errCode, err := md.mdRepo.TireSizeUsed(ctx, p.Id)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
@@ -810,10 +808,10 @@ func (md *MasterDataHandler) EPTireSizeDelete(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// errCode, err = md.mdRepo.TireSizeAdd(ctx, id, idRingBan, p.IdSize)
-	// if err != nil {
-	// 	response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
-	// 	return
-	// }
+	errCode, err = md.mdRepo.TireSizeDelete(ctx,p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
 	response.Yay(w, r, "success", http.StatusOK)
 }
