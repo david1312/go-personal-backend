@@ -240,3 +240,17 @@ func (m *TireSizeAddReq) ValidateTireSizeAdd() error {
 		validation.Field(&m.IdSize, validation.Required),
 	)
 }
+
+type TireRingAddReq struct {
+	SizeRing int `json:"size_ring"`
+}
+
+func (m *TireRingAddReq) Bind(r *http.Request) error {
+	return m.ValidateTireRingAddReq()
+}
+
+func (m *TireRingAddReq) ValidateTireRingAddReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.SizeRing, validation.Required),
+	)
+}

@@ -28,6 +28,7 @@ type Products struct {
 	CartItemQty        int     `json:"cart_item_qty"`
 	CartItemIsSelected bool    `json:"cart_item_is_selected"`
 	StockAll           int     `json:"stock_all"`
+	IDRingBan          int
 }
 
 type ProductsParamsTemp struct {

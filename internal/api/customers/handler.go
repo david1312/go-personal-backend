@@ -137,7 +137,7 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Minute * 4 )
+	expiredTimeRefresh := time.Now().Add(time.Minute * 4)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,

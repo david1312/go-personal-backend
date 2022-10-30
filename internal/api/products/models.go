@@ -121,6 +121,9 @@ type ProductDetailResponse struct {
 	ImageList      []ProductImage            `json:"image_list"`
 	ReviewList     []ProductReview           `json:"product_review"`
 	Kompatibilitas []MotorCycleCompatibility `json:"kompatibilitas"`
+	TireRing       string                    `json:"tire_ring"`
+	TireBrand      string                    `json:"tire_brand"`
+	StockAll       int                       `json:"stock"`
 }
 
 type ProductImage struct {

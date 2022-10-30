@@ -47,7 +47,7 @@ func (mrc *MerchantHandler) LoginMerchant(w http.ResponseWriter, r *http.Request
 	}
 
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := mrc.jwt.JWTAuth.Encode(&localMdl.MerchantToken{
 		OutletId: merchant.OutletId,
 		Username: merchant.Username,

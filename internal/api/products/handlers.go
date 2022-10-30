@@ -242,6 +242,9 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		ImageList:      listProductImage,
 		ReviewList:     topComment,
 		Kompatibilitas: resCompatibilty,
+		TireRing:       fmt.Sprintf("RING %v", product.IDRingBan),
+		TireBrand:      product.IDMerk,
+		StockAll:       product.StockAll,
 	}, http.StatusOK)
 }
 

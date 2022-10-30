@@ -808,7 +808,39 @@ func (md *MasterDataHandler) EPTireSizeDelete(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	errCode, err = md.mdRepo.TireSizeDelete(ctx,p.Id)
+	errCode, err = md.mdRepo.TireSizeDelete(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPTireRingAdd(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   TireRingAddReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	nameRing := fmt.Sprintf("RING %v", p.SizeRing)
+
+	sizeExists, errCode, err := md.mdRepo.TireRingExist(ctx, p.SizeRing)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if sizeExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrTireRingExists, crashy.Message(crashy.ErrTireRingExists)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.TireRingAdd(ctx, p.SizeRing, nameRing)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return

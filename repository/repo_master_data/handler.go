@@ -779,10 +779,32 @@ func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists boo
 	return
 }
 
-func (q *SqlRepository) TireSizeDelete(ctx context.Context, id string) (errCode string, err error){
+func (q *SqlRepository) TireSizeDelete(ctx context.Context, id string) (errCode string, err error) {
 	const query = `delete from tblbanukuranring where id = ? `
 
 	_, err = q.db.ExecContext(ctx, query, id)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) TireRingExist(ctx context.Context, id int) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT * FROM tblmasterringban WHERE IDRing = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) TireRingAdd(ctx context.Context, id int, nameRing string) (errCode string, err error) {
+	const queryInsert = `insert into tblmasterringban (IDRing, UkuranRing, ranking) VALUES (?, ?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, id, nameRing, 99)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 	}

@@ -87,6 +87,8 @@ const (
 
 	ErrTireSizeExists = "ERR_TIRE_SIZE_EXISTS"
 	ErrTireSizeUsed   = "ERR_TIRE_SIZE_USED"
+
+	ErrTireRingExists = "ERR_TIRE_RING_EXISTS"
 )
 
 var mapper = map[ErrCode]string{
@@ -141,6 +143,7 @@ var mapper = map[ErrCode]string{
 
 	ErrTireSizeExists: "Ukuran ban yang ingin ditambahkan sudah terdaftar",
 	ErrTireSizeUsed:   "Hapus gagal, ukuran ban yang ingin dihapus sedang dipakai dalam matriks relasi motor dengan ukuran ban atau dipakai oleh produk tertentu.",
+	ErrTireRingExists: "Ukuran ring ban yang ingin ditambahkan sudah terdaftar",
 }
 
 // Message retrieve error messages from given error code

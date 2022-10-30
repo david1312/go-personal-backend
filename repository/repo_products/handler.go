@@ -158,10 +158,11 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 func (q *SqlRepository) GetProductDetail(ctx context.Context, id, custId int) (res Products, errCode string, err error) {
 	query := `
 	select a.KodePLU, a.KodeBarang,  a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, a.JenisBan, d.Posisi, a.Deskripsi,
-	(select exists(select x.product_id from wishlists x where x.customer_id = ? and x.product_id = a.KodePLU)) as isWishlist
+	(select exists(select x.product_id from wishlists x where x.customer_id = ? and x.product_id = a.KodePLU)) as isWishlist, a.IDMerk, a.StokAll, e.id_ring_ban
 	from tblmasterplu a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
+	inner join tblbanukuranring e on a.IDUkuranRing = e.id
 	where a.KodePLU = ? `
 
 	row := q.db.DB.QueryRowContext(ctx, query, custId, id)
@@ -178,6 +179,9 @@ func (q *SqlRepository) GetProductDetail(ctx context.Context, id, custId int) (r
 		&res.NamaPosisi,
 		&res.Deskripsi,
 		&res.IsWishlist,
+		&res.IDMerk,
+		&res.StockAll,
+		&res.IDRingBan,
 	)
 
 	if err != nil {

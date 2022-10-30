@@ -213,6 +213,8 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Post("/tire-size/add", masterDataHandler.EPTireSizeAdd)
 			r.Post("/tire-size/delete", masterDataHandler.EPTireSizeDelete)
 
+			r.Post("/tire-ring/add", masterDataHandler.EPTireRingAdd)
+
 		})
 
 	})
