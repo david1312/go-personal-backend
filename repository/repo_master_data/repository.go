@@ -4,6 +4,7 @@ import "context"
 
 type MasterDataRepository interface {
 	GetListMerkBan(ctx context.Context) (res []MerkBan, errCode string, err error)
+	GetListRingBan(ctx context.Context) (res []string, errCode string, err error)
 	GetListUkuranBan(ctx context.Context) (res []UkuranRingBan, errCode string, err error)
 	GetListUkuranBanByBrandMotor(ctx context.Context, idBrandMotor []int) (res []UkuranRingBan, errCode string, err error)
 	GetListUkuranBanByMotor(ctx context.Context, idMotor int) (res []UkuranRingBan, errCode string, err error)

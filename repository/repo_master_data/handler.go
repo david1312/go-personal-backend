@@ -55,6 +55,38 @@ func (q *SqlRepository) GetListMerkBan(ctx context.Context) (res []MerkBan, errC
 	return
 }
 
+func (q *SqlRepository) GetListRingBan(ctx context.Context) (res []string, errCode string, err error){
+	const query = `select UkuranRing from tblmasterringban order by IDRing asc`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i UkuranRingBan
+
+		if err = rows.Scan(
+			&i.UkuranRing,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i.UkuranRing)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
 func (q *SqlRepository) GetListUkuranBan(ctx context.Context) (res []UkuranRingBan, errCode string, err error) {
 	const query = `select a.id, b.UkuranRing, b.ranking
 					from tblbanukuranring a
