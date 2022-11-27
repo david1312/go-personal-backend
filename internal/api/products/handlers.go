@@ -114,6 +114,7 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 			NamaBarang:     val.NamaBarang,
 			Disc:           val.Disc,
 			NamaUkuran:     val.NamaUkuran,
+			HargaJualCoret: val.HargaJual,
 			HargaJualFinal: val.HargaJualFinal,
 			IsWishList:     false,
 			JenisBan:       val.JenisBan,
@@ -227,11 +228,14 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		})
 	}
 
+
+
 	response.Yay(w, r, ProductDetailResponse{
 		KodePLU:        product.KodePLU,
 		NamaBarang:     product.NamaBarang,
 		Disc:           product.Disc,
 		NamaUkuran:     product.NamaUkuran,
+		HargaJualCoret: product.HargaJual,
 		HargaJualFinal: product.HargaJualFinal,
 		IsWishList:     product.IsWishlist,
 		JenisBan:       product.JenisBan,

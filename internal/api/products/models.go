@@ -97,6 +97,7 @@ type ProductsResponse struct {
 	NamaBarang     string  `json:"nama_barang"`
 	Disc           float32 `json:"disc"`
 	NamaUkuran     string  `json:"ukuran"`
+	HargaJualCoret float64 `json:"harga_jual_coret"`
 	HargaJualFinal float64 `json:"harga_jual_final"`
 	IsWishList     bool    `json:"is_wishlist"`
 	JenisBan       string  `json:"jenis_ban"`
@@ -111,6 +112,7 @@ type ProductDetailResponse struct {
 	NamaBarang     string                    `json:"nama_barang"`
 	Disc           float32                   `json:"disc"`
 	NamaUkuran     string                    `json:"ukuran"`
+	HargaJualCoret float64 `json:"harga_jual_coret"`
 	HargaJualFinal float64                   `json:"harga_jual_final"`
 	IsWishList     bool                      `json:"is_wishlist"`
 	JenisBan       string                    `json:"jenis_ban"`

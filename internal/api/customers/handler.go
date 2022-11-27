@@ -86,7 +86,8 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
 	//generate token
-	expiredTime := time.Now().Add(3 * time.Minute)
+	// expiredTime := time.Now().Add(3 * time.Minute)
+	expiredTime := time.Now().Add(24*7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -95,7 +96,8 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -512,7 +514,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 
 	if len(customer.Uid) > 0 {
 		//generate token
-		expiredTime := time.Now().Add(24 * time.Hour)
+		// expiredTime := time.Now().Add(3 * time.Minute)
+		expiredTime := time.Now().Add(24*7 * time.Hour)
 		_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 			Uid:      customer.Uid,
 			CustName: customer.Name,
@@ -520,7 +523,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 		})
 
 		//generate refresh token
-		expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+		// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+		expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 		_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 			Uid:      customer.Uid,
 			CustName: customer.Name,
@@ -545,7 +549,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	// expiredTime := time.Now().Add(3 * time.Minute)
+	expiredTime := time.Now().Add(24*7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.DisplayName,
@@ -554,7 +559,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.DisplayName,

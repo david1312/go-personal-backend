@@ -9,8 +9,8 @@ type Products struct {
 	Qty                int     `json:"qty"`
 	KodeSupplier       string  `json:"kode_supplier"`
 	NamaSupplier       string  `json:"nama_supplier"`
-	HargaJual          float64 `json:"harga_jual_final"`
-	HargaJualFinal     float64 `json:"harga_jual"`
+	HargaJual          float64 `json:"harga_jual"`
+	HargaJualFinal     float64 `json:"harga_jual_final"`
 	Disc               float32 `json:"disc"`
 	IDUkuran           string  `json:"id_ukuran"`
 	IDPosisi           string  `json:"id_posisi"`

@@ -27,7 +27,8 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	)
 
 	//generate token
-	expiredTime := time.Now().Add(3 * time.Minute)
+	// expiredTime := time.Now().Add(3 * time.Minute)
+	expiredTime := time.Now().Add(24 *7* time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      authData.Uid,
 		CustName: authData.CustName,
@@ -35,14 +36,16 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      authData.Uid,
 		CustName: authData.CustName,
 		Expired:  expiredTimeRefresh,
 	})
 
-	expiredTimeAnon := time.Now().Add(time.Minute * 3)
+	// expiredTimeAnon := time.Now().Add(time.Minute * 3)
+	expiredTimeAnon := time.Now().Add(time.Hour * 24 * 30)
 	_, anonToken, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      uuid.New().String(),
 		CustName: "",
@@ -64,7 +67,8 @@ func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request
 	uid := uuid.New().String()
 
 	//generate token
-	expiredTime := time.Now().Add(time.Minute * 3)
+	// expiredTime := time.Now().Add(time.Minute * 3)
+	expiredTime := time.Now().Add(time.Hour * 24 * 30)
 	_, token, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      uid,
 		CustName: "",
