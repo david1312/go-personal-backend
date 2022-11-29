@@ -228,8 +228,6 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		})
 	}
 
-
-
 	response.Yay(w, r, ProductDetailResponse{
 		KodePLU:        product.KodePLU,
 		NamaBarang:     product.NamaBarang,
@@ -594,6 +592,7 @@ func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		tireType     = r.FormValue("tire_type")
 		size         = r.FormValue("size")
 		price        = r.FormValue("price")
+		strikePrice  = r.FormValue("strike_price")
 		stock        = r.FormValue("stock")
 		description  = r.FormValue("description")
 		fileNameList = []string{}
@@ -649,7 +648,7 @@ func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errCode, err = prd.prodRepo.AddProduct(ctx, sku, name, brandId, tireType, size, price, stock, description, fileNameList)
+	errCode, err = prd.prodRepo.AddProduct(ctx, sku, name, brandId, tireType, size, strikePrice, price, stock, description, fileNameList)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
@@ -675,6 +674,7 @@ func (prd *ProductsHandler) EPProductUpdate(w http.ResponseWriter, r *http.Reque
 		IdTIreBrand: p.IdTIreBrand,
 		TireType:    p.TireType,
 		Size:        p.Size,
+		StrikePrice: p.StrikePrice,
 		Price:       p.Price,
 		Stock:       p.Stock,
 		Description: p.Description,

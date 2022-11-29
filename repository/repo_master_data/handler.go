@@ -55,7 +55,7 @@ func (q *SqlRepository) GetListMerkBan(ctx context.Context) (res []MerkBan, errC
 	return
 }
 
-func (q *SqlRepository) GetListRingBan(ctx context.Context) (res []string, errCode string, err error){
+func (q *SqlRepository) GetListRingBan(ctx context.Context) (res []string, errCode string, err error) {
 	const query = `select UkuranRing from tblmasterringban order by IDRing asc`
 	rows, err := q.db.QueryContext(ctx, query)
 	if err != nil {

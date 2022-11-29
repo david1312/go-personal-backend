@@ -525,7 +525,7 @@ func (q *SqlRepository) DeleteProductById(ctx context.Context, productId int) (e
 	return
 }
 
-func (q *SqlRepository) AddProduct(ctx context.Context, sku, name, brandId, tireType, size, price, stock, description string, photoList []string) (errCode string, err error) {
+func (q *SqlRepository) AddProduct(ctx context.Context, sku, name, brandId, tireType, size, strikePrice, price, stock, description string, photoList []string) (errCode string, err error) {
 	tx, err := q.db.BeginTx(ctx, nil)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -534,7 +534,7 @@ func (q *SqlRepository) AddProduct(ctx context.Context, sku, name, brandId, tire
 	defer tx.Rollback()
 
 	_, err = tx.ExecContext(ctx, `insert into tblmasterplu (KodeBarang, NamaBarang, IDMerk, JenisBan, IDUkuranRing, HargaJual, HargaJualFinal, StokAll, Deskripsi)
-	values (?,?,?,?,?,?,?,?,?)`, sku, name, brandId, tireType, size, price, price, stock, description)
+	values (?,?,?,?,?,?,?,?,?)`, sku, name, brandId, tireType, size, strikePrice, price, stock, description)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
@@ -641,9 +641,9 @@ func (q *SqlRepository) GetTopCommentOutlet(ctx context.Context) (res []ProductR
 
 func (q *SqlRepository) ProductUpdate(ctx context.Context, param UpdateProductParam) (errCode string, err error) {
 	const query = `update tblmasterplu set 
-	NamaBarang = ?, IDMerk = ?, JenisBan = ?, IDUkuranRing = ?, HargaJualFinal = ?, StokAll = ?, Deskripsi = ?
+	NamaBarang = ?, IDMerk = ?, JenisBan = ?, IDUkuranRing = ?, HargaJual = ?,HargaJualFinal = ?, StokAll = ?, Deskripsi = ?
 	where KodePLU = ?`
-	_, err = q.db.ExecContext(ctx, query, param.Name, param.IdTIreBrand, param.TireType, param.Size, param.Price, param.Stock, param.Description, param.Id)
+	_, err = q.db.ExecContext(ctx, query, param.Name, param.IdTIreBrand, param.TireType, param.Size, param.StrikePrice, param.Price, param.Stock, param.Description, param.Id)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 	}

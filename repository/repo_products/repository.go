@@ -28,7 +28,7 @@ type ProductsRepository interface {
 
 	//merchant
 	DeleteProductById(ctx context.Context, productId int) (errCode string, err error)
-	AddProduct(ctx context.Context, sku, name, brandId, tireType, size, price, stock, description string, photoList []string) (errCode string, err error)
+	AddProduct(ctx context.Context, sku, name, brandId, tireType, strikePrice, size, price, stock, description string, photoList []string) (errCode string, err error)
 	ProductUpdate(ctx context.Context, param UpdateProductParam) (errCode string, err error)
 	ProductAddImage(ctx context.Context, sku string, photoList []string) (errCode string, err error)
 	ProductDetailMerchant(ctx context.Context, id string) (res Products, errCode string, err error)

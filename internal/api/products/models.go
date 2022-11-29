@@ -112,7 +112,7 @@ type ProductDetailResponse struct {
 	NamaBarang     string                    `json:"nama_barang"`
 	Disc           float32                   `json:"disc"`
 	NamaUkuran     string                    `json:"ukuran"`
-	HargaJualCoret float64 `json:"harga_jual_coret"`
+	HargaJualCoret float64                   `json:"harga_jual_coret"`
 	HargaJualFinal float64                   `json:"harga_jual_final"`
 	IsWishList     bool                      `json:"is_wishlist"`
 	JenisBan       string                    `json:"jenis_ban"`
@@ -246,6 +246,7 @@ type UpdateProductRequest struct {
 	IdTIreBrand string `json:"id_tire_brand"`
 	TireType    string `json:"tire_type"`
 	Size        string `json:"size"`
+	StrikePrice int    `json:"strike_price"`
 	Price       int    `json:"price"`
 	Stock       int    `json:"stock"`
 	Description string `json:"description"`
@@ -262,6 +263,8 @@ func (m *UpdateProductRequest) ValidateUpdateProductRequest() error {
 		validation.Field(&m.IdTIreBrand, validation.Required),
 		validation.Field(&m.TireType, validation.Required),
 		validation.Field(&m.Size, validation.Required),
+		validation.Field(&m.Price, validation.Required),
+		validation.Field(&m.StrikePrice, validation.Required),
 		validation.Field(&m.Stock, validation.Required),
 		validation.Field(&m.Description, validation.Required),
 	)

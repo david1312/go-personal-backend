@@ -28,7 +28,7 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	//generate token
 	// expiredTime := time.Now().Add(3 * time.Minute)
-	expiredTime := time.Now().Add(24 *7* time.Hour)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      authData.Uid,
 		CustName: authData.CustName,

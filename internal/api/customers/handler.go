@@ -87,7 +87,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	//generate token
 	// expiredTime := time.Now().Add(3 * time.Minute)
-	expiredTime := time.Now().Add(24*7 * time.Hour)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -515,7 +515,7 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 	if len(customer.Uid) > 0 {
 		//generate token
 		// expiredTime := time.Now().Add(3 * time.Minute)
-		expiredTime := time.Now().Add(24*7 * time.Hour)
+		expiredTime := time.Now().Add(24 * 7 * time.Hour)
 		_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 			Uid:      customer.Uid,
 			CustName: customer.Name,
@@ -550,7 +550,7 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 
 	//generate token
 	// expiredTime := time.Now().Add(3 * time.Minute)
-	expiredTime := time.Now().Add(24*7 * time.Hour)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.DisplayName,
