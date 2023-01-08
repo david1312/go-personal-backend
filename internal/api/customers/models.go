@@ -30,6 +30,7 @@ type SignInGoogleRequest struct {
 	Id             string `json:"id"`
 	PhotoUrl       string `json:"photo_url"`
 	ServerAuthCode string `json:"server_auth_code"`
+	DeviceToken    string `json:"device_token"`
 }
 
 func (m *SignInGoogleRequest) Bind(r *http.Request) error {
@@ -50,9 +51,10 @@ type LoginResponse struct {
 }
 
 type RegisterRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	DeviceToken string `json:"device_token"`
 }
 
 func (m *RegisterRequest) Bind(r *http.Request) error {
