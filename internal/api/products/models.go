@@ -246,7 +246,7 @@ type UpdateProductRequest struct {
 	IdTIreBrand string `json:"id_tire_brand"`
 	TireType    string `json:"tire_type"`
 	Size        string `json:"size"`
-	StrikePrice int    `json:"strike_price"`
+	StrikePrice string `json:"strike_price"`
 	Price       int    `json:"price"`
 	Stock       int    `json:"stock"`
 	Description string `json:"description"`

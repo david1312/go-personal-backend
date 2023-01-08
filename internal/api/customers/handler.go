@@ -124,6 +124,9 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Infof("Email : %v \n", p.Email)
+	log.Infof("Device Token : %v \n", p.DeviceToken)
+
 	customer, errCode, err := usr.custRepository.Login(ctx, p.Email, p.Password)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)

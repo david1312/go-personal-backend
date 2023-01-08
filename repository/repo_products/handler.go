@@ -93,7 +93,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 
 	queryRecords := `
 	SELECT count(a.kodeplu)
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	 where 1 = 1 and a.DeletedAt is null ` + whereParams
@@ -107,7 +107,7 @@ func (q *SqlRepository) GetListProducts(ctx context.Context, fp ProductsParamsTe
 
 	query := `
 	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, COALESCE(e.URL, 'default.png'), a.JenisBan, a.IDMerk, a.StokAll, a.Deskripsi
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
@@ -159,7 +159,7 @@ func (q *SqlRepository) GetProductDetail(ctx context.Context, id, custId int) (r
 	query := `
 	select a.KodePLU, a.KodeBarang,  a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, a.JenisBan, d.Posisi, a.Deskripsi,
 	(select exists(select x.product_id from wishlists x where x.customer_id = ? and x.product_id = a.KodePLU)) as isWishlist, a.IDMerk, a.StokAll, e.id_ring_ban
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	inner join tblbanukuranring e on a.IDUkuranRing = e.id
@@ -288,7 +288,7 @@ func (q *SqlRepository) WishlistMe(ctx context.Context, custId int, fp ProductsP
 	)
 	queryRecords := `
 	select count(a.KodePLU)
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
@@ -305,7 +305,7 @@ func (q *SqlRepository) WishlistMe(ctx context.Context, custId int, fp ProductsP
 
 	query := `
 	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, e.URL, a.JenisBan
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
@@ -448,7 +448,7 @@ func (q *SqlRepository) CartMe(ctx context.Context, cartId int, fp ProductsParam
 	)
 	queryRecords := `
 	select count(a.KodePLU)
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
@@ -465,7 +465,7 @@ func (q *SqlRepository) CartMe(ctx context.Context, cartId int, fp ProductsParam
 
 	query := `
 	select a.KodePLU, a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, e.URL, a.JenisBan, f.id, f.qty, f.is_selected
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	left join tblurlgambar e on a.KodeBarang = e.KodeBarang and e.IsDisplay = true
@@ -514,7 +514,7 @@ func (q *SqlRepository) CartMe(ctx context.Context, cartId int, fp ProductsParam
 }
 
 func (q *SqlRepository) DeleteProductById(ctx context.Context, productId int) (errCode string, err error) {
-	const query = `update tblmasterplu set DeletedAt = now() where KodePLU = ?`
+	const query = `update products set DeletedAt = now() where KodePLU = ?`
 	_, err = q.db.ExecContext(ctx, query, productId)
 
 	if err != nil {
@@ -533,7 +533,7 @@ func (q *SqlRepository) AddProduct(ctx context.Context, sku, name, brandId, tire
 	}
 	defer tx.Rollback()
 
-	_, err = tx.ExecContext(ctx, `insert into tblmasterplu (KodeBarang, NamaBarang, IDMerk, JenisBan, IDUkuranRing, HargaJual, HargaJualFinal, StokAll, Deskripsi)
+	_, err = tx.ExecContext(ctx, `insert into products (KodeBarang, NamaBarang, IDMerk, JenisBan, IDUkuranRing, HargaJual, HargaJualFinal, StokAll, Deskripsi)
 	values (?,?,?,?,?,?,?,?,?)`, sku, name, brandId, tireType, size, strikePrice, price, stock, description)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -640,7 +640,7 @@ func (q *SqlRepository) GetTopCommentOutlet(ctx context.Context) (res []ProductR
 }
 
 func (q *SqlRepository) ProductUpdate(ctx context.Context, param UpdateProductParam) (errCode string, err error) {
-	const query = `update tblmasterplu set 
+	const query = `update products set 
 	NamaBarang = ?, IDMerk = ?, JenisBan = ?, IDUkuranRing = ?, HargaJual = ?,HargaJualFinal = ?, StokAll = ?, Deskripsi = ?
 	where KodePLU = ?`
 	_, err = q.db.ExecContext(ctx, query, param.Name, param.IdTIreBrand, param.TireType, param.Size, param.StrikePrice, param.Price, param.Stock, param.Description, param.Id)
@@ -653,7 +653,7 @@ func (q *SqlRepository) ProductUpdate(ctx context.Context, param UpdateProductPa
 func (q *SqlRepository) ProductDetailMerchant(ctx context.Context, id string) (res Products, errCode string, err error) {
 	query := `
 	select a.KodePLU, a.KodeBarang,  a.NamaBarang, a.Disc, a.HargaJual, a.HargaJualFinal, a.IDUkuranRing, a.JenisBan, d.Posisi, a.Deskripsi
-	from tblmasterplu a
+	from products a
 	inner join tblmerkban b on a.IDMerk = b.IDMerk
 	inner join tblposisiban d on a.IDPosisi = d.IDPosisi
 	where a.KodePLU = ? `

@@ -2,6 +2,7 @@ package repo_master_data
 
 import (
 	"context"
+	"fmt"
 	"semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
@@ -18,6 +19,51 @@ func NewSqlRepository(db *sqlx.DB) *SqlRepository {
 	return &SqlRepository{
 		db: db,
 	}
+}
+
+func (q *SqlRepository) Magic(ctx context.Context) error {
+	//update image default per new product
+	result := []string{}
+	const query = `select a.KodeBarang from products a 
+	where a.KodeBarang not in 
+	(select KodeBarang from tblurlgambar where isDisplay = true)`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var tempVessel string
+
+		if err := rows.Scan(
+			&tempVessel,
+		); err != nil {
+			return err
+		}
+		result = append(result, tempVessel)
+	}
+	// fmt.Println(result)
+
+	for i, v := range result {
+		const queryInsert = `insert into tblurlgambar (KodeBarang, URL,isDisplay) VALUES (?, ?,?) `
+		var img = "product1.png"
+		if i%2 == 0 {
+			img = "product2.png"
+		}
+		_, err = q.db.ExecContext(ctx, queryInsert, v, img, true)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(result) == 0 {
+		fmt.Println("All product already have display image :)")
+	}
+
+	//update image default per new product
+	return nil
 }
 
 func (q *SqlRepository) GetListMerkBan(ctx context.Context) (res []MerkBan, errCode string, err error) {
@@ -450,7 +496,7 @@ func (q *SqlRepository) AddTireBrand(ctx context.Context, id, name, icon, rankin
 }
 
 func (q *SqlRepository) CheckTireBrandUsed(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error) {
-	const query = `select exists(select KodePLU from tblmasterplu where IDMerk = ? limit 1)`
+	const query = `select exists(select KodePLU from products where IDMerk = ? limit 1)`
 	row := q.db.DB.QueryRowContext(ctx, query, idMerkBan)
 	err = row.Scan(&exists)
 
@@ -796,7 +842,7 @@ func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists boo
 		return
 	}
 
-	const querySec = `select exists(select KodePlu from tblmasterplu where IDUkuranRing = ? limit 1)`
+	const querySec = `select exists(select KodePlu from products where IDUkuranRing = ? limit 1)`
 	rowSec := q.db.DB.QueryRowContext(ctx, querySec, id)
 	err = rowSec.Scan(&productExists)
 

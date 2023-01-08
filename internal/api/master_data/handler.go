@@ -847,3 +847,16 @@ func (md *MasterDataHandler) EPTireRingAdd(w http.ResponseWriter, r *http.Reques
 	}
 	response.Yay(w, r, "success", http.StatusOK)
 }
+
+func (md *MasterDataHandler) MagicHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+	)
+	err := md.mdRepo.Magic(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, crashy.Message(crashy.ErrCodeValidation)), http.StatusBadRequest)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}

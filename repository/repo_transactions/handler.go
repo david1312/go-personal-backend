@@ -48,7 +48,7 @@ func (q *SqlRepository) SubmitTransaction(ctx context.Context, fp SubmitTransact
 	}
 	trimmed := inTotal[:len(inTotal)-1]
 	whereQty += " KodePLU in (" + trimmed + ") "
-	queryCheckStock := `select KodePLU, StokAll from tblmasterplu where ` + whereQty
+	queryCheckStock := `select KodePLU, StokAll from products where ` + whereQty
 	rows, err := tx.QueryContext(ctx, queryCheckStock, argsCheckQty...)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -83,7 +83,7 @@ func (q *SqlRepository) SubmitTransaction(ctx context.Context, fp SubmitTransact
 			return
 		}
 		//update the stock
-		_, err = tx.ExecContext(ctx, "update tblmasterplu set StokAll = StokAll - ? where KodePLU = ?",
+		_, err = tx.ExecContext(ctx, "update products set StokAll = StokAll - ? where KodePLU = ?",
 			mapStockProduct[int(v.KodePLU)], v.KodePLU)
 		if err != nil {
 			errCode = crashy.ErrCodeUnexpected
@@ -270,7 +270,7 @@ func (q *SqlRepository) GetProductByInvoices(ctx context.Context, listInvoiceId 
 
 	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang, b.JenisBan
 	from tbltransaksidetail a
-	join tblmasterplu b on a.IdBarang = b.KodePlu
+	join products b on a.IdBarang = b.KodePlu
 	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
 	where ` + whereParams
 
@@ -361,7 +361,7 @@ func (q *SqlRepository) GetInvoiceData(ctx context.Context, invoiceId string) (r
 func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId string) (res []ProductsData, errCode string, err error) {
 	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang, b.JenisBan
 	from tbltransaksidetail a
-	join tblmasterplu b on a.IdBarang = b.KodePlu
+	join products b on a.IdBarang = b.KodePlu
 	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
 	where a.NoFaktur = ? `
 

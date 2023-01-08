@@ -8,8 +8,9 @@ import (
 )
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	DeviceToken string `json:"device_token"`
 }
 
 func (m *LoginRequest) Bind(r *http.Request) error {

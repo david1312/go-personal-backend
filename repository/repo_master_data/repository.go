@@ -3,6 +3,8 @@ package repo_master_data
 import "context"
 
 type MasterDataRepository interface {
+	Magic(ctx context.Context) error
+
 	GetListMerkBan(ctx context.Context) (res []MerkBan, errCode string, err error)
 	GetListRingBan(ctx context.Context) (res []string, errCode string, err error)
 	GetListUkuranBan(ctx context.Context) (res []UkuranRingBan, errCode string, err error)
