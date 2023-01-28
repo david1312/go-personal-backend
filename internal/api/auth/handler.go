@@ -81,3 +81,11 @@ func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request
 	}, http.StatusOK)
 
 }
+
+func (usr *AuthHandler) GetVersion(w http.ResponseWriter, r *http.Request) {
+
+	response.Yay(w, r, Version{
+		ApiVersion: "v1.0.1",
+	}, http.StatusOK)
+
+}

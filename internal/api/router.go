@@ -79,6 +79,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 
 	r.Get("/v1/verify", custHandler.VerifyEmail)
 	r.Get("/v1/auth/anonymous", authHandler.GetAnonymousToken)
+	r.Get("/version", authHandler.GetVersion)
 
 	r.Route("/v1", func(r chi.Router) { //anonymous scope
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
