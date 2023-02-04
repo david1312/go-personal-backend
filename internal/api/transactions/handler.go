@@ -127,7 +127,6 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		}, http.StatusOK)
 		return
 	}
-	fmt.Println("prepare midtrans request")
 	payload := &TransferBNIRequest{
 		PaymentType: constants.PaymentBankTransfer,
 		TransactionDetailsData: TransactionDetails{
@@ -143,15 +142,11 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(tr.MidtransConfig.AuthKey)
-
 	// req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
 	req, err := http.NewRequest(http.MethodPost, "https://api.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
 	// https://api.midtrans.com
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
-		fmt.Println("yy")
-		fmt.Println(err)
 		return
 	}
 	req.Header.Set("Accept", "application/json")
@@ -161,8 +156,6 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 	res, err := tr.client.Do(req)
 
 	if err != nil {
-		fmt.Println("xx")
-		fmt.Println(err)
 		if os.IsTimeout(err) {
 			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
 			return
@@ -174,14 +167,11 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 			err = c.Close()
 		}(res.Body)
 	}
-	fmt.Println("xx hahaha")
 	j := map[string]interface{}{}
 	err = json.NewDecoder(res.Body).Decode(&j)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%s", j)
-	fmt.Println(j["status_code"])
 	if j["status_code"] != "201" || j["status_code"] != "200" {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), fmt.Sprintf("%v: %v", crashy.Message(crashy.ErrRequestMidtrans), j["status_message"])), http.StatusInternalServerError)
 		return
@@ -417,6 +407,47 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 	}
 
 	//send notif firebase to gcm id
+	userData, errCode, err := tr.trRepo.GetUserFCMToken(ctx, p.OrderId)
+	if userData.DeviceToken != "" {
+		payload := &FCMRequest{
+			To: userData.DeviceToken,
+			NotificationData: Notification{
+				Body:  fmt.Sprintf("Selamat pembayaran untuk invoice %v berhasil diterima, silahkan datang ke outlet kami dijadwal yang sudah anda pilih untuk mendapatkan free pemasangan ban", p.OrderId),
+				Title: "Pembayaran Berhasil Diterima",
+			},
+			FCMData: DataFCM{
+				Action:    "page_transaction",
+				InvoiceID: p.OrderId,
+			},
+		}
+		b, err := json.Marshal(payload)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+			return
+		}
+		// req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+		req, err := http.NewRequest(http.MethodPost, "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(b)) //todo get from config
+		// https://api.midtrans.com
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+			return
+		}
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "key=AAAAvQsepjU:APA91bGZZqJKG23Bx0xkzXmfJNjzfMCLpB2LEHA2ygQicjK8zqv_TCl-ynL5EKWjASWQxgPrDQIYa1LtdxuFdklpmSZBG64d8Aw9_HE-Ba5MkOwz2YMz_Yks09V9WqLTInV6zeWXEdKU")
+		//todo get from conflict
+
+		_, err = tr.client.Do(req)
+
+		if err != nil {
+			if os.IsTimeout(err) {
+				response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
+	}
 	fmt.Println("temporary log callback accepted ")
 	response.Yay(w, r, "success", http.StatusOK)
 }
@@ -451,6 +482,18 @@ func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *h
 			MBInstuction:         []string{},
 		}, http.StatusOK)
 		return
+	} else if transaction.PaymentMethod == constants.TF_PERMATA {
+		response.Yay(w, r, GetPaymentInstructionResponse{
+			PaymentMethodDesc:    transaction.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+			TotalAmountFormatted: helper.FormatCurrency(int(transaction.TotalAmount)),
+			VirtualAccNumber:     transaction.VirtualAccount,
+			AtmTitle:             "ATM " + helper.MappingBankName(transaction.PaymentMethod),
+			AtmInstruction:       constants.ATMInstructionPermata,
+			IBInstruction:        constants.InternetBankingInstructionPermata,
+			MBInstuction:         constants.MobileBankingInstructionPermata,
+		}, http.StatusOK)
+		return
 	}
 
 	response.Yay(w, r, GetPaymentInstructionResponse{
@@ -463,6 +506,7 @@ func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *h
 		IBInstruction:        constants.InternetBankingInstructionBNI,
 		MBInstuction:         constants.MobileBankingInstructionBNI,
 	}, http.StatusOK)
+	return
 
 }
 

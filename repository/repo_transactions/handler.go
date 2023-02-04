@@ -459,6 +459,25 @@ func (q *SqlRepository) GetCountTransactionData(ctx context.Context, custId int)
 	return
 }
 
+func (q *SqlRepository) GetUserFCMToken(ctx context.Context, invoiceId string) (res FCMToken, errCode string, err error) {
+	const query = `select COALESCE(device_token, '') from 
+	tbltransaksihead a
+	inner join customers b on a.CustomerId = b.id
+	where a.NoFaktur = 'INV-20230204-0002'`
+
+	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
+
+	err = row.Scan(
+		&res.DeviceToken,
+	)
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
+		return
+	}
+
+	return
+}
+
 func (q *SqlRepository) UpdateTransactionStatus(ctx context.Context, invoiceId, status, notes string) (errCode string, err error) {
 	const query = `update tbltransaksihead set StatusTransaksi = ?, Catatan = ? where NoFaktur = ?`
 	_, err = q.db.ExecContext(ctx, query, status, notes, invoiceId)

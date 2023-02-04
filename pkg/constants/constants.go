@@ -55,6 +55,7 @@ const (
 	TF_BNI     = "TF_BNI"
 	TF_PERMATA = "TF_PERMATA"
 	TF_BRI     = "TF_BRI"
+	COD        = "COD"
 )
 
 var (

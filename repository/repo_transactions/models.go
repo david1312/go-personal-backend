@@ -85,3 +85,7 @@ type GetSummaryTransactionCount struct {
 	OnProgress     int `json:"on_progress"`
 	Succedd        int `json:"succeed"`
 }
+
+type FCMToken struct {
+	DeviceToken string `json:"invoice_id"`
+}

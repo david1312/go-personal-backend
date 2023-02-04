@@ -294,3 +294,19 @@ type GetTransactionsDetaiMerchantlResponse struct {
 	PaymentMethodIcon  string                   `json:"payment_method_icon"`
 	ListProduct        []ProductsDataPageJadwal `json:"list_product"`
 }
+
+type FCMRequest struct {
+	To               string       `json:"to"`
+	NotificationData Notification `json:"notification"`
+	FCMData          DataFCM      `json:"data"`
+}
+
+type Notification struct {
+	Body  string `json:"body"`
+	Title string `json:"title"`
+}
+
+type DataFCM struct {
+	Action    string `json:"action"`
+	InvoiceID string `json:"invoice_id"`
+}
