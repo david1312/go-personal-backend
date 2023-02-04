@@ -139,33 +139,35 @@ type PaymentAmout struct {
 	Amount string `json:"amount"`
 }
 type TransferBNIResponse struct {
-	StatusCode         string           `json:"status_code"`
-	StatusMessage      string           `json:"status_message"`
-	TransactionId      string           `json:"transaction_id"`
-	OrderId            string           `json:"order_id"`
-	MerchantId         string           `json:"merchant_id"`
-	GrossAmount        string           `json:"gross_amount"`
-	Currency           string           `json:"currency"`
-	PaymentType        string           `json:"payment_type"`
-	TransactionTime    string           `json:"transaction_time"`
-	TransactionStatus  string           `json:"transaction_status"`
-	VirtualAccountData []VirtualAccount `json:"va_numbers"`
-	FraudStatus        string           `json:"fraud_status"`
+	StatusCode         string           `json:"status_code,omitempty"`
+	StatusMessage      string           `json:"status_message,omitempty"`
+	TransactionId      string           `json:"transaction_id,omitempty"`
+	OrderId            string           `json:"order_id,omitempty"`
+	MerchantId         string           `json:"merchant_id,omitempty"`
+	GrossAmount        string           `json:"gross_amount,omitempty"`
+	Currency           string           `json:"currency,omitempty"`
+	PaymentType        string           `json:"payment_type,omitempty"`
+	TransactionTime    string           `json:"transaction_time,omitempty"`
+	TransactionStatus  string           `json:"transaction_status,omitempty"`
+	VirtualAccountData []VirtualAccount `json:"va_numbers,omitempty"`
+	FraudStatus        string           `json:"fraud_status,omitempty"`
+	ID                 string           `json:"id,omitempty"`
 }
 
 type TransferPermataResponse struct {
-	StatusCode        string `json:"status_code"`
-	StatusMessage     string `json:"status_message"`
-	TransactionId     string `json:"transaction_id"`
-	OrderId           string `json:"order_id"`
-	MerchantId        string `json:"merchant_id"`
-	GrossAmount       string `json:"gross_amount"`
-	Currency          string `json:"currency"`
-	PaymentType       string `json:"payment_type"`
-	TransactionTime   string `json:"transaction_time"`
-	TransactionStatus string `json:"transaction_status"`
-	PermataVANumber   string `json:"permata_va_number"`
-	FraudStatus       string `json:"fraud_status"`
+	StatusCode        string `json:"status_code,omitempty"`
+	StatusMessage     string `json:"status_message,omitempty"`
+	TransactionId     string `json:"transaction_id,omitempty"`
+	OrderId           string `json:"order_id,omitempty"`
+	MerchantId        string `json:"merchant_id,omitempty"`
+	GrossAmount       string `json:"gross_amount,omitempty"`
+	Currency          string `json:"currency,omitempty"`
+	PaymentType       string `json:"payment_type,omitempty"`
+	TransactionTime   string `json:"transaction_time,omitempty"`
+	TransactionStatus string `json:"transaction_status,omitempty"`
+	PermataVANumber   string `json:"permata_va_number,omitempty"`
+	FraudStatus       string `json:"fraud_status,omitempty"`
+	ID                string `json:"id,omitempty"`
 }
 
 type PaymentCallbackRequest struct {

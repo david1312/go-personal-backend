@@ -143,12 +143,15 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
 		return
 	}
+	fmt.Println(tr.MidtransConfig.AuthKey)
 
-	req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
-	// req, err := http.NewRequest(http.MethodPost, "https://api.midtrans.com/v1/charge", bytes.NewBuffer(b)) //todo get from config
+	// req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	req, err := http.NewRequest(http.MethodPost, "https://api.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
 	// https://api.midtrans.com
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+		fmt.Println("yy")
+		fmt.Println(err)
 		return
 	}
 	req.Header.Set("Accept", "application/json")
@@ -158,6 +161,8 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 	res, err := tr.client.Do(req)
 
 	if err != nil {
+		fmt.Println("xx")
+		fmt.Println(err)
 		if os.IsTimeout(err) {
 			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
 			return
@@ -168,6 +173,18 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		defer func(c io.Closer) {
 			err = c.Close()
 		}(res.Body)
+	}
+	fmt.Println("xx hahaha")
+	j := map[string]interface{}{}
+	err = json.NewDecoder(res.Body).Decode(&j)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s", j)
+	fmt.Println(j["status_code"])
+	if j["status_code"] != "201" || j["status_code"] != "200" {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), fmt.Sprintf("%v: %v", crashy.Message(crashy.ErrRequestMidtrans), j["status_message"])), http.StatusInternalServerError)
+		return
 	}
 
 	if p.PaymentMethod == constants.TF_BNI || p.PaymentMethod == constants.TF_BRI {

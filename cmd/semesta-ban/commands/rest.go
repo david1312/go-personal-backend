@@ -29,7 +29,7 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 			cfg := dep.GetConfig()
 			ctx := context.Background()
 
-			client := helper.CreateHttpClient(ctx, cfg.Midtrans.Timeout, false)
+			client := helper.CreateHttpClient(ctx, cfg.Midtrans.Timeout, true)
 
 			handler := api.NewServer(dep.GetDB(), client, api.ServerConfig{
 				EncKey:            cfg.Key.EncryptKey,
