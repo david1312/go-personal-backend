@@ -463,7 +463,7 @@ func (q *SqlRepository) GetUserFCMToken(ctx context.Context, invoiceId string) (
 	const query = `select COALESCE(device_token, '') from 
 	tbltransaksihead a
 	inner join customers b on a.CustomerId = b.id
-	where a.NoFaktur = 'INV-20230204-0002'`
+	where a.NoFaktur = ?`
 
 	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
 
