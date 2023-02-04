@@ -64,6 +64,14 @@ func (md *MasterDataHandler) GetListOutlet(w http.ResponseWriter, r *http.Reques
 			Longitude: 108.7525081,
 			MapUrl:    "https://goo.gl/maps/e2HJnDKKfzuCeMqZ9",
 		},
+		{
+			Id:        2,
+			Name:      "Semesta Ban testing",
+			Address:   "Jl Raya Kuningan Losari KM 39,5, Desa, Bojongnegara, Kabupaten Cirebon, Jawa Barat 45188",
+			Latitude:  -6.8907125,
+			Longitude: 108.7526081,
+			MapUrl:    "https://goo.gl/maps/e2HJnDKKfzuCeMqZ9",
+		},
 	}, http.StatusOK)
 }
 

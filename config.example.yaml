@@ -15,3 +15,8 @@ assets:
   profile_pic:
     max_size: 1
     path: "usr/"
+midtrans:
+  timeout: 30
+  merchant_id: "G188422192"
+  client_key: "SB-Mid-client-HlDi54t5eSol9xq2"
+  server_key: "SB-Mid-server-cXRk9vIv_uoZ0nfWgHnqozI7"

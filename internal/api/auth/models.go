@@ -16,6 +16,6 @@ type RefreshTokenResponse struct {
 	AnonExpired  time.Time `json:"anonymous_token_expired"`
 }
 
-type Version struct{
+type Version struct {
 	ApiVersion string `json:"api_version"`
 }

@@ -208,7 +208,25 @@ func MappingBankName(paymentMethod string) string {
 	default:
 		return ""
 	}
+}
 
+func MappingBankNameRequestMidtrans(paymentMethod string) string {
+	switch paymentMethod {
+	case "TF_BNI":
+		return "bni"
+	case "TF_BCA":
+		return "bca"
+	case "TF_BRI":
+		return "bri"
+	case "TF_MANDIRI":
+		return "mandiri"
+	case "TF_PERMATA":
+		return "permata"
+	case "TF_GOPAY":
+		return "gopay"
+	default:
+		return ""
+	}
 }
 
 func MappingDaysNameId(dayName string) string {

@@ -85,6 +85,7 @@ type TransactionsResponse struct {
 	CsNumber             string         `json:"outlet_cs_number"`
 	CreatedAt            string         `json:"created_at"`
 	ListProduct          []ProductsData `json:"list_product"`
+	InstallationtTime    string         `json:"installation_time"`
 }
 
 type ProductsData struct {
@@ -150,6 +151,21 @@ type TransferBNIResponse struct {
 	TransactionStatus  string           `json:"transaction_status"`
 	VirtualAccountData []VirtualAccount `json:"va_numbers"`
 	FraudStatus        string           `json:"fraud_status"`
+}
+
+type TransferPermataResponse struct {
+	StatusCode        string `json:"status_code"`
+	StatusMessage     string `json:"status_message"`
+	TransactionId     string `json:"transaction_id"`
+	OrderId           string `json:"order_id"`
+	MerchantId        string `json:"merchant_id"`
+	GrossAmount       string `json:"gross_amount"`
+	Currency          string `json:"currency"`
+	PaymentType       string `json:"payment_type"`
+	TransactionTime   string `json:"transaction_time"`
+	TransactionStatus string `json:"transaction_status"`
+	PermataVANumber   string `json:"permata_va_number"`
+	FraudStatus       string `json:"fraud_status"`
 }
 
 type PaymentCallbackRequest struct {

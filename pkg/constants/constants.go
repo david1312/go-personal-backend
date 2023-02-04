@@ -30,8 +30,11 @@ const (
 	FraudChallenge = "challenge"
 
 	PaymentBankTransfer = "bank_transfer"
+	BankBNI             = "bni"
+	BankPermata         = "bni"
+	BankBri             = "bri"
 
-	BankBNI            = "bni"
+	Bank
 	DBPaymentSettle    = "Lunas"
 	DBPaymentNotSettle = "Belum Lunas"
 
@@ -48,6 +51,10 @@ const (
 	StaticPromoBanner = "banner-promo-agustus-2022.png"
 
 	DefaultImgPng = "default.png"
+
+	TF_BNI     = "TF_BNI"
+	TF_PERMATA = "TF_PERMATA"
+	TF_BRI     = "TF_BRI"
 )
 
 var (

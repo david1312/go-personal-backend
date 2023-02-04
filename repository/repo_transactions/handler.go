@@ -207,7 +207,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 	args = append(args, 200, offsetNum)
 
 	query := `
-	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name, a.JadwalPemasangan, a.TglTrans
 	from tbltransaksihead a
 	join payment_method b on a.MetodePembayaran = b.id
 	join outlets c on a.IdOutlet = c.id
@@ -235,6 +235,8 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 			&i.PaymentDue,
 			&i.OutletId,
 			&i.OutletName,
+			&i.InstallationTime,
+			&i.InstallationDate,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -337,7 +339,7 @@ func (q *SqlRepository) UpdateInvoiceVA(ctx context.Context, invoiceId, virtualA
 }
 
 func (q *SqlRepository) GetInvoiceData(ctx context.Context, invoiceId string) (res Transactions, errCode string, err error) {
-	const query = `select a.VirtualAccount, a.MetodePembayaran, a.Tagihan, b.description,b.icon
+	const query = `select COALESCE(a.VirtualAccount, '0'), a.MetodePembayaran, a.Tagihan, b.description,b.icon
 		from tbltransaksihead a
 		join payment_method b on a.MetodePembayaran = b.id
 		where a.NoFaktur = ?`
