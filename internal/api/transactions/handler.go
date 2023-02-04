@@ -494,6 +494,18 @@ func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *h
 			MBInstuction:         constants.MobileBankingInstructionPermata,
 		}, http.StatusOK)
 		return
+	} else if transaction.PaymentMethod == constants.TF_BRI {
+		response.Yay(w, r, GetPaymentInstructionResponse{
+			PaymentMethodDesc:    transaction.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+			TotalAmountFormatted: helper.FormatCurrency(int(transaction.TotalAmount)),
+			VirtualAccNumber:     transaction.VirtualAccount,
+			AtmTitle:             "ATM " + helper.MappingBankName(transaction.PaymentMethod),
+			AtmInstruction:       constants.ATMInstructionBRI,
+			IBInstruction:        constants.InternetBankingInstructionBRI,
+			MBInstuction:         constants.MobileBankingInstructionBRI,
+		}, http.StatusOK)
+		return
 	}
 
 	response.Yay(w, r, GetPaymentInstructionResponse{
