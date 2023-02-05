@@ -56,6 +56,8 @@ const (
 	TF_PERMATA = "TF_PERMATA"
 	TF_BRI     = "TF_BRI"
 	COD        = "COD"
+
+	T_STATUS_MENUNGGU_DIPASANG = "Menunggu Dipasang"
 )
 
 var (
