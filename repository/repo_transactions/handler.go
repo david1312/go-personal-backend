@@ -48,7 +48,7 @@ func (q *SqlRepository) SubmitTransaction(ctx context.Context, fp SubmitTransact
 	}
 	trimmed := inTotal[:len(inTotal)-1]
 	whereQty += " KodePLU in (" + trimmed + ") "
-	queryCheckStock := `select KodePLU, StokAll from tblmasterplu where ` + whereQty
+	queryCheckStock := `select KodePLU, StokAll from products where ` + whereQty
 	rows, err := tx.QueryContext(ctx, queryCheckStock, argsCheckQty...)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -83,7 +83,7 @@ func (q *SqlRepository) SubmitTransaction(ctx context.Context, fp SubmitTransact
 			return
 		}
 		//update the stock
-		_, err = tx.ExecContext(ctx, "update tblmasterplu set StokAll = StokAll - ? where KodePLU = ?",
+		_, err = tx.ExecContext(ctx, "update products set StokAll = StokAll - ? where KodePLU = ?",
 			mapStockProduct[int(v.KodePLU)], v.KodePLU)
 		if err != nil {
 			errCode = crashy.ErrCodeUnexpected
@@ -207,7 +207,7 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 	args = append(args, 200, offsetNum)
 
 	query := `
-	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name, a.JadwalPemasangan, a.TglTrans
 	from tbltransaksihead a
 	join payment_method b on a.MetodePembayaran = b.id
 	join outlets c on a.IdOutlet = c.id
@@ -235,6 +235,8 @@ func (q *SqlRepository) GetHistoryTransaction(ctx context.Context, fp GetListTra
 			&i.PaymentDue,
 			&i.OutletId,
 			&i.OutletName,
+			&i.InstallationTime,
+			&i.InstallationDate,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -270,7 +272,7 @@ func (q *SqlRepository) GetProductByInvoices(ctx context.Context, listInvoiceId 
 
 	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang, b.JenisBan
 	from tbltransaksidetail a
-	join tblmasterplu b on a.IdBarang = b.KodePlu
+	join products b on a.IdBarang = b.KodePlu
 	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
 	where ` + whereParams
 
@@ -337,7 +339,7 @@ func (q *SqlRepository) UpdateInvoiceVA(ctx context.Context, invoiceId, virtualA
 }
 
 func (q *SqlRepository) GetInvoiceData(ctx context.Context, invoiceId string) (res Transactions, errCode string, err error) {
-	const query = `select a.VirtualAccount, a.MetodePembayaran, a.Tagihan, b.description,b.icon
+	const query = `select COALESCE(a.VirtualAccount, '0'), a.MetodePembayaran, a.Tagihan, b.description,b.icon
 		from tbltransaksihead a
 		join payment_method b on a.MetodePembayaran = b.id
 		where a.NoFaktur = ?`
@@ -361,7 +363,7 @@ func (q *SqlRepository) GetInvoiceData(ctx context.Context, invoiceId string) (r
 func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId string) (res []ProductsData, errCode string, err error) {
 	query := `select a.NoFaktur, b.NamaBarang, b.IdUkuranRing, a.HargaSatuan, b.Deskripsi, c.Url, a.QtyItem, a.Total, a.IdBarang, b.JenisBan
 	from tbltransaksidetail a
-	join tblmasterplu b on a.IdBarang = b.KodePlu
+	join products b on a.IdBarang = b.KodePlu
 	left join tblurlgambar c on b.KodeBarang = c.KodeBarang and c.IsDisplay = true
 	where a.NoFaktur = ? `
 
@@ -448,6 +450,25 @@ func (q *SqlRepository) GetCountTransactionData(ctx context.Context, custId int)
 		&res.WaitingProcess,
 		&res.OnProgress,
 		&res.Succedd,
+	)
+	if err != nil {
+		errCode = crashy.ErrCodeDataRead
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) GetUserFCMToken(ctx context.Context, invoiceId string) (res FCMToken, errCode string, err error) {
+	const query = `select COALESCE(device_token, '') from 
+	tbltransaksihead a
+	inner join customers b on a.CustomerId = b.id
+	where a.NoFaktur = ?`
+
+	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
+
+	err = row.Scan(
+		&res.DeviceToken,
 	)
 	if err != nil {
 		errCode = crashy.ErrCodeDataRead

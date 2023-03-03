@@ -2,6 +2,7 @@ package master_data
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"semesta-ban/internal/api/products"
 	"semesta-ban/internal/api/response"
@@ -61,6 +62,14 @@ func (md *MasterDataHandler) GetListOutlet(w http.ResponseWriter, r *http.Reques
 			Address:   "Jl Raya Kuningan Losari KM 39,5, Desa, Bojongnegara, Kabupaten Cirebon, Jawa Barat 45188",
 			Latitude:  -6.8909125,
 			Longitude: 108.7525081,
+			MapUrl:    "https://goo.gl/maps/e2HJnDKKfzuCeMqZ9",
+		},
+		{
+			Id:        2,
+			Name:      "Semesta Ban testing",
+			Address:   "Jl Raya Kuningan Losari KM 39,5, Desa, Bojongnegara, Kabupaten Cirebon, Jawa Barat 45188",
+			Latitude:  -6.8907125,
+			Longitude: 108.7526081,
 			MapUrl:    "https://goo.gl/maps/e2HJnDKKfzuCeMqZ9",
 		},
 	}, http.StatusOK)
@@ -126,6 +135,26 @@ func (md *MasterDataHandler) GetListSizeBan(w http.ResponseWriter, r *http.Reque
 
 	response.Yay(w, r, listSizeBan, http.StatusOK)
 
+}
+
+func (md *MasterDataHandler) EPGetListTireSizeRaw(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		listSize = []Common{}
+	)
+
+	data, errCode, err := md.mdRepo.GetListUkuranBanRaw(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	for _, val := range data {
+		listSize = append(listSize, Common{
+			Value: val.IdUkuranBan,
+		})
+	}
+
+	response.Yay(w, r, listSize, http.StatusOK)
 }
 
 func (md *MasterDataHandler) GetListMerkMotor(w http.ResponseWriter, r *http.Request) {
@@ -561,11 +590,13 @@ func (md *MasterDataHandler) EPListMotor(w http.ResponseWriter, r *http.Request)
 
 	for _, v := range res {
 		result = append(result, ListMotoMD{
-			Id:            v.Id,
-			Name:          v.Name,
-			BrandMotor:    v.BrandMotor,
-			CategoryMotor: v.CategoryMotor,
-			Icon:          md.baseAssetUrl + cn.MotorDir + v.Icon,
+			Id:              v.Id,
+			Name:            v.Name,
+			IdBrandMotor:    v.IdBrandMotor,
+			BrandMotor:      v.BrandMotor,
+			IdCategoryMotor: v.IdCategoryMotor,
+			CategoryMotor:   v.CategoryMotor,
+			Icon:            md.baseAssetUrl + cn.MotorDir + v.Icon,
 		})
 	}
 
@@ -727,5 +758,113 @@ func (md *MasterDataHandler) EPMotorRemove(w http.ResponseWriter, r *http.Reques
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPTireSizeAdd(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   TireSizeAddReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	idRingBan := helper.GetIdRingBan(p.IdRing)
+	id := fmt.Sprintf("%v-%v", p.IdSize, idRingBan)
+
+	sizeExists, errCode, err := md.mdRepo.TireSizeExist(ctx, id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if sizeExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrTireSizeExists, crashy.Message(crashy.ErrTireSizeExists)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.TireSizeAdd(ctx, id, idRingBan, p.IdSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPTireSizeDelete(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   MasterDataCommonRequestSec
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	sizeUsed, errCode, err := md.mdRepo.TireSizeUsed(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if sizeUsed {
+		response.Nay(w, r, crashy.New(err, crashy.ErrTireSizeUsed, crashy.Message(crashy.ErrTireSizeUsed)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.TireSizeDelete(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) EPTireRingAdd(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   TireRingAddReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	nameRing := fmt.Sprintf("RING %v", p.SizeRing)
+
+	sizeExists, errCode, err := md.mdRepo.TireRingExist(ctx, p.SizeRing)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if sizeExists {
+		response.Nay(w, r, crashy.New(err, crashy.ErrTireRingExists, crashy.Message(crashy.ErrTireRingExists)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = md.mdRepo.TireRingAdd(ctx, p.SizeRing, nameRing)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) MagicHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+	)
+	err := md.mdRepo.Magic(ctx)
+	if err != nil {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, crashy.Message(crashy.ErrCodeValidation)), http.StatusBadRequest)
+		return
+	}
+
 	response.Yay(w, r, "success", http.StatusOK)
 }

@@ -81,12 +81,14 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
+
 	//temporary
 	bodyEmail := "Hallo <b>" + p.Name + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + hashedTokenEmail
 	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
 
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	// expiredTime := time.Now().Add(3 * time.Minute)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -94,8 +96,15 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		Expired: expiredTime,
 	})
 
+	errCode, err = usr.custRepository.UpdateDeviceToken(ctx, p.Email, p.DeviceToken)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.Name,
@@ -122,14 +131,23 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Infof("Email : %v \n", p.Email)
+	log.Infof("Device Token : %v \n", p.DeviceToken)
+
 	customer, errCode, err := usr.custRepository.Login(ctx, p.Email, p.Password)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
 
+	errCode, err = usr.custRepository.UpdateDeviceToken(ctx, p.Email, p.DeviceToken)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,
@@ -137,7 +155,7 @@ func (usr *UsersHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      customer.Uid,
 		CustName: customer.Name,
@@ -512,7 +530,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 
 	if len(customer.Uid) > 0 {
 		//generate token
-		expiredTime := time.Now().Add(24 * time.Hour)
+		// expiredTime := time.Now().Add(3 * time.Minute)
+		expiredTime := time.Now().Add(24 * 7 * time.Hour)
 		_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 			Uid:      customer.Uid,
 			CustName: customer.Name,
@@ -520,7 +539,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 		})
 
 		//generate refresh token
-		expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+		// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+		expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 		_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 			Uid:      customer.Uid,
 			CustName: customer.Name,
@@ -544,8 +564,15 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errCode, err = usr.custRepository.UpdateDeviceToken(ctx, p.Email, p.DeviceToken)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
 	//generate token
-	expiredTime := time.Now().Add(24 * time.Hour)
+	// expiredTime := time.Now().Add(3 * time.Minute)
+	expiredTime := time.Now().Add(24 * 7 * time.Hour)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.DisplayName,
@@ -554,7 +581,8 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 30)
+	// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
+	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      cleanUid,
 		CustName: p.DisplayName,

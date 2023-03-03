@@ -17,4 +17,5 @@ type TransactionsRepositoy interface {
 	GetCountTransactionData(ctx context.Context, custId int) (res GetSummaryTransactionCount, errCode string, err error)
 	UpdateTransactionStatus(ctx context.Context, invoiceId, status, notes string) (errCode string, err error)
 	GetHistoryTransactionMerchant(ctx context.Context, fp GetListTransactionsParam) (res []Transactions, totalData int, listInvoice []string, errCode string, err error)
+	GetUserFCMToken(ctx context.Context, invoiceId string) (res FCMToken, errCode string, err error)
 }

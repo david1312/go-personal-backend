@@ -14,7 +14,7 @@ const (
 	RatingOutletDir   = "rating_outlet/"
 	MerchantDir       = "merchant/"
 	PromoDir          = "promo/"
-	MotorCategoryDir  = "motor_category"
+	MotorCategoryDir  = "motor_category/"
 
 	Male        = "Laki-laki"
 	Female      = "Perempuan"
@@ -30,8 +30,11 @@ const (
 	FraudChallenge = "challenge"
 
 	PaymentBankTransfer = "bank_transfer"
+	BankBNI             = "bni"
+	BankPermata         = "bni"
+	BankBri             = "bri"
 
-	BankBNI            = "bni"
+	Bank
 	DBPaymentSettle    = "Lunas"
 	DBPaymentNotSettle = "Belum Lunas"
 
@@ -46,6 +49,15 @@ const (
 	TransStatusBerhasil = "Berhasil"
 
 	StaticPromoBanner = "banner-promo-agustus-2022.png"
+
+	DefaultImgPng = "default.png"
+
+	TF_BNI     = "TF_BNI"
+	TF_PERMATA = "TF_PERMATA"
+	TF_BRI     = "TF_BRI"
+	COD        = "COD"
+
+	T_STATUS_MENUNGGU_DIPASANG = "Menunggu Dipasang"
 )
 
 var (

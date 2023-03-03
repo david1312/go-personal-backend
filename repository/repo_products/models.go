@@ -9,8 +9,8 @@ type Products struct {
 	Qty                int     `json:"qty"`
 	KodeSupplier       string  `json:"kode_supplier"`
 	NamaSupplier       string  `json:"nama_supplier"`
-	HargaJual          float64 `json:"harga_jual_final"`
-	HargaJualFinal     float64 `json:"harga_jual"`
+	HargaJual          float64 `json:"harga_jual"`
+	HargaJualFinal     float64 `json:"harga_jual_final"`
 	Disc               float32 `json:"disc"`
 	IDUkuran           string  `json:"id_ukuran"`
 	IDPosisi           string  `json:"id_posisi"`
@@ -28,6 +28,7 @@ type Products struct {
 	CartItemQty        int     `json:"cart_item_qty"`
 	CartItemIsSelected bool    `json:"cart_item_is_selected"`
 	StockAll           int     `json:"stock_all"`
+	IDRingBan          int
 }
 
 type ProductsParamsTemp struct {
@@ -48,8 +49,12 @@ type ProductsParamsTemp struct {
 }
 
 type ProductImage struct {
-	Url       string
-	IsDisplay string
+	Id             int `json:"id"`
+	Url            string
+	IsDisplay      string
+	Count          int
+	KodeBarang     string
+	IsDisplayFixed bool
 }
 
 type CustomerResponse struct {
@@ -59,4 +64,30 @@ type CustomerResponse struct {
 
 type ListUkuranBan struct {
 	Id int `json:"id"`
+}
+
+type MotorCycleCompatibility struct {
+	Id           int
+	Motor        string
+	DisplayImage string
+}
+
+type ProductReview struct {
+	Name    string `json:"url"`
+	Avatar  string `json:"avatar"`
+	Date    string `json:"is_display"`
+	Rating  int    `json:"rating"`
+	Comment string `json:"comment"`
+}
+
+type UpdateProductParam struct {
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	IdTIreBrand string `json:"id_tire_brand"`
+	TireType    string `json:"tire_type"`
+	Size        string `json:"size"`
+	StrikePrice string `json:"strike_price"`
+	Price       int    `json:"price"`
+	Stock       int    `json:"stock"`
+	Description string `json:"description"`
 }

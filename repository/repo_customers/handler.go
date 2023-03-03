@@ -125,6 +125,17 @@ func (q *SqlRepository) VerifyEmail(ctx context.Context, emailToken string) (err
 	return
 }
 
+func (q *SqlRepository) UpdateDeviceToken(ctx context.Context, email, deviceToken string) (errCode string, err error) {
+	const query = `update customers set device_token = ? where email = ?`
+	_, err = q.db.ExecContext(ctx, query, deviceToken, email)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
 func (q *SqlRepository) GetCustomer(ctx context.Context, uid string) (res Customers, errCode string, err error) {
 	const query = `SELECT name, email, email_verified_at, gender, phone, phone_verified_at, avatar, birthdate, cust_id FROM customers where uid = ? AND deleted_at IS NULL`
 	row := q.db.DB.QueryRowContext(ctx, query, uid)

@@ -47,6 +47,8 @@ type Transactions struct {
 	VirtualAccount    string
 	OutletId          int    `json:"outlet_id"`
 	OutletName        string `json:"outlet_name"`
+	InstallationDate  string `json:"installation_date"`
+	InstallationTime  string `json:"installation_time"`
 }
 
 type ProductsData struct {
@@ -82,4 +84,8 @@ type GetSummaryTransactionCount struct {
 	WaitingProcess int `json:"waiting_to_process"`
 	OnProgress     int `json:"on_progress"`
 	Succedd        int `json:"succeed"`
+}
+
+type FCMToken struct {
+	DeviceToken string `json:"invoice_id"`
 }

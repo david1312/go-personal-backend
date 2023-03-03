@@ -79,6 +79,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 
 	r.Get("/v1/verify", custHandler.VerifyEmail)
 	r.Get("/v1/auth/anonymous", authHandler.GetAnonymousToken)
+	r.Get("/version", authHandler.GetVersion)
 
 	r.Route("/v1", func(r chi.Router) { //anonymous scope
 		r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
@@ -92,12 +93,14 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Get("/outlet", masterDataHandler.GetListOutlet)
 			r.Get("/sort-by", masterDataHandler.GetListSortBy)
 			r.Get("/tire-size", masterDataHandler.GetListSizeBan)
+			r.Get("/tire-size-raw", masterDataHandler.EPGetListTireSizeRaw)
 			r.Get("/motor-brand", masterDataHandler.GetListMerkMotor)
 			r.Get("/motor-list-by-brand", masterDataHandler.GetListMotorByBrand)
 			r.Get("/payment-method", masterDataHandler.GetListPaymentMethod)
 			r.Get("/toprank-motor", masterDataHandler.GetTopRankMotor)
 			r.Get("/asset-img", masterDataHandler.GetImgAsset)
 			r.Get("/tire-type", masterDataHandler.GetTireType)
+			// r.Get("/magic", masterDataHandler.MagicHandler)
 			// r.Get("/outlets", prodHandler.GetListProducts)
 		})
 
@@ -178,6 +181,10 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Route("/products", func(r chi.Router) {
 			r.Post("/delete", prodHandler.DeleteProduct)
 			r.Post("/add", prodHandler.AddProduct)
+			r.Post("/update", prodHandler.EPProductUpdate)
+			r.Post("/images-add", prodHandler.EPProductAddImage)
+			r.Post("/images-delete", prodHandler.EpProductDeleteImage)
+			r.Post("/images-update", prodHandler.EpProductUpdateImage)
 		})
 
 		r.Route("/transactions", func(r chi.Router) {
@@ -204,6 +211,11 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Post("/motor/delete", masterDataHandler.EPMotorRemove)
 
 			r.Get("/category-motor", masterDataHandler.EPCategoryMotor)
+
+			r.Post("/tire-size/add", masterDataHandler.EPTireSizeAdd)
+			r.Post("/tire-size/delete", masterDataHandler.EPTireSizeDelete)
+
+			r.Post("/tire-ring/add", masterDataHandler.EPTireRingAdd)
 
 		})
 

@@ -220,3 +220,37 @@ func (m *UpdateMotorReq) ValidateUpdateMotorReq() error {
 		validation.Field(&m.IdCategoryMotor, validation.Required),
 	)
 }
+
+type Common struct {
+	Value string `json:"value"`
+}
+
+type TireSizeAddReq struct {
+	IdRing string `json:"tire_ring"`
+	IdSize string `json:"tire_size"`
+}
+
+func (m *TireSizeAddReq) Bind(r *http.Request) error {
+	return m.ValidateTireSizeAdd()
+}
+
+func (m *TireSizeAddReq) ValidateTireSizeAdd() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.IdRing, validation.Required),
+		validation.Field(&m.IdSize, validation.Required),
+	)
+}
+
+type TireRingAddReq struct {
+	SizeRing int `json:"size_ring"`
+}
+
+func (m *TireRingAddReq) Bind(r *http.Request) error {
+	return m.ValidateTireRingAddReq()
+}
+
+func (m *TireRingAddReq) ValidateTireRingAddReq() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.SizeRing, validation.Required),
+	)
+}

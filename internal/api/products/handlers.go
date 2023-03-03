@@ -12,6 +12,7 @@ import (
 	"semesta-ban/repository/repo_master_data"
 	"semesta-ban/repository/repo_products"
 	"strconv"
+	"strings"
 
 	localMdl "semesta-ban/internal/api/middleware"
 
@@ -113,10 +114,14 @@ func (prd *ProductsHandler) GetListProducts(w http.ResponseWriter, r *http.Reque
 			NamaBarang:     val.NamaBarang,
 			Disc:           val.Disc,
 			NamaUkuran:     val.NamaUkuran,
+			HargaJualCoret: val.HargaJual,
 			HargaJualFinal: val.HargaJualFinal,
 			IsWishList:     false,
 			JenisBan:       val.JenisBan,
 			DisplayImage:   prd.baseAssetUrl + cn.ProductDir + val.DisplayImage,
+			IdTireBrand:    val.IDMerk,
+			Stock:          val.StockAll,
+			Deskripsi:      val.Deskripsi,
 		})
 	}
 
@@ -142,6 +147,9 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		ctx              = r.Context()
 		listProductImage = []ProductImage{}
 		authData         = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		resCompatibilty  = []MotorCycleCompatibility{}
+		arrCompatibilty  = []string{}
+		topComment       = []ProductReview{}
 	)
 
 	productId, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -175,60 +183,70 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 	}
 	for _, val := range prodImg {
 		listProductImage = append(listProductImage, ProductImage{
+			Id:        val.Id,
 			Url:       prd.baseAssetUrl + cn.ProductDir + val.Url,
-			IsDisplay: val.IsDisplay,
+			IsDisplay: val.IsDisplay, //todo fix tipe data
 		})
 	}
 	//GET Image list
+
+	//get compatibility
+	compatibleList, errCode, err := prd.prodRepo.GetProductCompatibility(ctx, product.NamaUkuran)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	for _, v := range compatibleList {
+		resCompatibilty = append(resCompatibilty, MotorCycleCompatibility{
+			MerkMotor:    v.Motor,
+			DisplayImage: prd.baseAssetUrl + cn.MotorCategoryDir + v.DisplayImage,
+		})
+		arrCompatibilty = append(arrCompatibilty, v.Motor)
+	}
+
+	//get top comment
+	commentList, errCode, err := prd.prodRepo.GetTopCommentOutlet(ctx) //TODO IMPORTANT IMPROVE LATER WITH ID OUTLET
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	for _, v := range commentList {
+		avatar := ""
+
+		if len(v.Avatar) > 0 && v.Avatar[:3] == "pic" {
+			avatar = prd.baseAssetUrl + cn.UserDir + v.Avatar
+		} else if len(v.Avatar) > 0 && v.Avatar[:3] != "pic" {
+			avatar = v.Avatar
+		}
+		topComment = append(topComment, ProductReview{
+			Name:    v.Name,
+			Avatar:  avatar,
+			Date:    v.Date,
+			Rating:  v.Rating,
+			Comment: v.Comment,
+		})
+	}
 
 	response.Yay(w, r, ProductDetailResponse{
 		KodePLU:        product.KodePLU,
 		NamaBarang:     product.NamaBarang,
 		Disc:           product.Disc,
 		NamaUkuran:     product.NamaUkuran,
+		HargaJualCoret: product.HargaJual,
 		HargaJualFinal: product.HargaJualFinal,
 		IsWishList:     product.IsWishlist,
 		JenisBan:       product.JenisBan,
 		Posisi:         product.NamaPosisi,
-		JenisMotor:     "Bebek",
+		JenisMotor:     strings.Join(arrCompatibilty, ","),
 		TotalTerjual:   0,
 		Deskripsi:      product.Deskripsi,
 		ImageList:      listProductImage,
-		ReviewList: []ProductReview{
-			{
-				Name:    "Forger",
-				Avatar:  prd.baseAssetUrl + cn.UserDir + "profile.png",
-				Date:    "2022-05-30",
-				Rating:  5,
-				Comment: "Barangnya oke banget",
-			},
-			{
-				Name:    "Komang",
-				Date:    "2022-05-27",
-				Rating:  4,
-				Comment: "Enak banget buat sunmorian sambil bawa laptop di tas",
-			},
-			{
-				Name:    "Mr J",
-				Date:    "2022-05-30",
-				Rating:  5,
-				Comment: "these all only dummy comment",
-			},
-		},
-		Kompatibilitas: []MotorCycleCompatibility{
-			{
-				MerkMotor:    "Honda Vario 125x",
-				DisplayImage: prd.baseAssetUrl + cn.MotorBrandDir + "vario125x.png",
-			},
-			{
-				MerkMotor:    "Yamaha Nmax ABS",
-				DisplayImage: prd.baseAssetUrl + cn.MotorBrandDir + "nmaxabs.png",
-			},
-			{
-				MerkMotor:    "Honda Beat 125",
-				DisplayImage: prd.baseAssetUrl + cn.MotorBrandDir + "hondabeat125.png",
-			},
-		},
+		ReviewList:     topComment,
+		Kompatibilitas: resCompatibilty,
+		TireRing:       fmt.Sprintf("RING %v", product.IDRingBan),
+		TireBrand:      product.IDMerk,
+		StockAll:       product.StockAll,
 	}, http.StatusOK)
 }
 
@@ -574,6 +592,7 @@ func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		tireType     = r.FormValue("tire_type")
 		size         = r.FormValue("size")
 		price        = r.FormValue("price")
+		strikePrice  = r.FormValue("strike_price")
 		stock        = r.FormValue("stock")
 		description  = r.FormValue("description")
 		fileNameList = []string{}
@@ -629,7 +648,148 @@ func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errCode, err = prd.prodRepo.AddProduct(ctx, sku, name, brandId, tireType, size, price, stock, description, fileNameList)
+	errCode, err = prd.prodRepo.AddProduct(ctx, sku, name, brandId, tireType, size, strikePrice, price, stock, description, fileNameList)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) EPProductUpdate(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   UpdateProductRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err := prd.prodRepo.ProductUpdate(ctx, repo_products.UpdateProductParam{
+		Id:          p.Id,
+		Name:        p.Name,
+		IdTIreBrand: p.IdTIreBrand,
+		TireType:    p.TireType,
+		Size:        p.Size,
+		StrikePrice: p.StrikePrice,
+		Price:       p.Price,
+		Stock:       p.Stock,
+		Description: p.Description,
+	})
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) EPProductAddImage(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		ctx          = r.Context()
+		id           = r.FormValue("id")
+		fileNameList = []string{}
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	//get data product
+	product, errCode, err := prd.prodRepo.ProductDetailMerchant(ctx, id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	//check all file size before uploading
+	for _, fh := range r.MultipartForm.File["photos"] {
+		if fh.Size > int64(helper.ConvertFileSizeToMb(prd.imgMaxSize)) {
+			errMsg := fmt.Sprintf("%s%v mb", crashy.Message(crashy.ErrCode(crashy.ErrExceededFileSize)), prd.imgMaxSize)
+			response.Nay(w, r, crashy.New(errors.New(crashy.ErrExceededFileSize), crashy.ErrExceededFileSize, errMsg), http.StatusBadRequest)
+			return
+		}
+
+	}
+
+	fileNameList, errCode, err = helper.UploadImage(r, "photos", prd.uploadPath, constants.ProductDir)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = prd.prodRepo.ProductAddImage(ctx, product.KodeBarang, fileNameList)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) EpProductDeleteImage(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		p   DeleteProductImageReq
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	imgDetail, errCode, err := prd.prodRepo.ProductDetailImage(ctx, p.Id)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if imgDetail.Count == 1 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrMinimumPhoto), crashy.ErrMinimumPhoto, crashy.Message(crashy.ErrMinimumPhoto)), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = prd.prodRepo.ProductRemoveImage(ctx, p.Id, imgDetail.KodeBarang, imgDetail.Url, prd.uploadPath, cn.ProductDir, imgDetail.IsDisplayFixed)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (prd *ProductsHandler) EpProductUpdateImage(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		id  = r.FormValue("id_image")
+	)
+
+	// validate input
+	if len(id) == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCodeValidation, "id image cannot be blank"), http.StatusBadRequest)
+		return
+	}
+
+	idInt, _ := strconv.Atoi(id)
+
+	imgDetail, errCode, err := prd.prodRepo.ProductDetailImage(ctx, idInt)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	fileName, errCode, err := helper.UploadSingleImage(r, "icon", prd.uploadPath, cn.ProductDir, prd.imgMaxSize)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusBadRequest)
+		return
+	}
+
+	errCode, err = prd.prodRepo.ProductUpdateImage(ctx, idInt, fileName, imgDetail.Url, prd.uploadPath, cn.ProductDir)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return

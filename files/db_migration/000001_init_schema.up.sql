@@ -44,7 +44,7 @@ create table carts_item
     updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     foreign key (carts_id) references carts(id),
-    foreign key (product_id) references tblmasterplu(KodePLU)
+    foreign key (product_id) references products(KodePLU)
 );
 
 create table wishlists
@@ -54,7 +54,7 @@ create table wishlists
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     
     foreign key (customer_id) references customers (id),
-    foreign key (product_id) references tblmasterplu(KodePLU)
+    foreign key (product_id) references products(KodePLU)
 );
 
 
@@ -84,7 +84,7 @@ ADD foreign key (CustomerId) references customers (id)
 ;
 
 ALTER TABLE `tbltransaksidetail`
-ADD FOREIGN KEY (`IdBarang`) REFERENCES `tblmasterplu` (`KodePLU`) ON DELETE NO ACTION;
+ADD FOREIGN KEY (`IdBarang`) REFERENCES `products` (`KodePLU`) ON DELETE NO ACTION;
 
 
 CREATE TABLE `payment_category` (
@@ -105,7 +105,7 @@ CREATE TABLE `payment_method` (
 
 ALTER TABLE t1 ENGINE = InnoDB;
 
-ALTER TABLE `tblmasterplu`
+ALTER TABLE `products`
 ADD `CreatedAt` timestamp DEFAULT CURRENT_TIMESTAMP AFTER `Deskripsi`,
 ADD `UpdatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  AFTER `CreatedAt`
 ;
@@ -124,7 +124,7 @@ create table product_ratings
     created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
     
     foreign key (customer_id) references customers (id),
-    foreign key (product_id) references tblmasterplu(KodePLU)
+    foreign key (product_id) references products(KodePLU)
 );
 
 create table product_ratings_img

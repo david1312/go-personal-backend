@@ -186,6 +186,11 @@ func FormatInstallationTime(dateStr, timeStr string) string {
 	return fmt.Sprintf("%v, %v, %v WIB", dayName, date.Format("02 January 2006"), timeStr)
 }
 
+func FormatDateTime(dateStr string) string {
+	date, _ := time.Parse("2006-01-02", dateStr[:10])
+	return fmt.Sprintf("%v", date.Format("2006-01-02"))
+}
+
 func MappingBankName(paymentMethod string) string {
 	switch paymentMethod {
 	case "TF_BNI":
@@ -203,7 +208,25 @@ func MappingBankName(paymentMethod string) string {
 	default:
 		return ""
 	}
+}
 
+func MappingBankNameRequestMidtrans(paymentMethod string) string {
+	switch paymentMethod {
+	case "TF_BNI":
+		return "bni"
+	case "TF_BCA":
+		return "bca"
+	case "TF_BRI":
+		return "bri"
+	case "TF_MANDIRI":
+		return "mandiri"
+	case "TF_PERMATA":
+		return "permata"
+	case "TF_GOPAY":
+		return "gopay"
+	default:
+		return ""
+	}
 }
 
 func MappingDaysNameId(dayName string) string {
@@ -324,5 +347,12 @@ func RemoveFile(fileName, uploadPath, directory string) {
 		log.Infof("success remove file %s from the storage \n", fileName)
 	}
 
+	return
+}
+
+func GetIdRingBan(ringBan string) (res string) {
+	splitted := strings.Split(ringBan, " ")
+
+	res = splitted[1]
 	return
 }

@@ -2,6 +2,8 @@ package repo_master_data
 
 import (
 	"context"
+	"fmt"
+	"semesta-ban/pkg/constants"
 	"semesta-ban/pkg/crashy"
 	"semesta-ban/pkg/helper"
 	"strings"
@@ -17,6 +19,51 @@ func NewSqlRepository(db *sqlx.DB) *SqlRepository {
 	return &SqlRepository{
 		db: db,
 	}
+}
+
+func (q *SqlRepository) Magic(ctx context.Context) error {
+	//update image default per new product
+	result := []string{}
+	const query = `select a.KodeBarang from products a 
+	where a.KodeBarang not in 
+	(select KodeBarang from tblurlgambar where isDisplay = true)`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var tempVessel string
+
+		if err := rows.Scan(
+			&tempVessel,
+		); err != nil {
+			return err
+		}
+		result = append(result, tempVessel)
+	}
+	// fmt.Println(result)
+
+	for i, v := range result {
+		const queryInsert = `insert into tblurlgambar (KodeBarang, URL,isDisplay) VALUES (?, ?,?) `
+		var img = "product1.png"
+		if i%2 == 0 {
+			img = "product2.png"
+		}
+		_, err = q.db.ExecContext(ctx, queryInsert, v, img, true)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(result) == 0 {
+		fmt.Println("All product already have display image :)")
+	}
+
+	//update image default per new product
+	return nil
 }
 
 func (q *SqlRepository) GetListMerkBan(ctx context.Context) (res []MerkBan, errCode string, err error) {
@@ -51,6 +98,38 @@ func (q *SqlRepository) GetListMerkBan(ctx context.Context) (res []MerkBan, errC
 		return
 	}
 
+	return
+}
+
+func (q *SqlRepository) GetListRingBan(ctx context.Context) (res []string, errCode string, err error) {
+	const query = `select UkuranRing from tblmasterringban order by IDRing asc`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i UkuranRingBan
+
+		if err = rows.Scan(
+			&i.UkuranRing,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i.UkuranRing)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
 	return
 }
 
@@ -387,6 +466,9 @@ func (q *SqlRepository) removeBrandMotor(ctx context.Context, id int, uploadPath
 	if err != nil {
 		return err
 	}
+	if temp.Icon == constants.DefaultImgPng {
+		return nil
+	}
 	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
 	return nil
 }
@@ -414,7 +496,7 @@ func (q *SqlRepository) AddTireBrand(ctx context.Context, id, name, icon, rankin
 }
 
 func (q *SqlRepository) CheckTireBrandUsed(ctx context.Context, idMerkBan string) (exists bool, errCode string, err error) {
-	const query = `select exists(select KodePLU from tblmasterplu where IDMerk = ? limit 1)`
+	const query = `select exists(select KodePLU from products where IDMerk = ? limit 1)`
 	row := q.db.DB.QueryRowContext(ctx, query, idMerkBan)
 	err = row.Scan(&exists)
 
@@ -446,6 +528,9 @@ func (q *SqlRepository) removeTireBrand(ctx context.Context, id, uploadPath, dir
 	)
 	if err != nil {
 		return err
+	}
+	if temp.Icon == constants.DefaultImgPng {
+		return nil
 	}
 	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
 	return nil
@@ -517,7 +602,7 @@ func (q *SqlRepository) GetListMotor(ctx context.Context, fp ListMotorRequestRep
 		return
 	}
 
-	query := `select a.id, a.nama, b.nama as brand, c.nama as kategori, a.icon
+	query := `select a.id, a.nama, b.nama as brand, c.nama as kategori, a.icon, a.id_merk_motor, a.id_kategori_motor
 	from tblmotor a 
 	inner join tblmerkmotor b on a.id_merk_motor = b.id
 	inner join tblkategorimotor c on a.id_kategori_motor = c.id
@@ -543,6 +628,8 @@ func (q *SqlRepository) GetListMotor(ctx context.Context, fp ListMotorRequestRep
 			&i.BrandMotor,
 			&i.CategoryMotor,
 			&i.Icon,
+			&i.IdBrandMotor,
+			&i.IdCategoryMotor,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -651,6 +738,9 @@ func (q *SqlRepository) removeMotorImage(ctx context.Context, id string, uploadP
 	if err != nil {
 		return err
 	}
+	if temp.Icon == constants.DefaultImgPng {
+		return nil
+	}
 	helper.RemoveFile(temp.Icon, uploadPath, dirFile)
 	return nil
 }
@@ -677,6 +767,122 @@ func (q *SqlRepository) MotorRemove(ctx context.Context, idMotor, uploadPath, di
 	const query = `delete from tblmotor where id = ? `
 
 	_, err = q.db.ExecContext(ctx, query, idMotor)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) GetListUkuranBanRaw(ctx context.Context) (res []UkuranRingBan, errCode string, err error) {
+	const query = `select IDUkuranBan from tblmasterukuranban order by IDUkuranBan asc`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i UkuranRingBan
+
+		if err = rows.Scan(
+			&i.IdUkuranBan,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	return
+}
+
+func (q *SqlRepository) TireSizeExist(ctx context.Context, id string) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT * FROM tblbanukuranring WHERE id = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+func (q *SqlRepository) TireSizeAdd(ctx context.Context, id, idRing, idSize string) (errCode string, err error) {
+	const queryInsert = `insert into tblbanukuranring (id, id_ring_ban, id_ukuran_ban) VALUES (?, ?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, id, idRing, idSize)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) TireSizeUsed(ctx context.Context, id string) (exists bool, errCode string, err error) {
+	var (
+		matriksExists = false
+		productExists = false
+	)
+	exists = false
+	const query = `select exists(select id from motor_x_size_ban where id_ukuran_ring = ? limit 1)`
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(&matriksExists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	const querySec = `select exists(select KodePlu from products where IDUkuranRing = ? limit 1)`
+	rowSec := q.db.DB.QueryRowContext(ctx, querySec, id)
+	err = rowSec.Scan(&productExists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	if productExists || matriksExists {
+		exists = true
+	}
+	return
+}
+
+func (q *SqlRepository) TireSizeDelete(ctx context.Context, id string) (errCode string, err error) {
+	const query = `delete from tblbanukuranring where id = ? `
+
+	_, err = q.db.ExecContext(ctx, query, id)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+	}
+	return
+}
+
+func (q *SqlRepository) TireRingExist(ctx context.Context, id int) (exists bool, errCode string, err error) {
+	const query = `SELECT EXISTS(SELECT * FROM tblmasterringban WHERE IDRing = ?)`
+	row := q.db.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(&exists)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) TireRingAdd(ctx context.Context, id int, nameRing string) (errCode string, err error) {
+	const queryInsert = `insert into tblmasterringban (IDRing, UkuranRing, ranking) VALUES (?, ?, ?) `
+
+	_, err = q.db.ExecContext(ctx, queryInsert, id, nameRing, 99)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 	}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"os"
@@ -44,12 +45,13 @@ func NewTransactionsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md
 
 func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http.Request) {
 	var (
-		p                SubmitTransactionsRequest
-		ctx              = r.Context()
-		authData         = ctx.Value(localMdl.CtxKey).(localMdl.Token)
-		today            = time.Now()
-		totalBayar       = 0
-		transferResponse = TransferBNIResponse{}
+		p                       SubmitTransactionsRequest
+		ctx                     = r.Context()
+		authData                = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		today                   = time.Now()
+		totalBayar              = 0
+		transferResponse        = TransferBNIResponse{}
+		transferResponsePermata = TransferPermataResponse{}
 	)
 
 	if err := render.Bind(r, &p); err != nil {
@@ -106,16 +108,26 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		IdOutlet:      p.IdOutlet,
 		TranType:      tranType,
 		PaymentMethod: p.PaymentMethod,
-		Notes:         p.Notes,
-		Source:        "APP",
-		CustomerId:    custId,
-		ListProduct:   tempListProduct,
+		// PaymentMethod: "TF_BNI", //temporary
+		Notes:       p.Notes,
+		Source:      "APP",
+		CustomerId:  custId,
+		ListProduct: tempListProduct,
 	})
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
 	//testing payment
+	// var payload struct
+	if p.PaymentMethod == "COD" {
+		fmt.Println("cod in")
+		response.Yay(w, r, SubmitTransactionResponse{
+			Status:    "success",
+			InvoiceId: newTransId,
+		}, http.StatusOK)
+		return
+	}
 	payload := &TransferBNIRequest{
 		PaymentType: constants.PaymentBankTransfer,
 		TransactionDetailsData: TransactionDetails{
@@ -123,7 +135,7 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 			GrossAmount: fmt.Sprintf("%v", totalBayar),
 		},
 		BankTransferData: BankTransfer{
-			Bank: constants.BankBNI,
+			Bank: helper.MappingBankNameRequestMidtrans(p.PaymentMethod),
 		},
 	}
 	b, err := json.Marshal(payload)
@@ -131,8 +143,9 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
 		return
 	}
-
-	req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	// req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	req, err := http.NewRequest(http.MethodPost, "https://api.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	// https://api.midtrans.com
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
 		return
@@ -142,6 +155,7 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 	req.Header.Set("Authorization", "Basic "+tr.MidtransConfig.AuthKey)
 
 	res, err := tr.client.Do(req)
+
 	if err != nil {
 		if os.IsTimeout(err) {
 			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
@@ -154,15 +168,41 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 			err = c.Close()
 		}(res.Body)
 	}
-
-	_ = json.NewDecoder(res.Body).Decode(&transferResponse)
-	// fmt.Println(transferResponse.VirtualAccountData[0].VaNumber)
-
-	errCode, err = tr.trRepo.UpdateInvoiceVA(ctx, newTransId, transferResponse.VirtualAccountData[0].VaNumber)
+	j := map[string]interface{}{}
+	err = json.NewDecoder(res.Body).Decode(&j)
 	if err != nil {
-		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+		panic(err)
+	}
+	if j["status_code"] != "201" {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), fmt.Sprintf("%v: %v", crashy.Message(crashy.ErrRequestMidtrans), j["status_message"])), http.StatusInternalServerError)
 		return
 	}
+	if j["status_code"] != "200" {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), fmt.Sprintf("%v: %v", crashy.Message(crashy.ErrRequestMidtrans), j["status_message"])), http.StatusInternalServerError)
+		return
+	}
+
+	if p.PaymentMethod == constants.TF_BNI || p.PaymentMethod == constants.TF_BRI {
+		_ = json.NewDecoder(res.Body).Decode(&transferResponse)
+		// fmt.Println(transferResponse.VirtualAccountData[0].VaNumber)
+
+		errCode, err = tr.trRepo.UpdateInvoiceVA(ctx, newTransId, transferResponse.VirtualAccountData[0].VaNumber)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+			return
+		}
+	}
+	if p.PaymentMethod == constants.TF_PERMATA {
+		_ = json.NewDecoder(res.Body).Decode(&transferResponsePermata)
+		// fmt.Println(transferResponse.VirtualAccountData[0].VaNumber)
+
+		errCode, err = tr.trRepo.UpdateInvoiceVA(ctx, newTransId, transferResponsePermata.PermataVANumber)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	//end test
 	//todo update data to net table payment from this response
 
@@ -325,6 +365,7 @@ func (tr *TransactionsHandler) GetHistoryTransactions(w http.ResponseWriter, r *
 			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
 			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
 			ListProduct:          mappedProductByInvoice[v.InvoiceId],
+			InstallationtTime:    helper.FormatInstallationTime(v.InstallationDate, v.InstallationTime),
 		})
 	}
 
@@ -363,6 +404,7 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 		paymentStatus = constants.DBPaymentNotSettle
 		transStatus = "Menunggu Pembayaran"
 	}
+
 	errCode, err := tr.trRepo.UpdateInvoiceStatus(ctx, p.OrderId, transStatus, paymentStatus)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
@@ -370,6 +412,49 @@ func (tr *TransactionsHandler) CallbackPayment(w http.ResponseWriter, r *http.Re
 	}
 
 	//send notif firebase to gcm id
+	userData, errCode, err := tr.trRepo.GetUserFCMToken(ctx, p.OrderId)
+	if err != nil {
+		log.Printf("there's an error when sending firebase notification err step A: %v", err.Error())
+		response.Yay(w, r, "success", http.StatusOK)
+		return
+	}
+	if userData.DeviceToken != "" {
+		payload := &FCMRequest{
+			To: userData.DeviceToken,
+			NotificationData: Notification{
+				Body:  fmt.Sprintf("Selamat pembayaran untuk invoice %v berhasil diterima, silahkan datang ke outlet kami dijadwal yang sudah anda pilih untuk mendapatkan free pemasangan ban", p.OrderId),
+				Title: "Pembayaran Berhasil Diterima",
+			},
+			FCMData: DataFCM{
+				Action:    "page_transaction",
+				InvoiceID: p.OrderId,
+			},
+		}
+		b, err := json.Marshal(payload)
+		if err != nil {
+			log.Printf("there's an error when sending firebase notification err step B: %v", err.Error())
+			response.Yay(w, r, "success", http.StatusOK)
+			return
+		}
+		req, err := http.NewRequest(http.MethodPost, "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(b)) //todo get from config
+		if err != nil {
+			log.Printf("there's an error when sending firebase notification err step C: %v", err.Error())
+			response.Yay(w, r, "success", http.StatusOK)
+			return
+		}
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "key=AAAAvQsepjU:APA91bGZZqJKG23Bx0xkzXmfJNjzfMCLpB2LEHA2ygQicjK8zqv_TCl-ynL5EKWjASWQxgPrDQIYa1LtdxuFdklpmSZBG64d8Aw9_HE-Ba5MkOwz2YMz_Yks09V9WqLTInV6zeWXEdKU")
+
+		_, err = tr.client.Do(req)
+
+		if err != nil {
+			log.Printf("there's an error when sending firebase notification err step D: %v", err.Error())
+			response.Yay(w, r, "success", http.StatusOK)
+			return
+		}
+
+	}
 	fmt.Println("temporary log callback accepted ")
 	response.Yay(w, r, "success", http.StatusOK)
 }
@@ -391,6 +476,44 @@ func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *h
 		return
 	}
 
+	if transaction.PaymentMethod == "COD" {
+		response.Yay(w, r, GetPaymentInstructionResponse{
+			PaymentMethodDesc:    transaction.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+			TotalAmountFormatted: helper.FormatCurrency(int(transaction.TotalAmount)),
+			VirtualAccNumber:     transaction.VirtualAccount,
+			AtmTitle:             "Bayar langsung di Outlet / COD",
+			AtmInstruction:       constants.CODIntruction,
+			IBInstruction:        []string{},
+			MBInstuction:         []string{},
+		}, http.StatusOK)
+		return
+	} else if transaction.PaymentMethod == constants.TF_PERMATA {
+		response.Yay(w, r, GetPaymentInstructionResponse{
+			PaymentMethodDesc:    transaction.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+			TotalAmountFormatted: helper.FormatCurrency(int(transaction.TotalAmount)),
+			VirtualAccNumber:     transaction.VirtualAccount,
+			AtmTitle:             "ATM " + helper.MappingBankName(transaction.PaymentMethod),
+			AtmInstruction:       constants.ATMInstructionPermata,
+			IBInstruction:        constants.InternetBankingInstructionPermata,
+			MBInstuction:         constants.MobileBankingInstructionPermata,
+		}, http.StatusOK)
+		return
+	} else if transaction.PaymentMethod == constants.TF_BRI {
+		response.Yay(w, r, GetPaymentInstructionResponse{
+			PaymentMethodDesc:    transaction.PaymentMethodDesc,
+			PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
+			TotalAmountFormatted: helper.FormatCurrency(int(transaction.TotalAmount)),
+			VirtualAccNumber:     transaction.VirtualAccount,
+			AtmTitle:             "ATM " + helper.MappingBankName(transaction.PaymentMethod),
+			AtmInstruction:       constants.ATMInstructionBRI,
+			IBInstruction:        constants.InternetBankingInstructionBRI,
+			MBInstuction:         constants.MobileBankingInstructionBRI,
+		}, http.StatusOK)
+		return
+	}
+
 	response.Yay(w, r, GetPaymentInstructionResponse{
 		PaymentMethodDesc:    transaction.PaymentMethodDesc,
 		PaymentMethodIcon:    tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
@@ -401,6 +524,7 @@ func (tr *TransactionsHandler) GetPaymentInstruction(w http.ResponseWriter, r *h
 		IBInstruction:        constants.InternetBankingInstructionBNI,
 		MBInstuction:         constants.MobileBankingInstructionBNI,
 	}, http.StatusOK)
+	return
 
 }
 
@@ -525,6 +649,54 @@ func (tr *TransactionsHandler) EPUpdateTransactionStatus(w http.ResponseWriter, 
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
+	}
+
+	if p.Status == constants.T_STATUS_MENUNGGU_DIPASANG {
+		//send notif firebase to gcm id
+		userData, _, err := tr.trRepo.GetUserFCMToken(ctx, p.InvoiceId)
+		if err != nil {
+			log.Printf("there's an error when sending firebase notification err step A: %v", err.Error())
+			response.Yay(w, r, "success", http.StatusOK)
+			return
+		}
+		if userData.DeviceToken != "" {
+			payload := &FCMRequest{
+				To: userData.DeviceToken,
+				NotificationData: Notification{
+					Body:  fmt.Sprintf("Selamat pembayaran untuk invoice %v berhasil diterima, silahkan datang ke outlet kami dijadwal yang sudah anda pilih untuk mendapatkan free pemasangan ban", p.InvoiceId),
+					Title: "Pembayaran Berhasil Diterima",
+				},
+				FCMData: DataFCM{
+					Action:    "page_transaction",
+					InvoiceID: p.InvoiceId,
+				},
+			}
+			b, err := json.Marshal(payload)
+			if err != nil {
+				log.Printf("there's an error when sending firebase notification err step B: %v", err.Error())
+				response.Yay(w, r, "success", http.StatusOK)
+				return
+			}
+			req, err := http.NewRequest(http.MethodPost, "https://fcm.googleapis.com/fcm/send", bytes.NewBuffer(b)) //todo get from config
+			if err != nil {
+				log.Printf("there's an error when sending firebase notification err step C: %v", err.Error())
+				response.Yay(w, r, "success", http.StatusOK)
+				return
+			}
+			req.Header.Set("Accept", "application/json")
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "key=AAAAvQsepjU:APA91bGZZqJKG23Bx0xkzXmfJNjzfMCLpB2LEHA2ygQicjK8zqv_TCl-ynL5EKWjASWQxgPrDQIYa1LtdxuFdklpmSZBG64d8Aw9_HE-Ba5MkOwz2YMz_Yks09V9WqLTInV6zeWXEdKU")
+
+			_, err = tr.client.Do(req)
+
+			if err != nil {
+				log.Printf("there's an error when sending firebase notification err step D: %v", err.Error())
+				response.Yay(w, r, "success", http.StatusOK)
+				return
+			}
+
+		}
+
 	}
 
 	response.Yay(w, r, "success", http.StatusOK)
