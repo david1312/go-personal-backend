@@ -513,6 +513,64 @@ func (q *SqlRepository) CartMe(ctx context.Context, cartId int, fp ProductsParam
 	return
 }
 
+func (q *SqlRepository) GetCartSummary(ctx context.Context, cartId int) (result CartSummary, errCode string, err error) {
+	var (
+		totalPrice    float64
+		totalQty      int
+		totalSelected int
+		isSelectedAll = true
+	)
+
+	query := `select a.HargaJualFinal, f.qty, f.is_selected
+	from products a
+	inner join carts_item f on f.product_id = a.KodePLU
+	where f.carts_id = ?`
+
+	rows, err := q.db.QueryContext(ctx, query, cartId)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			price           float64
+			qty, isSelected int
+		)
+
+		if err = rows.Scan(
+			&price,
+			&qty,
+			&isSelected,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		totalPrice += float64(price) * float64(qty)
+		totalQty += qty
+		if isSelected != 1 {
+			isSelectedAll = false
+			continue
+		}
+		totalSelected += qty
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	result.TotalPrice = totalPrice
+	result.TotalQty = totalQty
+	result.TotalSelected = totalSelected
+	result.IsSelectedAll = isSelectedAll
+
+	return
+}
+
 func (q *SqlRepository) DeleteProductById(ctx context.Context, productId int) (errCode string, err error) {
 	const query = `update products set DeletedAt = now() where KodePLU = ?`
 	_, err = q.db.ExecContext(ctx, query, productId)

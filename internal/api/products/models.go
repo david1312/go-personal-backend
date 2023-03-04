@@ -220,6 +220,18 @@ type CartResponse struct {
 	DisplayImage       string  `json:"display_image"`
 }
 
+type CountCartItemsResponse struct {
+	Total int `json:"total"`
+}
+
+type CheckoutSummaryResponse struct {
+	CartId        int     `json:"cart_id"`
+	TotalPrice    float64 `json:"total_price"`
+	TotalQuantity int     `json:"total_qty"`
+	TotalSelected int     `json:"total_selected"`
+	IsSelectedAll bool    `json:"is_selected_all"`
+}
+
 type ListItemCartResponse struct {
 	DataInfo  DataInfo       `json:"info"`
 	CartId    int            `json:"cart_id"`
