@@ -547,13 +547,13 @@ func (q *SqlRepository) GetCartSummary(ctx context.Context, cartId int) (result 
 			errCode = crashy.ErrCodeUnexpected
 			return
 		}
-		totalPrice += float64(price) * float64(qty)
 		totalQty += qty
-		if isSelected != 1 {
+		if isSelected == 1 {
+			totalPrice += float64(price) * float64(qty)
+			totalSelected += qty
+		} else {
 			isSelectedAll = false
-			continue
 		}
-		totalSelected += qty
 	}
 	if err = rows.Close(); err != nil {
 		errCode = crashy.ErrCodeUnexpected
