@@ -91,3 +91,10 @@ type UpdateProductParam struct {
 	Stock       int    `json:"stock"`
 	Description string `json:"description"`
 }
+
+type CartSummary struct {
+	TotalPrice    float64 `json:"total_price"`
+	TotalQty      int     `json:"total_qty"`
+	TotalSelected int     `json:"total_selected"`
+	IsSelectedAll bool    `json:"is_selected_all"`
+}

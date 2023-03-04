@@ -152,6 +152,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/update", prodHandler.CartUpdate)
 		r.Post("/select-deselect-all", prodHandler.CartSelectDeselectAll)
 		r.Get("/me", prodHandler.CartMe)
+		r.Get("/summary", prodHandler.GetCartSummary)
 	})
 
 	r.Route("/v1/products/wishlist", func(r chi.Router) {

@@ -561,6 +561,53 @@ func (prd *ProductsHandler) CartMe(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (prd *ProductsHandler) GetCartSummary(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx      = r.Context()
+		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+	)
+
+	custId, errCode, err := prd.prodRepo.GetCustomerId(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if custId == 0 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidToken), crashy.ErrCode(crashy.ErrInvalidToken), crashy.Message(crashy.ErrInvalidToken)), http.StatusUnauthorized)
+		return
+	}
+
+	cartId, errCode, err := prd.prodRepo.CartCheck(ctx, authData.Uid)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if cartId == 0 {
+		cartId, errCode, err = prd.prodRepo.CartAdd(ctx, authData.Uid)
+		if err != nil {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	result, errCode, err := prd.prodRepo.GetCartSummary(ctx, cartId)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, CheckoutSummaryResponse{
+		CartId:        cartId,
+		TotalPrice:    result.TotalPrice,
+		TotalQuantity: result.TotalQty,
+		TotalSelected: result.TotalSelected,
+		IsSelectedAll: result.IsSelectedAll,
+	}, http.StatusOK)
+
+}
+
 func (prd *ProductsHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	var (
 		ctx = r.Context()
