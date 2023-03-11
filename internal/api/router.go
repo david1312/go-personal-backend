@@ -86,6 +86,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/login", custHandler.Login)
 		r.Post("/signin-google", custHandler.SignInGoogle)
 		r.Post("/register", custHandler.Register)
+		r.Post("/check-location", masterDataHandler.CheckLocation)
 		r.Route("/master-data", func(r chi.Router) {
 			r.Use(jwt.AuthMiddleware(localMdl.GuardAnonymous))
 			r.Get("/tire-brand", masterDataHandler.GetListMerkBan)

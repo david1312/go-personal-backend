@@ -1,11 +1,11 @@
 package commands
 
 import (
-	"log"
-	"os"
+	"fmt"
 	"semesta-ban/bootstrap"
 
 	"github.com/spf13/cobra"
+	"github.com/umahmood/haversine"
 )
 
 func init() {
@@ -52,9 +52,22 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 			// }
 			// fmt.Println(string(hashedPass))
 
-			e := os.Remove("suzuki.png")
-			if e != nil {
-				log.Fatal(e)
+			// e := os.Remove("suzuki.png")
+			// if e != nil {
+			// 	log.Fatal(e)
+			// }
+
+			fmt.Println("test")
+			oxford := haversine.Coord{Lat: -6.2908157, Lon: 106.6249973} // Oxford, UK
+			turin := haversine.Coord{Lat: -6.3152697, Lon: 106.9505043}  // Turin, Italy
+
+			_, km := haversine.Distance(oxford, turin)
+
+			fmt.Println("Kilometers:", km)
+			if km > 30 {
+				fmt.Println("gagal")
+			} else {
+				fmt.Println("lolos")
 			}
 		},
 	}

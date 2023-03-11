@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"
+	"github.com/umahmood/haversine"
 )
 
 type MasterDataHandler struct {
@@ -867,4 +868,28 @@ func (md *MasterDataHandler) MagicHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	response.Yay(w, r, "success", http.StatusOK)
+}
+
+func (md *MasterDataHandler) CheckLocation(w http.ResponseWriter, r *http.Request) {
+	var (
+		p   CheckLocationRequest
+	)
+
+	if err := render.Bind(r, &p); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+	outletSemesta := haversine.Coord{Lat: -6.8908006, Lon: 108.7513589} // Oxford, UK
+	userLocation := haversine.Coord{Lat: p.Latitude, Lon: p.Longitude}
+
+	_, km := haversine.Distance(outletSemesta, userLocation)
+	if km > 35 {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrInvalidLocation), crashy.ErrInvalidLocation, crashy.Message(crashy.ErrInvalidLocation)), http.StatusBadRequest)
+	} else {
+		response.Yay(w, r, CheckLocationResponse{
+			IsSuccess: true,
+		}, http.StatusOK)
+	}
+
+
 }

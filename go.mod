@@ -15,6 +15,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
+	github.com/umahmood/haversine v0.0.0-20151105152445-808ab04add26
 	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/text v0.3.7

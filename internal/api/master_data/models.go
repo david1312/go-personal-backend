@@ -254,3 +254,23 @@ func (m *TireRingAddReq) ValidateTireRingAddReq() error {
 		validation.Field(&m.SizeRing, validation.Required),
 	)
 }
+
+type CheckLocationRequest struct {
+	Latitude float64  `json:"latitude"`
+	Longitude        float64  `json:"longitude"`
+}
+
+func (m *CheckLocationRequest) Bind(r *http.Request) error {
+	return m.ValidateCheckLocationRequest()
+}
+
+func (m *CheckLocationRequest) ValidateCheckLocationRequest() error {
+	return validation.ValidateStruct(m,
+		validation.Field(&m.Latitude, validation.Required),
+		validation.Field(&m.Longitude, validation.Required),
+	)
+}
+
+type CheckLocationResponse struct {
+	IsSuccess   bool    `json:"is_success"`
+}
