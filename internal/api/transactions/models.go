@@ -88,6 +88,24 @@ type TransactionsResponse struct {
 	InstallationtTime    string         `json:"installation_time"`
 }
 
+type TransactionsResponseMerchant struct {
+	InvoiceId            string         `json:"invoice_id"`
+	Status               string         `json:"status"`
+	TotalAmount          float64        `json:"total_amount"`
+	TotalAmountFormatted string         `json:"total_amount_formatted"`
+	PaymentMethodDesc    string         `json:"payment_method_desc"`
+	PaymentMethodIcon    string         `json:"payment_method_icon"`
+	PaymentDue           string         `json:"payment_due"`
+	OutletId             int            `json:"outlet_id"`
+	OutletName           string         `json:"outlet_name"`
+	CsNumber             string         `json:"outlet_cs_number"`
+	CreatedAt            string         `json:"created_at"`
+	ListProduct          []ProductsData `json:"list_product"`
+	CustomerName         string         `json:"customer_name"`
+	CustomerPhone        string         `json:"customer_phone"`
+	CustomerEmail        string         `json:"customer_email"`
+}
+
 type ProductsData struct {
 	KodePLU              int32   `json:"id"`
 	NamaBarang           string  `json:"nama_barang"`
@@ -105,6 +123,11 @@ type ProductsData struct {
 type ListProductsResponse struct {
 	DataInfo        products.DataInfo      `json:"info"`
 	TransactionData []TransactionsResponse `json:"data"`
+}
+
+type ListProductsResponseMerchant struct {
+	DataInfo        products.DataInfo              `json:"info"`
+	TransactionData []TransactionsResponseMerchant `json:"data"`
 }
 
 type MidtransConfig struct {
@@ -292,6 +315,9 @@ type GetTransactionsDetaiMerchantlResponse struct {
 	PaymentMethod      string                   `json:"payment_method"`
 	PaymentMethodDesc  string                   `json:"payment_method_desc"`
 	PaymentMethodIcon  string                   `json:"payment_method_icon"`
+	CustomerName       string                   `json:"customer_name"`
+	CustomerPhone      string                   `json:"customer_phone"`
+	CustomerEmail      string                   `json:"customer_email"`
 	ListProduct        []ProductsDataPageJadwal `json:"list_product"`
 }
 

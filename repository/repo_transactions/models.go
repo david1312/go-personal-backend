@@ -49,6 +49,9 @@ type Transactions struct {
 	OutletName        string `json:"outlet_name"`
 	InstallationDate  string `json:"installation_date"`
 	InstallationTime  string `json:"installation_time"`
+	CustomerName      string
+	CustomerPhone     string
+	CustomerEmail     string
 }
 
 type ProductsData struct {
@@ -77,6 +80,9 @@ type GetTransactionsDetailData struct {
 	PaymentMethod     string `json:"payment_method"`
 	PaymentMethodDesc string `json:"payment_method_desc"`
 	PaymentMethodIcon string `json:"payment_method_icon"`
+	CustomerName      string
+	CustomerPhone     string
+	CustomerEmail     string
 }
 
 type GetSummaryTransactionCount struct {

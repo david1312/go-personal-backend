@@ -780,6 +780,9 @@ func (tr *TransactionsHandler) EPMerchantGetTransactionDetail(w http.ResponseWri
 		PaymentMethodDesc:  transaction.PaymentMethodDesc,
 		PaymentMethodIcon:  tr.baseAssetUrl + constants.PaymentMethod + transaction.PaymentMethodIcon,
 		ListProduct:        listProductByInvoiceId,
+		CustomerName:       transaction.CustomerName,
+		CustomerPhone:      transaction.CustomerPhone,
+		CustomerEmail:      transaction.CustomerEmail,
 	}, http.StatusOK)
 
 }
@@ -788,7 +791,7 @@ func (tr *TransactionsHandler) EPMerchantGetHistoryTransactions(w http.ResponseW
 	var (
 		ctx                   = r.Context()
 		fp                    GetListTransactionRequest
-		listTransactionRes    = []TransactionsResponse{}
+		listTransactionRes    = []TransactionsResponseMerchant{}
 		listProductByInvoices = []repo_transactions.ProductsData{}
 	)
 
@@ -846,7 +849,7 @@ func (tr *TransactionsHandler) EPMerchantGetHistoryTransactions(w http.ResponseW
 	}
 
 	for _, v := range listTransaction {
-		listTransactionRes = append(listTransactionRes, TransactionsResponse{
+		listTransactionRes = append(listTransactionRes, TransactionsResponseMerchant{
 			InvoiceId:            v.InvoiceId,
 			Status:               v.Status,
 			TotalAmount:          v.TotalAmount,
@@ -859,10 +862,13 @@ func (tr *TransactionsHandler) EPMerchantGetHistoryTransactions(w http.ResponseW
 			CreatedAt:            v.CreatedAt.Format("02 January 2006"),
 			PaymentDue:           v.PaymentDue.Format("02 January 2006 15:04"),
 			ListProduct:          mappedProductByInvoice[v.InvoiceId],
+			CustomerName:         v.CustomerName,
+			CustomerPhone:        v.CustomerPhone,
+			CustomerEmail:        v.CustomerEmail,
 		})
 	}
 
-	response.Yay(w, r, ListProductsResponse{
+	response.Yay(w, r, ListProductsResponseMerchant{
 		TransactionData: listTransactionRes,
 		DataInfo: products.DataInfo{
 			CurrentPage: page,

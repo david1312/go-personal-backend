@@ -407,10 +407,12 @@ func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId str
 }
 
 func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error) {
-	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi, c.description as payment_desc, c.icon, a.MetodePembayaran
+	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi,
+	 c.description as payment_desc, c.icon, a.MetodePembayaran, e.name as customer_name, COALESCE(e.phone, '-'), COALESCE(e.email, '-')
 	from tbltransaksihead a 
 	join outlets b on a.IdOutlet = b.id
 	join payment_method c on a.MetodePembayaran = c.id
+	join customers e on a.CustomerId = e.id
 	where a.NoFaktur = ? `
 	row := q.db.DB.QueryRowContext(ctx, query, invoiceId)
 
@@ -426,6 +428,9 @@ func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId stri
 		&res.PaymentMethodDesc,
 		&res.PaymentMethodIcon,
 		&res.PaymentMethod,
+		&res.CustomerName,
+		&res.CustomerPhone,
+		&res.CustomerEmail,
 	)
 
 	if err != nil {
@@ -521,10 +526,12 @@ func (q *SqlRepository) GetHistoryTransactionMerchant(ctx context.Context, fp Ge
 	args = append(args, 200, offsetNum)
 
 	query := `
-	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon, a.PaymentDue, a.IdOutlet , c.name as outlet_name
+	select a.NoFaktur, a.StatusTransaksi, a.Tagihan,a.CreateDate, b.description as payment_desc, b.icon,
+	a.PaymentDue, a.IdOutlet , c.name as outlet_name, e.name as customer_name, COALESCE(e.phone, '-'), COALESCE(e.email, '-')
 	from tbltransaksihead a
 	join payment_method b on a.MetodePembayaran = b.id
 	join outlets c on a.IdOutlet = c.id
+	join customers e on a.CustomerId = e.id
 	where 1=1` + whereParams + `
 	` + fmt.Sprintf("order by %v", orderBy) + `  limit ? offset ? `
 
@@ -549,6 +556,9 @@ func (q *SqlRepository) GetHistoryTransactionMerchant(ctx context.Context, fp Ge
 			&i.PaymentDue,
 			&i.OutletId,
 			&i.OutletName,
+			&i.CustomerName,
+			&i.CustomerPhone,
+			&i.CustomerEmail,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
