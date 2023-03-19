@@ -128,6 +128,7 @@ func (rh *RatingsHandler) SubmitRatingOutlet(w http.ResponseWriter, r *http.Requ
 		outletId     = r.FormValue("outlet_id")
 		comment      = r.FormValue("comment")
 		rate         = r.FormValue("rate")
+		// invoiceId         = r.FormValue("invoice_id")
 		fileNameList = []string{}
 	)
 

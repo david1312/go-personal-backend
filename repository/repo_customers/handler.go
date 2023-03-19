@@ -61,7 +61,19 @@ func (q *SqlRepository) CheckEmailExist(ctx context.Context, email string) (res 
 	return
 }
 
-func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, password, uid string) (cleanUid, errCode string, err error) {
+func (q *SqlRepository) CheckPhoneExist(ctx context.Context, phone string) (res bool, errCode string, err error) {
+	const query = `select EXISTS(select name from customers where phone = ? and deleted_at IS NULL)`
+	row := q.db.DB.QueryRowContext(ctx, query, phone)
+	err = row.Scan(&res)
+
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, password, uid, phone string) (cleanUid, errCode string, err error) {
 	var lastCustId string
 	const query = `select cust_id from customers order by id desc limit 1`
 	row := q.db.DB.QueryRowContext(ctx, query)
@@ -88,8 +100,8 @@ func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, p
 
 	newCustId := helper.GenerateCustomerId(lastCustId)
 
-	const queryInsert = `insert into customers (uid, name, password, email, email_verified_token, is_active, email_verified_sent, cust_id) 
-	VALUES (?, ?, ?, ?, ?, true, 1, ?) `
+	const queryInsert = `insert into customers (uid, name, password, email, email_verified_token, is_active, email_verified_sent, cust_id, phone) 
+	VALUES (?, ?, ?, ?, ?, true, 1, ?, ?) `
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -98,7 +110,7 @@ func (q *SqlRepository) Register(ctx context.Context, name, email, emailToken, p
 	}
 	_, err = q.db.ExecContext(ctx, queryInsert, cleanUid,
 		name,
-		string(hashedPass), email, emailToken, newCustId,
+		string(hashedPass), email, emailToken, newCustId, phone,
 	)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected

@@ -55,6 +55,7 @@ type RegisterRequest struct {
 	Email       string `json:"email"`
 	Password    string `json:"password"`
 	DeviceToken string `json:"device_token"`
+	Phone       string `json:"phone"`
 }
 
 func (m *RegisterRequest) Bind(r *http.Request) error {

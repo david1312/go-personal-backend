@@ -74,9 +74,20 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isPhoneExist, errCode, err := usr.custRepository.CheckPhoneExist(ctx, p.Phone)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	if isPhoneExist {
+		response.Nay(w, r, crashy.New(errors.New(crashy.ErrPhoneExists), crashy.ErrPhoneExists, crashy.Message(crashy.ErrPhoneExists)), http.StatusBadRequest)
+		return
+	}
+
 	hashedTokenEmail := helper.GenerateHashString()
 
-	cleanUid, errCode, err := usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, authData.Uid)
+	cleanUid, errCode, err := usr.custRepository.Register(ctx, p.Name, p.Email, hashedTokenEmail, p.Password, authData.Uid, p.Phone)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return

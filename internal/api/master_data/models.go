@@ -256,8 +256,8 @@ func (m *TireRingAddReq) ValidateTireRingAddReq() error {
 }
 
 type CheckLocationRequest struct {
-	Latitude float64  `json:"latitude"`
-	Longitude        float64  `json:"longitude"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 func (m *CheckLocationRequest) Bind(r *http.Request) error {
@@ -272,5 +272,5 @@ func (m *CheckLocationRequest) ValidateCheckLocationRequest() error {
 }
 
 type CheckLocationResponse struct {
-	IsSuccess   bool    `json:"is_success"`
+	IsSuccess bool `json:"is_success"`
 }

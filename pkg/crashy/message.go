@@ -48,6 +48,7 @@ const (
 	//Err code Register related
 	ErrEmailExists   = "ERR_EMAIL_EXISTS"
 	ErrShortPassword = "ERR_SHORT_PWD"
+	ErrPhoneExists   = "ERR_PHONE_EXISTS"
 
 	ErrSendEmail         = "ERR_SEND_EMAIL"
 	ErrInvalidTokenEmail = "ERR_INVALID_TOKEN_EMAIL"
@@ -111,6 +112,7 @@ var mapper = map[ErrCode]string{
 	ErrCodeEncryptData:     "failed to encrypting data",
 	ErrInvalidUser:         "email atau password yang anda masukan salah",
 	ErrEmailExists:         "maaf email yang anda masukan sudah terdaftar",
+	ErrPhoneExists:         "maaf nomor handphone yang anda masukan sudah terdaftar",
 	ErrSendEmail:           "terjadi kesalahan saat mengirim email, mohon coba beberapa saat lagi",
 	ErrInvalidTokenEmail:   "token untuk verifikasi email tidak valid",
 	ErrInvalidOldPassword:  "password lama yang anda masukan salah",

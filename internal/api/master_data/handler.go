@@ -282,7 +282,14 @@ func (md *MasterDataHandler) GetListPaymentMethod(w http.ResponseWriter, r *http
 		)
 	}
 
-	response.Yay(w, r, listPaymentMethod, http.StatusOK)
+	filteredPaymentMethod := []ListPaymentMethod{}
+	for _, k := range listPaymentMethod {
+		if k.Category == cn.DirectPayment {
+			filteredPaymentMethod = append(filteredPaymentMethod, k)
+		}
+	}
+
+	response.Yay(w, r, filteredPaymentMethod, http.StatusOK)
 
 }
 
@@ -872,7 +879,7 @@ func (md *MasterDataHandler) MagicHandler(w http.ResponseWriter, r *http.Request
 
 func (md *MasterDataHandler) CheckLocation(w http.ResponseWriter, r *http.Request) {
 	var (
-		p   CheckLocationRequest
+		p CheckLocationRequest
 	)
 
 	if err := render.Bind(r, &p); err != nil {
@@ -890,6 +897,5 @@ func (md *MasterDataHandler) CheckLocation(w http.ResponseWriter, r *http.Reques
 			IsSuccess: true,
 		}, http.StatusOK)
 	}
-
 
 }

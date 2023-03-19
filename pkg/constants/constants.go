@@ -58,6 +58,8 @@ const (
 	COD        = "COD"
 
 	T_STATUS_MENUNGGU_DIPASANG = "Menunggu Dipasang"
+
+	DirectPayment = "Bayar Langsung"
 )
 
 var (
