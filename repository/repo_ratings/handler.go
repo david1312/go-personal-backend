@@ -55,7 +55,7 @@ func (q *SqlRepository) SubmitRatingProduct(ctx context.Context, custId int, pro
 	return
 }
 
-func (q *SqlRepository) SubmitRatingOutlet(ctx context.Context, custId int, outletId, comment, rate string, photoList []string) (errCode string, err error) {
+func (q *SqlRepository) SubmitRatingOutlet(ctx context.Context, custId int, outletId, comment, rate string, photoList []string, invoiceID string) (errCode string, err error) {
 	tx, err := q.db.BeginTx(ctx, nil)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
@@ -84,6 +84,13 @@ func (q *SqlRepository) SubmitRatingOutlet(ctx context.Context, custId int, outl
 				return
 			}
 		}
+	}
+
+	const queryFinishTransaction = `update tbltransaksihead set StatusPembayaran = 'LUNAS', StatusTransaksi = 'Berhasil' where NoFaktur = ?`
+	_, err = tx.ExecContext(ctx, queryFinishTransaction, invoiceID)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
 	}
 
 	if err = tx.Commit(); err != nil {

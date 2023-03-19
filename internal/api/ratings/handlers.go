@@ -128,7 +128,7 @@ func (rh *RatingsHandler) SubmitRatingOutlet(w http.ResponseWriter, r *http.Requ
 		outletId = r.FormValue("outlet_id")
 		comment  = r.FormValue("comment")
 		rate     = r.FormValue("rate")
-		// invoiceId         = r.FormValue("invoice_id")
+		invoiceId         = r.FormValue("invoice_id")
 		fileNameList = []string{}
 	)
 
@@ -197,7 +197,7 @@ func (rh *RatingsHandler) SubmitRatingOutlet(w http.ResponseWriter, r *http.Requ
 	}
 
 	//submit data to db
-	errCode, err = rh.rateRepository.SubmitRatingOutlet(ctx, custId, outletId, comment, rate, fileNameList)
+	errCode, err = rh.rateRepository.SubmitRatingOutlet(ctx, custId, outletId, comment, rate, fileNameList, invoiceId)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
