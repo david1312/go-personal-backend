@@ -4,6 +4,7 @@ import "context"
 
 type MasterDataRepository interface {
 	Magic(ctx context.Context) error
+	UpdateTransactionExpired(ctx context.Context) error
 
 	GetListMerkBan(ctx context.Context) (res []MerkBan, errCode string, err error)
 	GetListRingBan(ctx context.Context) (res []string, errCode string, err error)

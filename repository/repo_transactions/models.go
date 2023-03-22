@@ -83,6 +83,7 @@ type GetTransactionsDetailData struct {
 	CustomerName      string
 	CustomerPhone     string
 	CustomerEmail     string
+	Notes             string
 }
 
 type GetSummaryTransactionCount struct {

@@ -783,6 +783,7 @@ func (tr *TransactionsHandler) EPMerchantGetTransactionDetail(w http.ResponseWri
 		CustomerName:       transaction.CustomerName,
 		CustomerPhone:      transaction.CustomerPhone,
 		CustomerEmail:      transaction.CustomerEmail,
+		Notes:              transaction.Notes,
 	}, http.StatusOK)
 
 }

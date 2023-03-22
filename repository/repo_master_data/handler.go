@@ -21,6 +21,49 @@ func NewSqlRepository(db *sqlx.DB) *SqlRepository {
 	}
 }
 
+func (q *SqlRepository) UpdateTransactionExpired(ctx context.Context) error {
+	listExpiredInvoice := []string{}
+	const query = `select NoFaktur from tbltransaksihead 
+	where 
+	StatusTransaksi in ('Menunggu Pembayaran')
+	AND CreateDate <= ( CURDATE() - INTERVAL 4 DAY )
+	order by CreateDate desc`
+	rows, err := q.db.QueryContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var tempData string
+
+		if err := rows.Scan(
+			&tempData,
+		); err != nil {
+			return err
+		}
+		listExpiredInvoice = append(listExpiredInvoice, tempData)
+	}
+
+	var paramQuery = ""
+	if len(listExpiredInvoice) > 0 {
+
+		for _, val := range listExpiredInvoice {
+			paramQuery += "'" + val + "',"
+		}
+
+		queryUpdate := fmt.Sprintf("update tbltransaksihead set StatusTransaksi ='Pesanan Dibatalkan', Catatan = 'Transaksi kadaluarsa lebih dari 3 hari' where NoFaktur in (%s) ", strings.TrimSuffix(paramQuery, ","))
+		_, err = q.db.ExecContext(ctx, queryUpdate)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (q *SqlRepository) Magic(ctx context.Context) error {
 	//update image default per new product
 	result := []string{}

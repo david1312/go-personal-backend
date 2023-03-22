@@ -318,6 +318,7 @@ type GetTransactionsDetaiMerchantlResponse struct {
 	CustomerName       string                   `json:"customer_name"`
 	CustomerPhone      string                   `json:"customer_phone"`
 	CustomerEmail      string                   `json:"customer_email"`
+	Notes              string                   `json:"catatan"`
 	ListProduct        []ProductsDataPageJadwal `json:"list_product"`
 }
 

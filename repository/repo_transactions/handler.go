@@ -408,7 +408,7 @@ func (q *SqlRepository) GetProductByInvoiceId(ctx context.Context, invoiceId str
 
 func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId string) (res GetTransactionsDetailData, errCode string, err error) {
 	const query = ` select a.NoFaktur, b.name, b.address, b.districts, b.city, a.JadwalPemasangan, a.TglTrans, a.StatusTransaksi,
-	 c.description as payment_desc, c.icon, a.MetodePembayaran, e.name as customer_name, COALESCE(e.phone, '-'), COALESCE(e.email, '-')
+	 c.description as payment_desc, c.icon, a.MetodePembayaran, e.name as customer_name, COALESCE(e.phone, '-'), COALESCE(e.email, '-'), COALESCE(a.Catatan, '-')
 	from tbltransaksihead a 
 	join outlets b on a.IdOutlet = b.id
 	join payment_method c on a.MetodePembayaran = c.id
@@ -431,6 +431,7 @@ func (q *SqlRepository) GetTransactionDetail(ctx context.Context, invoiceId stri
 		&res.CustomerName,
 		&res.CustomerPhone,
 		&res.CustomerEmail,
+		&res.Notes,
 	)
 
 	if err != nil {

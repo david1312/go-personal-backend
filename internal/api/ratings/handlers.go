@@ -123,12 +123,12 @@ func (rh *RatingsHandler) SubmitRatingProduct(w http.ResponseWriter, r *http.Req
 
 func (rh *RatingsHandler) SubmitRatingOutlet(w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx      = r.Context()
-		authData = ctx.Value(localMdl.CtxKey).(localMdl.Token)
-		outletId = r.FormValue("outlet_id")
-		comment  = r.FormValue("comment")
-		rate     = r.FormValue("rate")
-		invoiceId         = r.FormValue("invoice_id")
+		ctx          = r.Context()
+		authData     = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		outletId     = r.FormValue("outlet_id")
+		comment      = r.FormValue("comment")
+		rate         = r.FormValue("rate")
+		invoiceId    = r.FormValue("invoice_id")
 		fileNameList = []string{}
 	)
 

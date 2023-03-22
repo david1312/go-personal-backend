@@ -101,7 +101,8 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 			r.Get("/toprank-motor", masterDataHandler.GetTopRankMotor)
 			r.Get("/asset-img", masterDataHandler.GetImgAsset)
 			r.Get("/tire-type", masterDataHandler.GetTireType)
-			// r.Get("/magic", masterDataHandler.MagicHandler)
+			r.Get("/magic", masterDataHandler.MagicHandler)
+			r.Get("/magic-transaction-expired", masterDataHandler.TransactionExpiredHandler)
 			// r.Get("/outlets", prodHandler.GetListProducts)
 		})
 
