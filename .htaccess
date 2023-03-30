@@ -1,28 +1,15 @@
 Options +FollowSymLinks -Indexes
- 
- 
-IndexIgnore *
- 
- 
- 
+
+IndexIgnore \*
+
 DirectoryIndex
- 
- 
- 
+
 <IfModule mod_rewrite.c>
- 
- 
  
 RewriteEngine on
  
- 
- 
 # Simple URL redirect:
  
- 
- 
-RewriteRule ^(.*)$ http://127.0.0.1:8999/$1 [P]
- 
- 
+RewriteRule ^(.*)$ http://127.0.0.1:8070/$1 [P]
  
 </IfModule>

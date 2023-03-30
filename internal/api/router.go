@@ -1,21 +1,21 @@
 package api
 
 import (
+	"libra-internal/internal/api/auth"
+	cust "libra-internal/internal/api/customers"
+	"libra-internal/internal/api/master_data"
+	"libra-internal/internal/api/merchant"
+	localMdl "libra-internal/internal/api/middleware"
+	"libra-internal/internal/api/products"
+	"libra-internal/internal/api/ratings"
+	"libra-internal/internal/api/transactions"
+	"libra-internal/repository/repo_customers"
+	"libra-internal/repository/repo_master_data"
+	"libra-internal/repository/repo_merchant"
+	"libra-internal/repository/repo_products"
+	"libra-internal/repository/repo_ratings"
+	"libra-internal/repository/repo_transactions"
 	"net/http"
-	"semesta-ban/internal/api/auth"
-	cust "semesta-ban/internal/api/customers"
-	"semesta-ban/internal/api/master_data"
-	"semesta-ban/internal/api/merchant"
-	localMdl "semesta-ban/internal/api/middleware"
-	"semesta-ban/internal/api/products"
-	"semesta-ban/internal/api/ratings"
-	"semesta-ban/internal/api/transactions"
-	"semesta-ban/repository/repo_customers"
-	"semesta-ban/repository/repo_master_data"
-	"semesta-ban/repository/repo_merchant"
-	"semesta-ban/repository/repo_products"
-	"semesta-ban/repository/repo_ratings"
-	"semesta-ban/repository/repo_transactions"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -139,6 +139,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/payment-instruction", transHandler.GetPaymentInstruction)
 		r.Post("/detail", transHandler.GetTransactionDetail)
 		r.Get("/count", transHandler.GetCountTransaction)
+		r.Get("/test", transHandler.TestJubelio)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {

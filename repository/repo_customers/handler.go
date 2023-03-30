@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/pkg/helper"
+	"libra-internal/pkg/crashy"
+	"libra-internal/pkg/helper"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

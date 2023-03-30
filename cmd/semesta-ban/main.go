@@ -1,13 +1,13 @@
 package main
 
 import (
+	"libra-internal/bootstrap"
+	"libra-internal/pkg/log"
 	"os"
-	"semesta-ban/bootstrap"
-	"semesta-ban/pkg/log"
 
 	"github.com/sirupsen/logrus"
 
-	cmd "semesta-ban/cmd/semesta-ban/commands"
+	cmd "libra-internal/cmd/semesta-ban/commands"
 )
 
 func main() {

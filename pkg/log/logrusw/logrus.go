@@ -1,7 +1,7 @@
 package logrusw
 
 import (
-	"semesta-ban/pkg/log"
+	"libra-internal/pkg/log"
 
 	"github.com/sirupsen/logrus"
 )

@@ -1,8 +1,8 @@
 package ratings
 
 import (
+	"libra-internal/internal/api/products"
 	"net/http"
-	"semesta-ban/internal/api/products"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"

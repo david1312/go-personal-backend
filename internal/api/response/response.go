@@ -3,9 +3,9 @@ package response
 import (
 	"bytes"
 	"context"
+	"libra-internal/pkg/crashy"
+	"libra-internal/pkg/log"
 	"net/http"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/pkg/log"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"

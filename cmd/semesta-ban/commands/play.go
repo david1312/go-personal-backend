@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"semesta-ban/bootstrap"
+	"libra-internal/bootstrap"
 
 	"github.com/spf13/cobra"
 	"github.com/umahmood/haversine"

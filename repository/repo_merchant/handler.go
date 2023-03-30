@@ -3,7 +3,7 @@ package repo_merchant
 import (
 	"context"
 	"database/sql"
-	"semesta-ban/pkg/crashy"
+	"libra-internal/pkg/crashy"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"

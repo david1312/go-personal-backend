@@ -3,17 +3,17 @@ package master_data
 import (
 	"errors"
 	"fmt"
+	"libra-internal/internal/api/products"
+	"libra-internal/internal/api/response"
+	"libra-internal/repository/repo_master_data"
 	"net/http"
-	"semesta-ban/internal/api/products"
-	"semesta-ban/internal/api/response"
-	"semesta-ban/repository/repo_master_data"
 	"sort"
 	"strconv"
 	"strings"
 
-	cn "semesta-ban/pkg/constants"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/pkg/helper"
+	cn "libra-internal/pkg/constants"
+	"libra-internal/pkg/crashy"
+	"libra-internal/pkg/helper"
 
 	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"

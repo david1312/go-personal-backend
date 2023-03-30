@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"libra-internal/internal/api/response"
+	"libra-internal/pkg/crashy"
 	"net/http"
-	"semesta-ban/internal/api/response"
-	"semesta-ban/pkg/crashy"
 	"strings"
 
 	"github.com/go-chi/jwtauth"

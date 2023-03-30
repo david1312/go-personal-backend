@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/repository/repo_products"
+	"libra-internal/pkg/crashy"
+	"libra-internal/repository/repo_products"
 	"time"
 
 	"github.com/jmoiron/sqlx"

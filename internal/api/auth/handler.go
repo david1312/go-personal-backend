@@ -1,9 +1,9 @@
 package auth
 
 import (
+	localMdl "libra-internal/internal/api/middleware"
+	"libra-internal/internal/api/response"
 	"net/http"
-	localMdl "semesta-ban/internal/api/middleware"
-	"semesta-ban/internal/api/response"
 	"time"
 
 	"github.com/google/uuid"
@@ -85,7 +85,7 @@ func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request
 func (usr *AuthHandler) GetVersion(w http.ResponseWriter, r *http.Request) {
 
 	response.Yay(w, r, Version{
-		ApiVersion: "v1.0.1",
+		ApiVersion: "v0.0.1",
 	}, http.StatusOK)
 
 }

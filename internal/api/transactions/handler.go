@@ -6,24 +6,24 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"libra-internal/internal/api/products"
+	"libra-internal/internal/api/response"
+	"libra-internal/pkg/constants"
+	"libra-internal/pkg/crashy"
+	"libra-internal/pkg/helper"
+	"libra-internal/repository/repo_master_data"
+	"libra-internal/repository/repo_products"
+	"libra-internal/repository/repo_transactions"
 	"log"
 	"math"
 	"net/http"
 	"os"
-	"semesta-ban/internal/api/products"
-	"semesta-ban/internal/api/response"
-	"semesta-ban/pkg/constants"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/pkg/helper"
-	"semesta-ban/repository/repo_master_data"
-	"semesta-ban/repository/repo_products"
-	"semesta-ban/repository/repo_transactions"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	localMdl "semesta-ban/internal/api/middleware"
+	localMdl "libra-internal/internal/api/middleware"
 
 	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"
@@ -37,6 +37,10 @@ type TransactionsHandler struct {
 	baseAssetUrl string
 	client       *http.Client
 	MidtransConfig
+}
+
+type Foo struct {
+    Bar string
 }
 
 func NewTransactionsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, tr repo_transactions.TransactionsRepositoy, baseAssetUrl string, cl *http.Client, midtransCfg MidtransConfig) *TransactionsHandler {
@@ -211,6 +215,40 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 		InvoiceId: newTransId,
 	}, http.StatusOK)
 
+}
+
+
+func (tr *TransactionsHandler) TestJubelio(w http.ResponseWriter, r *http.Request) {
+	
+	req, err := http.NewRequest(http.MethodGet, "https://api2-lb.jubelio.com/reports/sales-list/revenue_detail/?date_from=2023-02-28T17:00:00.000Z&date_to=2023-03-03T16:59:59.999Z&tz=Asia/Jakarta", bytes.NewBuffer([]byte(""))) //todo get from config
+	// https://api.midtrans.com
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTRVI6MTYyLjE1OC4xMDYuMjM3ZGF2aWRiZXJuYWRpMTNAZ21haWwuY29tIiwiZXhwIjoxNjc5OTc3NTQxMzA2LCJpc193bXNfbWlncmF0ZWQiOnRydWUsImlhdCI6MTY3OTkzNDM0MX0.DrDE1hTIKjuNECZPEL4w8lmBbudGSZKqG7PguYJ70Mk")
+
+	res, err := tr.client.Do(req)
+
+	if err != nil {
+		if os.IsTimeout(err) {
+			response.Nay(w, r, crashy.New(err, crashy.ErrCode(crashy.ErrRequestMidtrans), crashy.Message(crashy.ErrRequestMidtrans)), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	defer res.Body.Close()
+
+	b, err := io.ReadAll(res.Body)
+	// b, err := ioutil.ReadAll(resp.Body)  Go.1.15 and earlier
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Println(string(b))
 }
 
 func (tr *TransactionsHandler) InquirySchedule(w http.ResponseWriter, r *http.Request) {

@@ -1,14 +1,14 @@
 package merchant
 
 import (
+	"libra-internal/internal/api/customers"
+	localMdl "libra-internal/internal/api/middleware"
+	"libra-internal/internal/api/response"
+	"libra-internal/pkg/constants"
+	"libra-internal/pkg/crashy"
+	"libra-internal/repository/repo_merchant"
+	"libra-internal/repository/repo_products"
 	"net/http"
-	"semesta-ban/internal/api/customers"
-	localMdl "semesta-ban/internal/api/middleware"
-	"semesta-ban/internal/api/response"
-	"semesta-ban/pkg/constants"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/repository/repo_merchant"
-	"semesta-ban/repository/repo_products"
 	"time"
 
 	"github.com/go-chi/render"

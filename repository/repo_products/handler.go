@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"semesta-ban/pkg/constants"
-	"semesta-ban/pkg/crashy"
-	"semesta-ban/pkg/helper"
+	"libra-internal/pkg/constants"
+	"libra-internal/pkg/crashy"
+	"libra-internal/pkg/helper"
 	"strings"
 
 	"github.com/jmoiron/sqlx"

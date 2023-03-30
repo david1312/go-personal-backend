@@ -2,7 +2,7 @@ package repo_ratings
 
 import (
 	"context"
-	"semesta-ban/pkg/crashy"
+	"libra-internal/pkg/crashy"
 
 	"github.com/jmoiron/sqlx"
 )
