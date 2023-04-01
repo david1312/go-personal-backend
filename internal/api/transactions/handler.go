@@ -40,7 +40,7 @@ type TransactionsHandler struct {
 }
 
 type Foo struct {
-    Bar string
+	Bar string
 }
 
 func NewTransactionsHandler(db *sqlx.DB, pr repo_products.ProductsRepository, md repo_master_data.MasterDataRepository, tr repo_transactions.TransactionsRepositoy, baseAssetUrl string, cl *http.Client, midtransCfg MidtransConfig) *TransactionsHandler {
@@ -217,9 +217,8 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 
 }
 
-
 func (tr *TransactionsHandler) TestJubelio(w http.ResponseWriter, r *http.Request) {
-	
+
 	req, err := http.NewRequest(http.MethodGet, "https://api2-lb.jubelio.com/reports/sales-list/revenue_detail/?date_from=2023-02-28T17:00:00.000Z&date_to=2023-03-03T16:59:59.999Z&tz=Asia/Jakarta", bytes.NewBuffer([]byte(""))) //todo get from config
 	// https://api.midtrans.com
 	if err != nil {

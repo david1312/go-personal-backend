@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"libra-internal/bootstrap"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/spf13/cobra"
 	"github.com/umahmood/haversine"
 )
@@ -12,6 +13,8 @@ func init() {
 	registerCommand(startPlayground)
 }
 
+type M map[string]interface{}
+
 // todo create script for  migration db automation
 func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{
@@ -19,6 +22,7 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 		Short: "Starting REST service",
 		Long:  `This command is used to start REST service`,
 		Run: func(cmd *cobra.Command, args []string) {
+
 			// start := time.Now()
 			// a := helper.GenerateTransactionId("", start.Format("20060102"))
 			// fmt.Println(a)
@@ -69,6 +73,54 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 			} else {
 				fmt.Println("lolos")
 			}
+
+			f, err := excelize.OpenFile("testingthewater.xlsx")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			style, _ := f.NewStyle(`{"number_format":22}`)
+			f.SetCellStyle("Data", "A2", "A30", style)
+
+		
+			// defer func() {
+			// 	// Close the spreadsheet.
+			// 	if err := f.Close(); err != nil {
+			// 		fmt.Println(err)
+			// 	}
+			// }()
+			// Get value from cell by given worksheet name and cell reference.
+			cell := f.GetCellValue("Data", "A2")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(cell)
+			// Get all the rows in the Sheet1.
+			rows := f.GetRows("Data")
+			f.SetCellStyle("Data", "A2", fmt.Sprintf("A%v", len(rows)), style)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(len(rows))
+			counter := 0
+			for _, row := range rows {
+				counter++
+				if counter == 1 {
+					continue
+				}
+
+				for _, colCell := range row {
+					fmt.Printf("%v ", colCell)
+				}
+				fmt.Println()
+				if counter > 4 {
+					break
+				}
+			}
+
 		},
 	}
 }
