@@ -8,12 +8,14 @@ import (
 	localMdl "libra-internal/internal/api/middleware"
 	"libra-internal/internal/api/products"
 	"libra-internal/internal/api/ratings"
+	"libra-internal/internal/api/reports"
 	"libra-internal/internal/api/transactions"
 	"libra-internal/repository/repo_customers"
 	"libra-internal/repository/repo_master_data"
 	"libra-internal/repository/repo_merchant"
 	"libra-internal/repository/repo_products"
 	"libra-internal/repository/repo_ratings"
+	"libra-internal/repository/repo_reports"
 	"libra-internal/repository/repo_transactions"
 	"net/http"
 
@@ -51,12 +53,14 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		mdRepo            = repo_master_data.NewSqlRepository(db)
 		trRepo            = repo_transactions.NewSqlRepository(db)
 		rateRepo          = repo_ratings.NewSqlRepository(db)
+		reportsRepo       = repo_reports.NewSqlRepository(db)
 		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
+		reportHandler     = reports.NewReportsHandler(reportsRepo)
 
 		//merchant
 		merchRepo       = repo_merchant.NewSqlRepository(db)
@@ -181,6 +185,10 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	r.Route("/v1/merchant", func(r chi.Router) { //anonymous scope
 		r.Use(jwt.AuthMiddlewareMerchant(localMdl.GuardAccess))
 		r.Get("/me", merchantHandler.GetProfileMerchant)
+
+		r.Route("/reports", func(r chi.Router) {
+			r.Post("/sales/syncup", reportHandler.SyncSales)
+		})
 
 		r.Route("/products", func(r chi.Router) {
 			r.Post("/delete", prodHandler.DeleteProduct)

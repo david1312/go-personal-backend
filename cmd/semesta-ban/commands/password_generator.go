@@ -11,17 +11,15 @@ import (
 )
 
 func init() {
-	registerCommand(startPlayground)
+	registerCommand(generatePassword)
 }
 
-type M map[string]interface{}
-
 // todo create script for  migration db automation
-func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
+func generatePassword(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{
-		Use:   "play",
-		Short: "Starting REST service",
-		Long:  `This command is used to start REST service`,
+		Use:   "password",
+		Short: "Generate password",
+		Long:  `This command is used to start generate password service`,
 		Run: func(cmd *cobra.Command, args []string) {
 
 			// start := time.Now()

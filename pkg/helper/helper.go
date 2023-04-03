@@ -339,6 +339,48 @@ func UploadImage(r *http.Request, fieldName, uploadPath, directory string) (file
 
 }
 
+func UploadSingleFile(r *http.Request, fieldName, uploadPath, directory, patternNaming string, maxSize int) (fileName, errCode string, err error) {
+	r.ParseMultipartForm(10 << 20)
+	// FormFile returns the first file for the given key `myFile`
+	// it also returns the FileHeader so we can get the Filename,
+	// the Header and the size of the file
+	file, handler, err := r.FormFile(fieldName)
+	if err != nil {
+		errCode = crashy.ErrFileNotFound
+		return
+	}
+	defer file.Close()
+
+	if handler.Size > int64(ConvertFileSizeToMb(maxSize)) {
+		errCode = crashy.ErrExceededFileSize
+		return
+	}
+
+	// Create a temporary file within our temp-images directory that follows
+	// a particular naming pattern
+	tempFile, err := ioutil.TempFile(uploadPath+directory, patternNaming)
+	if err != nil {
+		errCode = crashy.ErrUploadFile
+		return
+	}
+	defer tempFile.Close()
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		errCode = crashy.ErrUploadFile
+		return
+	}
+	// write this byte array to our temporary file
+	fileName = GetUploadedFileName(tempFile.Name())
+
+	tempFile.Write(fileBytes)
+	tempFile.Chmod(0604)
+	log.Infof("success upload %s to the server x \n", fileName)
+	return
+}
+
 func RemoveFile(fileName, uploadPath, directory string) {
 	err := os.Remove(uploadPath + directory + fileName)
 	if err != nil {
@@ -355,4 +397,29 @@ func GetIdRingBan(ringBan string) (res string) {
 
 	res = splitted[1]
 	return
+}
+
+func ConvertDateTimeReportExcel(date string) string {
+	var (
+		year, month, day string
+	)
+	if len(date) == 0 {
+		return ""
+	}
+	splittedHour := strings.Split(date, " ")
+	splitted := strings.Split(splittedHour[0], "/")
+
+	year = fmt.Sprintf("20%v", splitted[2])
+	//month format
+	month = splitted[0]
+	if len(splitted[0]) == 1 {
+		month = fmt.Sprintf("0%v", splitted[0])
+	}
+	//day format
+	day = splitted[1]
+	if len(splitted[1]) == 1 {
+		day = fmt.Sprintf("0%v", splitted[1])
+	}
+
+	return fmt.Sprintf("%s-%s-%s %s:00", year, month, day, splittedHour[1])
 }
