@@ -125,7 +125,6 @@ func (tr *TransactionsHandler) SubmitTransactions(w http.ResponseWriter, r *http
 	//testing payment
 	// var payload struct
 	if p.PaymentMethod == "COD" {
-		fmt.Println("cod in")
 		response.Yay(w, r, SubmitTransactionResponse{
 			Status:    "success",
 			InvoiceId: newTransId,

@@ -136,6 +136,11 @@ func GetUploadedFileName(file string) string {
 	return splitted[4]
 }
 
+func GetUploadedFileNameDir(file string, folderDepth int) string {
+	splitted := strings.Split(file, "/")
+	return splitted[folderDepth]
+}
+
 func ValidateScheduleTime(schedule string) bool {
 	set := make(map[string]bool)
 	for _, v := range constants.ScheduleTime {
@@ -373,11 +378,11 @@ func UploadSingleFile(r *http.Request, fieldName, uploadPath, directory, pattern
 		return
 	}
 	// write this byte array to our temporary file
-	fileName = GetUploadedFileName(tempFile.Name())
+	fileName = GetUploadedFileNameDir(tempFile.Name(), 2)
 
 	tempFile.Write(fileBytes)
 	tempFile.Chmod(0604)
-	log.Infof("success upload %s to the server x \n", fileName)
+	log.Infof("success upload %s to the server x \r\n", fileName)
 	return
 }
 
@@ -422,4 +427,28 @@ func ConvertDateTimeReportExcel(date string) string {
 	}
 
 	return fmt.Sprintf("%s-%s-%s %s:00", year, month, day, splittedHour[1])
+}
+
+func GetDefaultNumberDBVal(value string) string {
+	if len(value) == 0 {
+		return "0"
+	}
+	return value
+}
+
+func CalculateFeeMarketPlace(profit float64, channel string) float64 {
+	switch channel {
+	case constants.CHANNEL_LAZADA:
+		return profit * constants.FEE_LAZADA / 100.0
+	case constants.CHANNEL_TOKOPEDIA:
+		return profit * constants.FEE_TOKOPEDIA / 100.0
+	case constants.CHANNEL_SHOPEE:
+		return profit * constants.FEE_SHOPEE / 100.0
+	case constants.CHANNEL_TIKTOK:
+		return profit * constants.FEE_TIKTOK / 100.0
+	case constants.CHANNEL_AKULAKU:
+		return profit * constants.FEE_AKULAKU / 100.0
+	default:
+		return 0
+	}
 }

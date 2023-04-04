@@ -75,7 +75,7 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 				fmt.Println("lolos")
 			}
 
-			f, err := excelize.OpenFile("testingthewater.xlsx")
+			f, err := excelize.OpenFile("files/reports/sales-1800315297.xlsx")
 			if err != nil {
 				fmt.Println(err)
 				return
