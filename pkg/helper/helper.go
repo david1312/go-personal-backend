@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"libra-internal/internal/models"
 	"libra-internal/pkg/constants"
 	"libra-internal/pkg/crashy"
 	"libra-internal/pkg/log"
@@ -451,4 +452,20 @@ func CalculateFeeMarketPlace(profit float64, channel string) float64 {
 	default:
 		return 0
 	}
+}
+
+func CalculatePaginationData(page, limit, totalData int) (res models.Pagination) {
+	res = models.Pagination{
+		CurrentPage: page,
+		MaxPage: func() int {
+			maxPage := float64(totalData) / float64(limit)
+			if IsFloatNoDecimal(maxPage) {
+				return int(maxPage)
+			}
+			return int(maxPage) + 1
+		}(),
+		Limit:       limit,
+		TotalRecord: totalData,
+	}
+	return
 }

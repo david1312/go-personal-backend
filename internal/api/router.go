@@ -189,6 +189,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Route("/reports", func(r chi.Router) {
 			r.Post("/sales/syncup", reportHandler.SyncSales)
 			r.Post("/sales/calculate-profit", reportHandler.SalesCalculateProfit)
+			r.Post("/sales/get/all", reportHandler.EPGetSalesReport)
 		})
 
 		r.Route("/products", func(r chi.Router) {

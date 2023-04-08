@@ -924,3 +924,5 @@ temporary log callback accepted
 {"level":"error","msg":"error: \u003cnil\u003e, request-id: zelda.id.domainesia.com/clpoKYrEjR-001243","time":"2022-10-27T21:10:43+07:00"}
 {"level":"error","msg":"error: ERR_INVALID_TOKEN, request-id: zelda.id.domainesia.com/clpoKYrEjR-001247","time":"2022-10-28T09:25:04+07:00"}
 {"level":"info","msg":"Server shutdown gracefully.","time":"2022-10-28T15:02:09+07:00"}
+{"level":"info","msg":"server is running on :8097 at local env","time":"2023-04-07T17:29:59+07:00"}
+{"level":"info","msg":"success upload sales-1612763433.xlsx to the server x \r\n","time":"2023-04-07T17:30:13+07:00"}

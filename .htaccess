@@ -10,6 +10,6 @@ RewriteEngine on
  
 # Simple URL redirect:
  
-RewriteRule ^(.*)$ http://127.0.0.1:8070/$1 [P]
+RewriteRule ^(.*)$ http://127.0.0.1:8097/$1 [P]
  
 </IfModule>

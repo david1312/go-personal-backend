@@ -1,6 +1,6 @@
 package repo_reports
 
-type Sales struct {
+type SalesModel struct {
 	ID                  int
 	Tanggal             string
 	TipeTransaksi       string
