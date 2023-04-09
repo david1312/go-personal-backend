@@ -471,8 +471,9 @@ func CalculatePaginationData(page, limit, totalData int) (res models.Pagination)
 }
 
 func ExtractInvoiceID(invoice string) (res string) {
+	splitted := strings.Split(invoice, "-")
 	begin := false
-	for _, char := range invoice {
+	for _, char := range splitted[1] {
 		if fmt.Sprintf("%c", char) != "0" {
 			begin = true
 		}

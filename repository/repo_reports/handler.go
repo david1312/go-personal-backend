@@ -1,13 +1,21 @@
 package repo_reports
 
 import (
+	"bytes"
 	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"libra-internal/internal/models"
 	"libra-internal/pkg/constants"
 	"libra-internal/pkg/crashy"
 	"libra-internal/pkg/helper"
 	"libra-internal/pkg/log"
+	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/jmoiron/sqlx"
@@ -42,7 +50,6 @@ func (q *SqlRepository) SyncUpSales(ctx context.Context, fileName, dir string) (
 	f.SetCellStyle("Data", "A2", fmt.Sprintf("A%v", len(rows)), style)
 
 	// Get value from cell by given worksheet name and cell reference.
-	// fmt.Println(len(rows))
 	counter := 0
 	rowsData := f.GetRows("Data")
 	for index, row := range rowsData {
@@ -258,9 +265,10 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 	return
 }
 
-func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string) (res models.ApiResponseSalesDetail, errCode string, err error) {
+func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string, client *http.Client) (res models.ApiResponseSalesDetail, errCode string, err error) {
 	var (
 		tempSales = models.SalesDetailResponse{}
+		tempListItem = []models.SalesItem{}
 	)
 	querySummary := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales,
 	a.gross_profit, a.potongan_marketplace, a.net_profit, a.ref, a.nama_toko, a.pelanggan, COALESCE(a.status,''),
@@ -288,13 +296,131 @@ func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string)
 			&tempSales.BiayaLain,
 			&tempSales.HPP,
 		)
+	if err != nil && err != sql.ErrNoRows {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	} else if err != nil && err == sql.ErrNoRows {
+		err = nil
+		return
+	}
+
+	//get token jubelio
+	tokenData, err := q.LoginJubelio(ctx, client)
 	if err != nil {
 		errCode = crashy.ErrCodeUnexpected
 		return
 	}
+	//get list item
+	invoiceId := helper.ExtractInvoiceID(noPesanan)
+
+	listItem, err := q.JUGetDetailInvoice(ctx, client, tokenData.Token, invoiceId)
+	if err != nil {
+		log.Errorf("xxx%v", err)
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	if len(listItem.Items) > 0{
+		for _, val:= range listItem.Items{
+			hppEach, _ := strconv.ParseFloat(val.Cogs, 64)
+			hargaSatuan, _ := strconv.ParseFloat(val.Price, 64)
+			qty, _ := strconv.ParseFloat(val.QtyInBase, 64) 
+			disc, _ := strconv.ParseFloat(val.Disc, 64) 
+			discAmount, _ := strconv.ParseFloat(val.DiscAmount, 64) 
+			totalPriceAfterDiscount, _ := strconv.ParseFloat(val.Amount, 64) 
+			hppFinal :=hppEach* qty
+			tempListItem = append(tempListItem, models.SalesItem{
+				ItemId: val.ItemID,
+				SKU: val.ItemCode,
+				NamaBarang: val.ItemName,
+				HPPSatuan: hppEach,
+				SellPrice: hargaSatuan,
+				Qty: qty,
+				Unit: val.Unit,
+				TotalHarga: qty * hargaSatuan,
+				DiskonPercent: disc,
+				Diskon: discAmount,
+				HargaFinal: totalPriceAfterDiscount,
+				HPP: hppFinal,
+				GrossProfit: totalPriceAfterDiscount - hppFinal ,
+			})
+		}
+	}
 	res = models.ApiResponseSalesDetail{
 		SalesDetail: tempSales,
-		ItemList:    []models.SalesItem{},
+		ItemList:    tempListItem,
+	}
+	return
+}
+
+func (q *SqlRepository) LoginJubelio(ctx context.Context, client *http.Client) (tokenData models.JULoginResponse, err error) {
+	payload := models.JULoginRequest{
+		Email:    constants.JU_USER,
+		Password: constants.JU_PASS,
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return
+	}
+	// req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	req, err := http.NewRequest(http.MethodPost, "https://api2.jubelio.com/login", bytes.NewBuffer(b)) //todo get from config
+	// https://api.midtrans.com
+	if err != nil {
+		return
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		if os.IsTimeout(err) {
+			return
+		}
+		return
+	}
+	if res != nil && res.Body != nil {
+		defer func(c io.Closer) {
+			err = c.Close()
+		}(res.Body)
+	}
+	err = json.NewDecoder(res.Body).Decode(&tokenData)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (q *SqlRepository) JUGetDetailInvoice(ctx context.Context, client *http.Client, token, invoiceId string) (listItem models.JUResponseItemList, err error) {
+	// req, err := http.NewRequest(http.MethodPost, "https://api.sandbox.midtrans.com/v2/charge", bytes.NewBuffer(b)) //todo get from config
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api2.jubelio.com/sales/invoices/%s", invoiceId), bytes.NewBuffer([]byte(""))) //todo get from config
+	// https://api.midtrans.com
+	if err != nil {
+		return
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", token)
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		if os.IsTimeout(err) {
+			return
+		}
+		return
+	}
+	if res != nil && res.Body != nil {
+		defer func(c io.Closer) {
+			err = c.Close()
+		}(res.Body)
+	}
+	// j := map[string]interface{}{}
+	err = json.NewDecoder(res.Body).Decode(&listItem)
+	if err != nil {
+		log.Errorf("error when decode response %v", err)
+		err = errors.New("error when decode response")
+		return
 	}
 	return
 }

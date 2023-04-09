@@ -60,7 +60,7 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
-		reportHandler     = reports.NewReportsHandler(reportsRepo)
+		reportHandler     = reports.NewReportsHandler(reportsRepo, client)
 
 		//merchant
 		merchRepo       = repo_merchant.NewSqlRepository(db)

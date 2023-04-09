@@ -92,23 +92,46 @@ type SalesDetailResponse struct {
 }
 
 type SalesItem struct {
-	ItemId              string  `json:"item_id"`
+	ItemId              int  `json:"item_id"`
 	SKU                 string  `json:"sku"`
 	NamaBarang          string  `json:"nama_barang"`
 	HPPSatuan           float64 `json:"hpp_satuan"`
-	SellPrice           float64 `json:"sell_price"`
+	SellPrice           float64 `json:"harga_satuan"`
 	Qty                 float64 `json:"qty"`
-	TotalHarga          float64 `json:"harga_satuan"`
-	DiskonNumber        float64 `json:"diskon_number"`
+	Unit                 string `json:"unit"`
+	TotalHarga          float64 `json:"total_harga"`
+	DiskonPercent        float64 `json:"diskon_percent"`
 	Diskon              float64 `json:"diskon"`
 	HargaFinal          float64 `json:"harga_final"`
-	HPP                 float64 `json:"hpp"`
+	HPP                 float64 `json:"total_hpp"`
 	GrossProfit         float64 `json:"gross_profit"`
-	PotonganMarketplace float64 `json:"potongan_marketplace"`
-	NetProfit           float64 `json:"net_profit"`
 }
 
 type ApiResponseSalesDetail struct {
 	SalesDetail SalesDetailResponse `json:"sales_detail"`
 	ItemList    []SalesItem         `json:"item_list"`
+}
+
+type JUItemList struct {
+	InvoiceDetailID int    `json:"invoice_detail_id"`
+	ItemID          int    `json:"item_id"`
+	Price           string `json:"price"`
+	Qty             string `json:"qty"`
+	Unit            string `json:"unit"`
+	QtyInBase       string `json:"qty_in_base"`
+	Disc            string `json:"disc"`
+	DiscAmount      string `json:"disc_amount"`
+	Tax_Amount      string `json:"tax_amount"`
+	Amount          string `json:"amount"`
+	Cogs            string `json:"cogs"`
+	ItemCode        string `json:"item_code"`
+	ItemName        string `json:"item_name"`
+	SellPrice       string `json:"sell_price"`
+	OriginalPrice   string `json:"original_price"`
+}
+
+type JUResponseItemList struct {
+	Items []JUItemList `json:"items"`
+	// InvoiceID int `json:"invoice_id"`
+	// InvoiceNo string `json:"invoice_no"`
 }

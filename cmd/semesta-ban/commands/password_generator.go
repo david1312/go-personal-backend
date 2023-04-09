@@ -58,8 +58,6 @@ func generatePassword(dep *bootstrap.Dependency) *cobra.Command {
 			// 	log.Fatal(e)
 			// }
 
-		
-
 		},
 	}
 }

@@ -15,12 +15,13 @@ import (
 
 type ReportsHandler struct {
 	reportsRepo repo_reports.ReportsRepository
+	client      *http.Client
 }
 
 //todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
 
-func NewReportsHandler(rr repo_reports.ReportsRepository) *ReportsHandler {
-	return &ReportsHandler{reportsRepo: rr}
+func NewReportsHandler(rr repo_reports.ReportsRepository, cl *http.Client) *ReportsHandler {
+	return &ReportsHandler{reportsRepo: rr, client: cl}
 }
 
 func (rep *ReportsHandler) SyncSales(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +133,7 @@ func (rep *ReportsHandler) EPGetSalesByInvoice(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	resData, errCode, err := rep.reportsRepo.GetSalesByInvoice(ctx, fp.NoPesanan)
+	resData, errCode, err := rep.reportsRepo.GetSalesByInvoice(ctx, fp.NoPesanan, rep.client)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
