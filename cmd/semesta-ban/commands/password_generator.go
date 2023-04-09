@@ -3,11 +3,9 @@ package commands
 import (
 	"fmt"
 	"libra-internal/bootstrap"
-	"libra-internal/pkg/helper"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/spf13/cobra"
-	"github.com/umahmood/haversine"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func init() {
@@ -49,72 +47,18 @@ func generatePassword(dep *bootstrap.Dependency) *cobra.Command {
 			// sEnc := helper.GenerateB64AuthMidtrans("SB-Mid-server-cXRk9vIv_uoZ0nfWgHnqozI7")
 			// fmt.Println(sEnc)
 
-			// hashedPass, err := bcrypt.GenerateFromPassword([]byte("merchant1"), bcrypt.DefaultCost)
-			// if err != nil {
-			// 	return
-			// }
-			// fmt.Println(string(hashedPass))
+			hashedPass, err := bcrypt.GenerateFromPassword([]byte("sugiono"), bcrypt.DefaultCost)
+			if err != nil {
+				return
+			}
+			fmt.Println(string(hashedPass))
 
 			// e := os.Remove("suzuki.png")
 			// if e != nil {
 			// 	log.Fatal(e)
 			// }
 
-			fmt.Println("test")
-			oxford := haversine.Coord{Lat: -6.2908157, Lon: 106.6249973} // Oxford, UK
-			turin := haversine.Coord{Lat: -6.3152697, Lon: 106.9505043}  // Turin, Italy
-
-			_, km := haversine.Distance(oxford, turin)
-
-			fmt.Println("Kilometers:", km)
-			if km > 30 {
-				fmt.Println("gagal")
-			} else {
-				fmt.Println("lolos")
-			}
-
-			f, err := excelize.OpenFile("testingthewater.xlsx")
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			style, _ := f.NewStyle(`{"number_format":22}`)
-			f.SetCellStyle("Data", "A2", "A30", style)
-
-			// Get value from cell by given worksheet name and cell reference.
-			cell := f.GetCellValue("Data", "A2")
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			fmt.Println(cell)
-			// Get all the rows in the Sheet1.
-			rows := f.GetRows("Data")
-			f.SetCellStyle("Data", "A2", fmt.Sprintf("A%v", len(rows)), style)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			fmt.Println(len(rows))
-			counter := 0
-			for _, row := range rows {
-				counter++
-				if counter == 1 {
-					continue
-				}
-				var dateColumn = 0
-				for i, colCell := range row {
-					if i == dateColumn {
-						fmt.Println(helper.ConvertDateTimeReportExcel(colCell))
-					}
-					fmt.Printf("%v ", colCell)
-				}
-				fmt.Println()
-				if counter > 4 {
-					break
-				}
-			}
+		
 
 		},
 	}

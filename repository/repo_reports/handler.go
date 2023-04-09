@@ -177,7 +177,7 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 		whereParams = ""
 		offsetNum   = (params.Page - 1) * params.Limit
 		orderBy     = " order by a.tanggal asc "
-		totalData = 0
+		totalData   = 0
 	)
 
 	whereParams += "and a.tanggal between ? "
@@ -253,8 +253,48 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 		return
 	}
 
-
 	pageData = helper.CalculatePaginationData(params.Page, params.Limit, totalData)
 
+	return
+}
+
+func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string) (res models.ApiResponseSalesDetail, errCode string, err error) {
+	var (
+		tempSales = models.SalesDetailResponse{}
+	)
+	querySummary := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales,
+	a.gross_profit, a.potongan_marketplace, a.net_profit, a.ref, a.nama_toko, a.pelanggan, COALESCE(a.status,''),
+	a.sub_total, a.diskon, a.diskon_lainnya, a.biaya_lain, a.hpp
+	from sales a
+	where no_pesanan = ?`
+
+	err = q.db.QueryRowContext(ctx, querySummary, noPesanan).
+		Scan(&tempSales.ID,
+			&tempSales.NoPesanan,
+			&tempSales.Tanggal,
+			&tempSales.Status,
+			&tempSales.Channel,
+			&tempSales.NettSales,
+			&tempSales.GrossProfit,
+			&tempSales.PotonganMarketplace,
+			&tempSales.NetProfit,
+			&tempSales.NoRef,
+			&tempSales.NamaToko,
+			&tempSales.Pelanggan,
+			&tempSales.Status,
+			&tempSales.SubTotal,
+			&tempSales.Diskon,
+			&tempSales.DiskonLainnya,
+			&tempSales.BiayaLain,
+			&tempSales.HPP,
+		)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	res = models.ApiResponseSalesDetail{
+		SalesDetail: tempSales,
+		ItemList:    []models.SalesItem{},
+	}
 	return
 }

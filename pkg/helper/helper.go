@@ -469,3 +469,16 @@ func CalculatePaginationData(page, limit, totalData int) (res models.Pagination)
 	}
 	return
 }
+
+func ExtractInvoiceID(invoice string) (res string) {
+	begin := false
+	for _, char := range invoice {
+		if fmt.Sprintf("%c", char) != "0" {
+			begin = true
+		}
+		if begin {
+			res += fmt.Sprintf("%c", char)
+		}
+	}
+	return
+}

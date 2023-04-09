@@ -120,3 +120,24 @@ func (rep *ReportsHandler) EPGetSalesReport(w http.ResponseWriter, r *http.Reque
 		SalesList:      salesResponseList,
 	}, http.StatusOK)
 }
+
+func (rep *ReportsHandler) EPGetSalesByInvoice(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		fp  models.GetAllSalesDetailRequest
+	)
+
+	if err := render.Bind(r, &fp); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	resData, errCode, err := rep.reportsRepo.GetSalesByInvoice(ctx, fp.NoPesanan)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	response.Yay(w, r, resData, http.StatusOK)
+
+}
