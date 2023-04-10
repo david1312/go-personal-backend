@@ -104,13 +104,13 @@ func (q *SqlRepository) UpdateNetProfit(ctx context.Context, limit bool) (err er
 		tempSales []SalesModel
 	)
 
-	query := `select no_pesanan,gross_profit, channel
+	query := `select no_pesanan,gross_profit, channel, nett_sales
 	from sales
 	where is_calculated_profit = false
 	limit 10000`
 
 	if !limit {
-		query = `select no_pesanan,gross_profit, channel
+		query = `select no_pesanan,gross_profit, channel, nett_sales
 		from sales
 		where is_calculated_profit = false`
 	}
@@ -129,6 +129,7 @@ func (q *SqlRepository) UpdateNetProfit(ctx context.Context, limit bool) (err er
 			&i.NoPesanan,
 			&i.GrossProfit,
 			&i.Channel,
+			&i.NettSales,
 		); err != nil {
 			return
 		}
@@ -153,7 +154,7 @@ func (q *SqlRepository) UpdateNetProfit(ctx context.Context, limit bool) (err er
 	defer tx.Rollback()
 
 	for _, val := range tempSales {
-		feePrice := helper.CalculateFeeMarketPlace(val.GrossProfit, val.Channel)
+		feePrice := helper.CalculateFeeMarketPlace(val.NettSales, val.Channel)
 		fixedFee := feePrice
 		if feePrice < 0 {
 			fixedFee = feePrice * -1
