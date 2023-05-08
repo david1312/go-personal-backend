@@ -12,6 +12,7 @@ type GetAllSalesRequest struct {
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 	NoPesanan string `json:"no_pesanan"`
+	Channel   string `json:"channel"`
 }
 
 func (m *GetAllSalesRequest) Bind(r *http.Request) error {
@@ -92,19 +93,19 @@ type SalesDetailResponse struct {
 }
 
 type SalesItem struct {
-	ItemId              int  `json:"item_id"`
-	SKU                 string  `json:"sku"`
-	NamaBarang          string  `json:"nama_barang"`
-	HPPSatuan           float64 `json:"hpp_satuan"`
-	SellPrice           float64 `json:"harga_satuan"`
-	Qty                 float64 `json:"qty"`
-	Unit                 string `json:"unit"`
-	TotalHarga          float64 `json:"total_harga"`
-	DiskonPercent        float64 `json:"diskon_percent"`
-	Diskon              float64 `json:"diskon"`
-	HargaFinal          float64 `json:"harga_final"`
-	HPP                 float64 `json:"total_hpp"`
-	GrossProfit         float64 `json:"gross_profit"`
+	ItemId        int     `json:"item_id"`
+	SKU           string  `json:"sku"`
+	NamaBarang    string  `json:"nama_barang"`
+	HPPSatuan     float64 `json:"hpp_satuan"`
+	SellPrice     float64 `json:"harga_satuan"`
+	Qty           float64 `json:"qty"`
+	Unit          string  `json:"unit"`
+	TotalHarga    float64 `json:"total_harga"`
+	DiskonPercent float64 `json:"diskon_percent"`
+	Diskon        float64 `json:"diskon"`
+	HargaFinal    float64 `json:"harga_final"`
+	HPP           float64 `json:"total_hpp"`
+	GrossProfit   float64 `json:"gross_profit"`
 }
 
 type ApiResponseSalesDetail struct {
@@ -134,4 +135,10 @@ type JUResponseItemList struct {
 	Items []JUItemList `json:"items"`
 	// InvoiceID int `json:"invoice_id"`
 	// InvoiceNo string `json:"invoice_no"`
+}
+
+type SalesFeeChannel struct {
+	Channel       string  `json:"channel"`
+	Fee           float64 `json:"fee"`
+	AdditionalFee float64 `json:"additional_fee"`
 }

@@ -67,9 +67,8 @@ func (rep *ReportsHandler) SalesCalculateProfit(w http.ResponseWriter, r *http.R
 
 func (rep *ReportsHandler) EPGetSalesReport(w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx = r.Context()
-		fp  models.GetAllSalesRequest
-		// authData  = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		ctx               = r.Context()
+		fp                models.GetAllSalesRequest
 		salesResponseList = []models.SalesResponse{}
 	)
 
@@ -89,13 +88,7 @@ func (rep *ReportsHandler) EPGetSalesReport(w http.ResponseWriter, r *http.Reque
 		page = 1
 	}
 
-	salesData, paginationData, summarySales, errCode, err := rep.reportsRepo.GetAllSalesReport(ctx, models.GetAllSalesRequest{
-		Limit:     limit,
-		Page:      page,
-		StartDate: fp.StartDate,
-		EndDate:   fp.EndDate,
-		NoPesanan: fp.NoPesanan,
-	})
+	salesData, paginationData, summarySales, errCode, err := rep.reportsRepo.GetAllSalesReport(ctx, fp)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
@@ -141,4 +134,55 @@ func (rep *ReportsHandler) EPGetSalesByInvoice(w http.ResponseWriter, r *http.Re
 
 	response.Yay(w, r, resData, http.StatusOK)
 
+}
+
+func (rep *ReportsHandler) EPGetLossSalesReport(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		fp  models.GetAllSalesRequest
+		// authData  = ctx.Value(localMdl.CtxKey).(localMdl.Token)
+		salesResponseList = []models.SalesResponse{}
+	)
+
+	if err := render.Bind(r, &fp); err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCodeValidation, err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	limit := fp.Limit
+	if limit < 1 {
+		limit = 20
+	} else if limit > 100 {
+		limit = 100
+	}
+	page := fp.Page
+	if page < 1 {
+		page = 1
+	}
+
+	salesData, paginationData, summarySales, errCode, err := rep.reportsRepo.GetAllSalesMinusReport(ctx, fp)
+	if err != nil {
+		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
+		return
+	}
+
+	for _, val := range salesData {
+		salesResponseList = append(salesResponseList, models.SalesResponse{
+			ID:                  val.ID,
+			Tanggal:             val.Tanggal,
+			NoPesanan:           val.NoPesanan,
+			Status:              val.Status,
+			Channel:             val.Channel,
+			NettSales:           val.NettSales,
+			GrossProfit:         val.GrossProfit,
+			PotonganMarketplace: val.PotonganMarketPlace,
+			NetProfit:           val.NetProfit,
+		})
+	}
+
+	response.Yay(w, r, models.ApiResponseSales{
+		PaginationData: paginationData,
+		SummaryData:    summarySales,
+		SalesList:      salesResponseList,
+	}, http.StatusOK)
 }

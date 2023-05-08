@@ -154,14 +154,14 @@ func (q *SqlRepository) UpdateNetProfit(ctx context.Context, limit bool) (err er
 	defer tx.Rollback()
 
 	for _, val := range tempSales {
-		feePrice := helper.CalculateFeeMarketPlace(val.NettSales, val.Channel)
+		feePrice, interest := helper.CalculateFeeMarketPlaceNew(val.NettSales, val.Channel)
 		fixedFee := feePrice
 		if feePrice < 0 {
 			fixedFee = feePrice * -1
 		}
 		netProfit := val.GrossProfit - fixedFee
-		const query = `update sales set potongan_marketplace = ?, net_profit = ?, is_calculated_profit = true where no_pesanan = ?`
-		_, err = tx.ExecContext(ctx, query, fixedFee, netProfit, val.NoPesanan)
+		const query = `update sales set potongan_marketplace = ?, potongan_marketplace_numeric = ?, net_profit = ?, is_calculated_profit = true where no_pesanan = ?`
+		_, err = tx.ExecContext(ctx, query, fixedFee, interest, netProfit, val.NoPesanan)
 		if err != nil {
 			log.Errorf("error calculate profit with invoice number:%v, due to :%v\r\n", val.NoPesanan, err.Error())
 			return
@@ -188,6 +188,11 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 		totalData   = 0
 	)
 
+	if len(params.Channel) > 0 {
+		whereParams += "and a.channel = ? "
+		args = append(args, params.Channel)
+	}
+
 	whereParams += "and a.tanggal between ? "
 	args = append(args, fmt.Sprintf("%v 00:00:00", params.StartDate))
 
@@ -213,7 +218,7 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 				Else 0 End ),0) as total_net_profit
 	
 	from sales a
-	where 1 = 1 ` + whereParams
+	where 1 = 1  ` + whereParams
 
 	err = q.db.QueryRowContext(ctx, querySummary, args...).Scan(&totalData, &summary.TotalNettSales, &summary.TotalGross, &summary.TotalPotonganMarketplace, &summary.TotalNetProfit)
 	if err != nil {
@@ -268,7 +273,7 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 
 func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string, client *http.Client) (res models.ApiResponseSalesDetail, errCode string, err error) {
 	var (
-		tempSales = models.SalesDetailResponse{}
+		tempSales    = models.SalesDetailResponse{}
 		tempListItem = []models.SalesItem{}
 	)
 	querySummary := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales,
@@ -321,29 +326,29 @@ func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string,
 		return
 	}
 
-	if len(listItem.Items) > 0{
-		for _, val:= range listItem.Items{
+	if len(listItem.Items) > 0 {
+		for _, val := range listItem.Items {
 			hppEach, _ := strconv.ParseFloat(val.Cogs, 64)
 			hargaSatuan, _ := strconv.ParseFloat(val.Price, 64)
-			qty, _ := strconv.ParseFloat(val.QtyInBase, 64) 
-			disc, _ := strconv.ParseFloat(val.Disc, 64) 
-			discAmount, _ := strconv.ParseFloat(val.DiscAmount, 64) 
-			totalPriceAfterDiscount, _ := strconv.ParseFloat(val.Amount, 64) 
-			hppFinal :=hppEach* qty
+			qty, _ := strconv.ParseFloat(val.QtyInBase, 64)
+			disc, _ := strconv.ParseFloat(val.Disc, 64)
+			discAmount, _ := strconv.ParseFloat(val.DiscAmount, 64)
+			totalPriceAfterDiscount, _ := strconv.ParseFloat(val.Amount, 64)
+			hppFinal := hppEach * qty
 			tempListItem = append(tempListItem, models.SalesItem{
-				ItemId: val.ItemID,
-				SKU: val.ItemCode,
-				NamaBarang: val.ItemName,
-				HPPSatuan: hppEach,
-				SellPrice: hargaSatuan,
-				Qty: qty,
-				Unit: val.Unit,
-				TotalHarga: qty * hargaSatuan,
+				ItemId:        val.ItemID,
+				SKU:           val.ItemCode,
+				NamaBarang:    val.ItemName,
+				HPPSatuan:     hppEach,
+				SellPrice:     hargaSatuan,
+				Qty:           qty,
+				Unit:          val.Unit,
+				TotalHarga:    qty * hargaSatuan,
 				DiskonPercent: disc,
-				Diskon: discAmount,
-				HargaFinal: totalPriceAfterDiscount,
-				HPP: hppFinal,
-				GrossProfit: totalPriceAfterDiscount - hppFinal ,
+				Diskon:        discAmount,
+				HargaFinal:    totalPriceAfterDiscount,
+				HPP:           hppFinal,
+				GrossProfit:   totalPriceAfterDiscount - hppFinal,
 			})
 		}
 	}
@@ -423,5 +428,97 @@ func (q *SqlRepository) JUGetDetailInvoice(ctx context.Context, client *http.Cli
 		err = errors.New("error when decode response")
 		return
 	}
+	return
+}
+
+func (q *SqlRepository) GetAllSalesMinusReport(ctx context.Context, params models.GetAllSalesRequest) (res []SalesModel, pageData models.Pagination, summary models.SummarySales, errCode string, err error) {
+	var (
+		args        = make([]interface{}, 0)
+		whereParams = ""
+		offsetNum   = (params.Page - 1) * params.Limit
+		orderBy     = " order by a.tanggal asc "
+		totalData   = 0
+	)
+
+	if len(params.Channel) > 0 {
+		whereParams += "and a.channel = ? "
+		args = append(args, params.Channel)
+	}
+
+	whereParams += "and a.tanggal between ? "
+	args = append(args, fmt.Sprintf("%v 00:00:00", params.StartDate))
+
+	whereParams += "and ? "
+	args = append(args, fmt.Sprintf("%v 23:59:59", params.EndDate))
+
+	if len(params.NoPesanan) > 0 {
+		args = nil
+		whereParams = "and a.no_pesanan = ? "
+		args = append(args, params.NoPesanan)
+	}
+
+	querySummary := `select  COUNT(a.id),
+	COALESCE(SUM(nett_sales),0) AS total_sales,
+	COALESCE(Sum( Case 
+				When status != 'FAILED' AND status != 'RETURNED' then gross_profit
+				Else 0 End ),0) as total_gross,
+	COALESCE(Sum(Case 
+				When status != 'FAILED' AND status != 'RETURNED' then potongan_marketplace
+				Else 0 End ),0) as total_fee,
+	COALESCE(Sum(Case 
+				When status != 'FAILED' AND status != 'RETURNED' then net_profit
+				Else 0 End ),0) as total_net_profit
+	
+	from sales a
+	where 1 = 1  and gross_profit < 0 and status != 'RETURNED' and status != 'FAILED' ` + whereParams
+
+	err = q.db.QueryRowContext(ctx, querySummary, args...).Scan(&totalData, &summary.TotalNettSales, &summary.TotalGross, &summary.TotalPotonganMarketplace, &summary.TotalNetProfit)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	args = append(args, params.Limit, offsetNum)
+
+	queryData := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales, a.gross_profit, a.potongan_marketplace, a.net_profit
+	from sales a
+	where 1=1 and gross_profit < 0 and status != 'RETURNED' and status != 'FAILED' ` + whereParams + orderBy + ` limit ? offset ? `
+	rows, err := q.db.QueryContext(ctx, queryData, args...)
+	if err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var i SalesModel
+
+		if err = rows.Scan(
+			&i.ID,
+			&i.NoPesanan,
+			&i.Tanggal,
+			&i.Status,
+			&i.Channel,
+			&i.NettSales,
+			&i.GrossProfit,
+			&i.PotonganMarketPlace,
+			&i.NetProfit,
+		); err != nil {
+			errCode = crashy.ErrCodeUnexpected
+			return
+		}
+		res = append(res, i)
+	}
+	if err = rows.Close(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+	if err = rows.Err(); err != nil {
+		errCode = crashy.ErrCodeUnexpected
+		return
+	}
+
+	pageData = helper.CalculatePaginationData(params.Page, params.Limit, totalData)
+
 	return
 }

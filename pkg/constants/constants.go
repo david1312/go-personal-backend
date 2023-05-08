@@ -84,8 +84,7 @@ var (
 	CHANNEL_TIKTOK    = "TIKTOK"
 	CHANNEL_TOKOPEDIA = "TOKOPEDIA"
 
-
-	FEE_LAZADA    = 8.75
+	FEE_LAZADA    = 8.0
 	FEE_TOKOPEDIA = 3.1
 	FEE_SHOPEE    = 8.7
 	FEE_TIKTOK    = 1.0 // +IDR 2000 exception only tiktok

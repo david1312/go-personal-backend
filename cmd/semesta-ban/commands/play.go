@@ -3,11 +3,8 @@ package commands
 import (
 	"fmt"
 	"libra-internal/bootstrap"
-	"libra-internal/pkg/helper"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/spf13/cobra"
-	"github.com/umahmood/haversine"
 )
 
 func init() {
@@ -62,61 +59,66 @@ func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 			// 	log.Fatal(e)
 			// }
 
-			fmt.Println("test")
-			oxford := haversine.Coord{Lat: -6.2908157, Lon: 106.6249973} // Oxford, UK
-			turin := haversine.Coord{Lat: -6.3152697, Lon: 106.9505043}  // Turin, Italy
+			// fmt.Println("test")
+			// oxford := haversine.Coord{Lat: -6.2908157, Lon: 106.6249973} // Oxford, UK
+			// turin := haversine.Coord{Lat: -6.3152697, Lon: 106.9505043}  // Turin, Italy
 
-			_, km := haversine.Distance(oxford, turin)
+			// _, km := haversine.Distance(oxford, turin)
 
-			fmt.Println("Kilometers:", km)
-			if km > 30 {
-				fmt.Println("gagal")
-			} else {
-				fmt.Println("lolos")
-			}
+			// fmt.Println("Kilometers:", km)
+			// if km > 30 {
+			// 	fmt.Println("gagal")
+			// } else {
+			// 	fmt.Println("lolos")
+			// }
 
-			f, err := excelize.OpenFile("files/reports/sales-1800315297.xlsx")
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+			// f, err := excelize.OpenFile("files/reports/sales-1800315297.xlsx")
+			// if err != nil {
+			// 	fmt.Println(err)
+			// 	return
+			// }
 
-			style, _ := f.NewStyle(`{"number_format":22}`)
-			f.SetCellStyle("Data", "A2", "A30", style)
+			// style, _ := f.NewStyle(`{"number_format":22}`)
+			// f.SetCellStyle("Data", "A2", "A30", style)
 
-			// Get value from cell by given worksheet name and cell reference.
-			cell := f.GetCellValue("Data", "A2")
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			fmt.Println(cell)
-			// Get all the rows in the Sheet1.
-			rows := f.GetRows("Data")
-			f.SetCellStyle("Data", "A2", fmt.Sprintf("A%v", len(rows)), style)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			fmt.Println(len(rows))
-			counter := 0
-			for _, row := range rows {
-				counter++
-				if counter == 1 {
-					continue
-				}
-				var dateColumn = 0
-				for i, colCell := range row {
-					if i == dateColumn {
-						fmt.Println(helper.ConvertDateTimeReportExcel(colCell))
-					}
-					fmt.Printf("%v ", colCell)
-				}
-				fmt.Println()
-				if counter > 4 {
-					break
-				}
-			}
+			// // Get value from cell by given worksheet name and cell reference.
+			// cell := f.GetCellValue("Data", "A2")
+			// if err != nil {
+			// 	fmt.Println(err)
+			// 	return
+			// }
+			// fmt.Println(cell)
+			// // Get all the rows in the Sheet1.
+			// rows := f.GetRows("Data")
+			// f.SetCellStyle("Data", "A2", fmt.Sprintf("A%v", len(rows)), style)
+			// if err != nil {
+			// 	fmt.Println(err)
+			// 	return
+			// }
+			// fmt.Println(len(rows))
+			// counter := 0
+			// for _, row := range rows {
+			// 	counter++
+			// 	if counter == 1 {
+			// 		continue
+			// 	}
+			// 	var dateColumn = 0
+			// 	for i, colCell := range row {
+			// 		if i == dateColumn {
+			// 			fmt.Println(helper.ConvertDateTimeReportExcel(colCell))
+			// 		}
+			// 		fmt.Printf("%v ", colCell)
+			// 	}
+			// 	fmt.Println()
+			// 	if counter > 4 {
+			// 		break
+			// 	}
+			// }
+
+			varA := 1.82
+			amount := 317000
+			result := float64(amount) * varA
+			fmt.Println(result)
 
 		},
 	}

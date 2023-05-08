@@ -446,11 +446,28 @@ func CalculateFeeMarketPlace(profit float64, channel string) float64 {
 	case constants.CHANNEL_SHOPEE:
 		return profit * constants.FEE_SHOPEE / 100.0
 	case constants.CHANNEL_TIKTOK:
-		return profit * constants.FEE_TIKTOK / 100.0
+		return profit*constants.FEE_TIKTOK/100.0 + 2000
 	case constants.CHANNEL_AKULAKU:
 		return profit * constants.FEE_AKULAKU / 100.0
 	default:
 		return 0
+	}
+}
+
+func CalculateFeeMarketPlaceNew(profit float64, channel string) (float64, float64) {
+	switch channel {
+	case constants.CHANNEL_LAZADA:
+		return profit * constants.FEE_LAZADA / 100.0, constants.FEE_LAZADA
+	case constants.CHANNEL_TOKOPEDIA:
+		return profit * constants.FEE_TOKOPEDIA / 100.0, constants.FEE_TOKOPEDIA
+	case constants.CHANNEL_SHOPEE:
+		return profit * constants.FEE_SHOPEE / 100.0, constants.FEE_SHOPEE
+	case constants.CHANNEL_TIKTOK:
+		return profit*constants.FEE_TIKTOK/100.0 + 2000, constants.FEE_TIKTOK
+	case constants.CHANNEL_AKULAKU:
+		return profit * constants.FEE_AKULAKU / 100.0, constants.FEE_AKULAKU
+	default:
+		return 0, 0
 	}
 }
 
