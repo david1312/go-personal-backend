@@ -175,10 +175,6 @@ func (q *SqlRepository) UpdateNetProfit(ctx context.Context, limit bool) (err er
 	return
 }
 
-func (q *SqlRepository) GetDetailInvoice(ctx context.Context, noPesanan string) (err error) {
-	return
-}
-
 func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.GetAllSalesRequest) (res []SalesModel, pageData models.Pagination, summary models.SummarySales, errCode string, err error) {
 	var (
 		args        = make([]interface{}, 0)
@@ -227,7 +223,7 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 	}
 	args = append(args, params.Limit, offsetNum)
 
-	queryData := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales, a.gross_profit, a.potongan_marketplace, a.net_profit
+	queryData := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales, a.gross_profit, a.potongan_marketplace, a.net_profit, a.potongan_marketplace_numeric
 	from sales a
 	where 1=1 ` + whereParams + orderBy + ` limit ? offset ? `
 	rows, err := q.db.QueryContext(ctx, queryData, args...)
@@ -251,6 +247,7 @@ func (q *SqlRepository) GetAllSalesReport(ctx context.Context, params models.Get
 			&i.GrossProfit,
 			&i.PotonganMarketPlace,
 			&i.NetProfit,
+			&i.PotonganMarketPlaceNumeric,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return
@@ -278,7 +275,7 @@ func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string,
 	)
 	querySummary := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales,
 	a.gross_profit, a.potongan_marketplace, a.net_profit, a.ref, a.nama_toko, a.pelanggan, COALESCE(a.status,''),
-	a.sub_total, a.diskon, a.diskon_lainnya, a.biaya_lain, a.hpp
+	a.sub_total, a.diskon, a.diskon_lainnya, a.biaya_lain, a.hpp, a.potongan_marketplace_numeric
 	from sales a
 	where no_pesanan = ?`
 
@@ -301,6 +298,7 @@ func (q *SqlRepository) GetSalesByInvoice(ctx context.Context, noPesanan string,
 			&tempSales.DiskonLainnya,
 			&tempSales.BiayaLain,
 			&tempSales.HPP,
+			&tempSales.PotonganMarketplaceNumeric,
 		)
 	if err != nil && err != sql.ErrNoRows {
 		errCode = crashy.ErrCodeUnexpected
@@ -479,7 +477,7 @@ func (q *SqlRepository) GetAllSalesMinusReport(ctx context.Context, params model
 	}
 	args = append(args, params.Limit, offsetNum)
 
-	queryData := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales, a.gross_profit, a.potongan_marketplace, a.net_profit
+	queryData := `select a.id, a.no_pesanan, a.tanggal, a.status, a.channel, a.nett_sales, a.gross_profit, a.potongan_marketplace, a.net_profit, a.potongan_marketplace_numeric
 	from sales a
 	where 1=1 and gross_profit < 0 and status != 'RETURNED' and status != 'FAILED' ` + whereParams + orderBy + ` limit ? offset ? `
 	rows, err := q.db.QueryContext(ctx, queryData, args...)
@@ -503,6 +501,7 @@ func (q *SqlRepository) GetAllSalesMinusReport(ctx context.Context, params model
 			&i.GrossProfit,
 			&i.PotonganMarketPlace,
 			&i.NetProfit,
+			&i.PotonganMarketPlaceNumeric,
 		); err != nil {
 			errCode = crashy.ErrCodeUnexpected
 			return

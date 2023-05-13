@@ -55,15 +55,16 @@ type SummarySales struct {
 }
 
 type SalesResponse struct {
-	ID                  int     `json:"id"`
-	Tanggal             string  `json:"tanggal"`
-	NoPesanan           string  `json:"no_pesanan"`
-	Status              string  `json:"status"`
-	Channel             string  `json:"channel"`
-	NettSales           float64 `json:"nett_sales"`
-	GrossProfit         float64 `json:"gross_profit"`
-	PotonganMarketplace float64 `json:"potongan_marketplace"`
-	NetProfit           float64 `json:"net_profit"`
+	ID                         int     `json:"id"`
+	Tanggal                    string  `json:"tanggal"`
+	NoPesanan                  string  `json:"no_pesanan"`
+	Status                     string  `json:"status"`
+	Channel                    string  `json:"channel"`
+	NettSales                  float64 `json:"nett_sales"`
+	GrossProfit                float64 `json:"gross_profit"`
+	PotonganMarketplace        float64 `json:"potongan_marketplace"`
+	PotonganMarketplaceNumeric float64 `json:"potongan_marketplace_numeric"`
+	NetProfit                  float64 `json:"net_profit"`
 }
 
 type ApiResponseSales struct {
@@ -73,23 +74,24 @@ type ApiResponseSales struct {
 }
 
 type SalesDetailResponse struct {
-	ID                  int     `json:"id"`
-	NoPesanan           string  `json:"no_pesanan"`
-	NoRef               string  `json:"ref"`
-	Tanggal             string  `json:"tanggal"`
-	NamaToko            string  `json:"nama_toko"`
-	Channel             string  `json:"channel"`
-	Pelanggan           string  `json:"pelanggan"`
-	Status              string  `json:"status"`
-	SubTotal            float64 `json:"sub_total"`
-	Diskon              float64 `json:"diskon"`
-	DiskonLainnya       float64 `json:"diskon_lainnya"`
-	BiayaLain           float64 `json:"biaya_lain"`
-	NettSales           float64 `json:"nett_sales"`
-	HPP                 float64 `json:"hpp"`
-	GrossProfit         float64 `json:"gross_profit"`
-	PotonganMarketplace float64 `json:"potongan_marketplace"`
-	NetProfit           float64 `json:"net_profit"`
+	ID                         int     `json:"id"`
+	NoPesanan                  string  `json:"no_pesanan"`
+	NoRef                      string  `json:"ref"`
+	Tanggal                    string  `json:"tanggal"`
+	NamaToko                   string  `json:"nama_toko"`
+	Channel                    string  `json:"channel"`
+	Pelanggan                  string  `json:"pelanggan"`
+	Status                     string  `json:"status"`
+	SubTotal                   float64 `json:"sub_total"`
+	Diskon                     float64 `json:"diskon"`
+	DiskonLainnya              float64 `json:"diskon_lainnya"`
+	BiayaLain                  float64 `json:"biaya_lain"`
+	NettSales                  float64 `json:"nett_sales"`
+	HPP                        float64 `json:"hpp"`
+	GrossProfit                float64 `json:"gross_profit"`
+	PotonganMarketplace        float64 `json:"potongan_marketplace"`
+	PotonganMarketplaceNumeric float64 `json:"potongan_marketplace_numeric"`
+	NetProfit                  float64 `json:"net_profit"`
 }
 
 type SalesItem struct {

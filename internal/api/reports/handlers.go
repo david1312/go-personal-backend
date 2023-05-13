@@ -96,15 +96,16 @@ func (rep *ReportsHandler) EPGetSalesReport(w http.ResponseWriter, r *http.Reque
 
 	for _, val := range salesData {
 		salesResponseList = append(salesResponseList, models.SalesResponse{
-			ID:                  val.ID,
-			Tanggal:             val.Tanggal,
-			NoPesanan:           val.NoPesanan,
-			Status:              val.Status,
-			Channel:             val.Channel,
-			NettSales:           val.NettSales,
-			GrossProfit:         val.GrossProfit,
-			PotonganMarketplace: val.PotonganMarketPlace,
-			NetProfit:           val.NetProfit,
+			ID:                         val.ID,
+			Tanggal:                    val.Tanggal,
+			NoPesanan:                  val.NoPesanan,
+			Status:                     val.Status,
+			Channel:                    val.Channel,
+			NettSales:                  val.NettSales,
+			GrossProfit:                val.GrossProfit,
+			PotonganMarketplace:        val.PotonganMarketPlace,
+			PotonganMarketplaceNumeric: val.PotonganMarketPlaceNumeric,
+			NetProfit:                  val.NetProfit,
 		})
 	}
 
@@ -168,15 +169,16 @@ func (rep *ReportsHandler) EPGetLossSalesReport(w http.ResponseWriter, r *http.R
 
 	for _, val := range salesData {
 		salesResponseList = append(salesResponseList, models.SalesResponse{
-			ID:                  val.ID,
-			Tanggal:             val.Tanggal,
-			NoPesanan:           val.NoPesanan,
-			Status:              val.Status,
-			Channel:             val.Channel,
-			NettSales:           val.NettSales,
-			GrossProfit:         val.GrossProfit,
-			PotonganMarketplace: val.PotonganMarketPlace,
-			NetProfit:           val.NetProfit,
+			ID:                         val.ID,
+			Tanggal:                    val.Tanggal,
+			NoPesanan:                  val.NoPesanan,
+			Status:                     val.Status,
+			Channel:                    val.Channel,
+			NettSales:                  val.NettSales,
+			GrossProfit:                val.GrossProfit,
+			PotonganMarketplace:        val.PotonganMarketPlace,
+			PotonganMarketplaceNumeric: val.PotonganMarketPlaceNumeric,
+			NetProfit:                  val.NetProfit,
 		})
 	}
 
