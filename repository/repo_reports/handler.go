@@ -63,6 +63,9 @@ func (q *SqlRepository) SyncUpSales(ctx context.Context, fileName, dir string) (
 		for i, colCell := range row {
 			// a := slices.Contains()
 			isNumberColumn := slices.Contains(constants.TypeDataNumberReportsSales, i)
+			if i >= 11 && i <= 13 {
+				continue
+			}
 			if i == dateColumn {
 				args = append(args, helper.ConvertDateTimeReportExcel(colCell))
 			} else if isNumberColumn {
@@ -74,6 +77,8 @@ func (q *SqlRepository) SyncUpSales(ctx context.Context, fileName, dir string) (
 		for _, valArg := range args {
 			args = append(args, valArg)
 		}
+		fmt.Println(args...)
+		fmt.Println(len(args))
 
 		//insert data to db
 		const query = `insert into sales 
