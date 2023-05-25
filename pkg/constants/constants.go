@@ -84,7 +84,7 @@ var (
 	CHANNEL_TIKTOK    = "TIKTOK"
 	CHANNEL_TOKOPEDIA = "TOKOPEDIA"
 
-	FEE_LAZADA    = 8.7
+	FEE_LAZADA    = 8.75
 	FEE_TOKOPEDIA = 3.1
 	FEE_SHOPEE    = 8.7
 	FEE_TIKTOK    = 1.0 // +IDR 2000 exception only tiktok
@@ -102,6 +102,6 @@ var (
 // temp
 var (
 	JU_USER    = "davidbernadi13@gmail.com"
-	JU_PASS    = "jubelio1312@@"
+	JU_PASS    = "Mitoma13@@"
 	JU_EXPIRED = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTRVI6ZGF2aWRiZXJuYWRpMTNAZ21haWwuY29tOjE3Mi43MC4xODguNDYiLCJleHAiOjEwNjk2NDk1MzQsImlzX3dtc19taWdyYXRlZCI6dHJ1ZSwiaWF0IjoxNjgxMDI2NDQ5fQ.aGK9Xz4fD3fsRnhG6yopb1NhPLluJlakAN2pTsQ9Xxk"
 )
