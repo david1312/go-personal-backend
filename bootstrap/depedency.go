@@ -7,12 +7,6 @@ import (
 type Dependency struct {
 	cfg Config
 	db  *sqlx.DB
-	// redis           *redis.Client
-	// dispatcher      *channel.DispatcherHandler
-	// smtp            *smtp.Client
-	// encryptor       crypto.Repository
-	// minioClient     *minio.Client
-	// azureSharedCred *azblob.SharedKeyCredential
 }
 
 func NewDependency() *Dependency {

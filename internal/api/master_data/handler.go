@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"libra-internal/pkg/constants"
 	cn "libra-internal/pkg/constants"
 	"libra-internal/pkg/crashy"
 	"libra-internal/pkg/helper"
@@ -356,7 +357,7 @@ func (md *MasterDataHandler) EPAddBrandMotor(w http.ResponseWriter, r *http.Requ
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPRemoveBrandMotor(w http.ResponseWriter, r *http.Request) {
@@ -386,7 +387,7 @@ func (md *MasterDataHandler) EPRemoveBrandMotor(w http.ResponseWriter, r *http.R
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPUpdateBrandMotor(w http.ResponseWriter, r *http.Request) {
@@ -405,7 +406,7 @@ func (md *MasterDataHandler) EPUpdateBrandMotor(w http.ResponseWriter, r *http.R
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPUpdateBrandMotorIcon(w http.ResponseWriter, r *http.Request) {
@@ -439,7 +440,7 @@ func (md *MasterDataHandler) EPUpdateBrandMotorIcon(w http.ResponseWriter, r *ht
 
 	errCode, err = md.mdRepo.UpdateBrandMotorImage(ctx, idMotor, fileName, md.uploadPath, cn.MotorBrandDir)
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -475,7 +476,7 @@ func (md *MasterDataHandler) EPAddTireBrand(w http.ResponseWriter, r *http.Reque
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPRemoveTireBrand(w http.ResponseWriter, r *http.Request) {
@@ -505,7 +506,7 @@ func (md *MasterDataHandler) EPRemoveTireBrand(w http.ResponseWriter, r *http.Re
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPUpdateTireBrand(w http.ResponseWriter, r *http.Request) {
@@ -524,7 +525,7 @@ func (md *MasterDataHandler) EPUpdateTireBrand(w http.ResponseWriter, r *http.Re
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPUpdateTireBrandIcon(w http.ResponseWriter, r *http.Request) {
@@ -557,7 +558,7 @@ func (md *MasterDataHandler) EPUpdateTireBrandIcon(w http.ResponseWriter, r *htt
 
 	errCode, err = md.mdRepo.UpdateTireBrandImage(ctx, id, fileName, md.uploadPath, cn.TireBrandDir)
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -682,7 +683,7 @@ func (md *MasterDataHandler) EPMotorAdd(w http.ResponseWriter, r *http.Request) 
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPMotorUpdate(w http.ResponseWriter, r *http.Request) {
@@ -701,7 +702,7 @@ func (md *MasterDataHandler) EPMotorUpdate(w http.ResponseWriter, r *http.Reques
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPMotorUpdateImage(w http.ResponseWriter, r *http.Request) {
@@ -735,7 +736,7 @@ func (md *MasterDataHandler) EPMotorUpdateImage(w http.ResponseWriter, r *http.R
 
 	errCode, err = md.mdRepo.MotorUpdateImage(ctx, id, fileName, md.uploadPath, cn.MotorDir)
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -766,7 +767,7 @@ func (md *MasterDataHandler) EPMotorRemove(w http.ResponseWriter, r *http.Reques
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPTireSizeAdd(w http.ResponseWriter, r *http.Request) {
@@ -799,7 +800,7 @@ func (md *MasterDataHandler) EPTireSizeAdd(w http.ResponseWriter, r *http.Reques
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPTireSizeDelete(w http.ResponseWriter, r *http.Request) {
@@ -829,7 +830,7 @@ func (md *MasterDataHandler) EPTireSizeDelete(w http.ResponseWriter, r *http.Req
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) EPTireRingAdd(w http.ResponseWriter, r *http.Request) {
@@ -861,7 +862,7 @@ func (md *MasterDataHandler) EPTireRingAdd(w http.ResponseWriter, r *http.Reques
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) MagicHandler(w http.ResponseWriter, r *http.Request) {
@@ -874,7 +875,7 @@ func (md *MasterDataHandler) MagicHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) TransactionExpiredHandler(w http.ResponseWriter, r *http.Request) {
@@ -887,7 +888,7 @@ func (md *MasterDataHandler) TransactionExpiredHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (md *MasterDataHandler) CheckLocation(w http.ResponseWriter, r *http.Request) {

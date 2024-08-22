@@ -21,10 +21,10 @@ func migrateUpCommand(dep *bootstrap.Dependency) *cobra.Command {
 		Short: "Apply all up migrations",
 		Long:  `This command applies all the database migrations in the "up" direction.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// cfg := dep.GetConfig()
+			cfg := dep.GetConfig()
 			m, err := migrate.New(
-				"file://files/db_migration/", // Replace with the correct path to your migration files
-				"mysql://mysql_user:mysql_password@tcp(localhost:3306)/sunmoris_customer",            // Replace with your database URL
+				cfg.Database.MigrationPath,
+				cfg.Database.MigrationUrl,
 			)
 			if err != nil {
 				log.Fatalf("failed to create migrate instance: %v", err)
@@ -51,8 +51,8 @@ func migrateDownCommand(dep *bootstrap.Dependency) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg := dep.GetConfig()
 			m, err := migrate.New(
-				"file://path/to/migrations", // Replace with the correct path to your migration files
-				cfg.Database.Write,            // Replace with your database URL
+				cfg.Database.MigrationPath,
+				cfg.Database.MigrationUrl,
 			)
 			if err != nil {
 				log.Fatalf("failed to create migrate instance: %v", err)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"libra-internal/bootstrap"
 	"libra-internal/internal/api"
+	"libra-internal/internal/api/customers"
 	"libra-internal/internal/api/transactions"
 	"libra-internal/pkg/helper"
 	"libra-internal/pkg/log"
@@ -19,7 +20,6 @@ func init() {
 	registerCommand(startRestService)
 }
 
-// todo create script for  migration db automation
 func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{
 		Use:   "rest",
@@ -46,12 +46,22 @@ func startRestService(dep *bootstrap.Dependency) *cobra.Command {
 					ServerKey:  cfg.Midtrans.ServerKey,
 					AuthKey:    helper.GenerateB64AuthMidtrans(cfg.Midtrans.ServerKey),
 				},
+				SMTPConfig: customers.SMTPConfig{
+					Host:         cfg.SMTP.Host,
+					Port:         cfg.SMTP.Port,
+					SenderName:   cfg.SMTP.SenderName,
+					AuthEmail:    cfg.SMTP.AuthEmail,
+					AuthPassword: cfg.SMTP.AuthPassword,
+				},
+				FcmConfig: transactions.FCMConfig{
+					NotifUrl:  cfg.FCM.NotifUrl,
+					ClientKey: cfg.FCM.ClientKey,
+				},
 			})
 			// application context, which will be cancelled upon receiving termination signal
 			actx, _ := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
 
 			srv := http.Server{Addr: cfg.Host.Address, Handler: handler}
-			//end testing
 
 			//implement graceful shutdown
 			errChan := make(chan error)

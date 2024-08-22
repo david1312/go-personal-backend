@@ -33,30 +33,6 @@ create table carts
 
 );
 
-create table carts_item
-(
-    id              bigint primary key AUTO_INCREMENT,
-    carts_id              bigint not null,
-    product_id              bigint not null,
-    qty             int not null default 1,
-    is_selected   boolean not null default true,
-    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
-    updated_at      timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    foreign key (carts_id) references carts(id),
-    foreign key (product_id) references products(KodePLU)
-);
-
-create table wishlists
-(
-    customer_id              bigint not null,
-    product_id              bigint not null,
-    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
-    
-    foreign key (customer_id) references customers (id),
-    foreign key (product_id) references products(KodePLU)
-);
-
 
 create table outlets
 (
@@ -70,21 +46,6 @@ create table outlets
     gmap_url varchar(50) not null
 );
 
-ALTER TABLE `tbltransaksihead`
-ADD `IdOutlet` bigint NOT NULL DEFAULT '1' AFTER `Pending`,
-ADD `TipeTransaksi` enum('Booking Outlet', 'Kirim Barang') NOT NULL DEFAULT 'Booking Outlet' after `IdOutlet`,
-ADD `StatusTransaksi` enum('Menunggu Konfirmasi', 'Menunggu Kedatangan', 'Diproses', 'Selesai') NOT NULL AFTER `TipeTransaksi`,
-ADD `StatusPembayaran` enum('Lunas', 'Belum Lunas') NOT NULL AFTER `StatusTransaksi`,
-ADD `MetodePembayaran`  varchar(50) AFTER `StatusPembayaran`,
-ADD `JadwalPemasangan` enum('08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00') NOT NULL AFTER `MetodePembayaran`,
-ADD `CustomerId` bigint NOT NULL AFTER `JadwalPemasangan`,
-ADD `Catatan` varchar(50) DEFAULT NULL `CustomerId`,
-ADD `UpdatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP after `CreateDate`,
-ADD foreign key (CustomerId) references customers (id)
-;
-
-ALTER TABLE `tbltransaksidetail`
-ADD FOREIGN KEY (`IdBarang`) REFERENCES `products` (`KodePLU`) ON DELETE NO ACTION;
 
 
 CREATE TABLE `payment_category` (
@@ -92,6 +53,7 @@ CREATE TABLE `payment_category` (
   `name` varchar(30) NOT NULL,
   PRIMARY KEY (`id`)
 );
+
 
 CREATE TABLE `payment_method` (
   `id` varchar(50) NOT NULL ,
@@ -101,39 +63,6 @@ CREATE TABLE `payment_method` (
    icon     varchar(50) not null default 'default.png',
   PRIMARY KEY (`id`),
  foreign key (id_payment_category) references payment_category(id)
-);
-
-ALTER TABLE t1 ENGINE = InnoDB;
-
-ALTER TABLE `products`
-ADD `CreatedAt` timestamp DEFAULT CURRENT_TIMESTAMP AFTER `Deskripsi`,
-ADD `UpdatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  AFTER `CreatedAt`
-;
-
-ALTER TABLE `tbltransaksihead`
-ADD `Source` enum('APP', 'OFFLINE') NOT NULL DEFAULT 'OFFLINE' AFTER `Catatan`
-;
-
-create table product_ratings
-(
-    id              bigint primary key AUTO_INCREMENT,
-    customer_id              bigint not null,
-    product_id              bigint not null,
-    comment varchar(200),
-    rating tinyint not null,
-    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
-    
-    foreign key (customer_id) references customers (id),
-    foreign key (product_id) references products(KodePLU)
-);
-
-create table product_ratings_img
-(
-    id_ratings              bigint,
-    image              varchar(50) not null,
-    created_at      timestamp DEFAULT CURRENT_TIMESTAMP,
-    
-    foreign key (id_ratings) references product_ratings (id)
 );
 
 create table outlet_ratings

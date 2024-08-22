@@ -3,6 +3,7 @@ package auth
 import (
 	localMdl "libra-internal/internal/api/middleware"
 	"libra-internal/internal/api/response"
+	"libra-internal/pkg/constants"
 	"net/http"
 	"time"
 
@@ -13,8 +14,6 @@ type AuthHandler struct {
 	jwt       *localMdl.JWT
 	anonToken *localMdl.JWT
 }
-
-//todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
 
 func NewAuthHandler(jwt *localMdl.JWT, an *localMdl.JWT) *AuthHandler {
 	return &AuthHandler{jwt: jwt, anonToken: an}
@@ -27,8 +26,7 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	)
 
 	//generate token
-	// expiredTime := time.Now().Add(3 * time.Minute)
-	expiredTime := time.Now().Add(24 * 7 * time.Hour)
+	expiredTime := time.Now().Add(constants.LoginTokenExpiry)
 	_, tokenLogin, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      authData.Uid,
 		CustName: authData.CustName,
@@ -36,16 +34,15 @@ func (usr *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//generate refresh token
-	// expiredTimeRefresh := time.Now().Add(time.Minute * 4)
-	expiredTimeRefresh := time.Now().Add(time.Hour * 24 * 14)
+	expiredTimeRefresh := time.Now().Add(constants.RefreshTokenExpiry)
 	_, tokenRefresh, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      authData.Uid,
 		CustName: authData.CustName,
 		Expired:  expiredTimeRefresh,
 	})
 
-	// expiredTimeAnon := time.Now().Add(time.Minute * 3)
-	expiredTimeAnon := time.Now().Add(time.Hour * 24 * 30)
+	//renew anon token expiration
+	expiredTimeAnon := time.Now().Add(constants.AnonymousTokenExpiry)
 	_, anonToken, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      uuid.New().String(),
 		CustName: "",
@@ -67,8 +64,7 @@ func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request
 	uid := uuid.New().String()
 
 	//generate token
-	// expiredTime := time.Now().Add(time.Minute * 3)
-	expiredTime := time.Now().Add(time.Hour * 24 * 30)
+	expiredTime := time.Now().Add(constants.AnonymousTokenExpiry)
 	_, token, _ := usr.jwt.JWTAuth.Encode(&localMdl.Token{
 		Uid:      uid,
 		CustName: "",
@@ -85,7 +81,7 @@ func (usr *AuthHandler) GetAnonymousToken(w http.ResponseWriter, r *http.Request
 func (usr *AuthHandler) GetVersion(w http.ResponseWriter, r *http.Request) {
 
 	response.Yay(w, r, Version{
-		ApiVersion: "v0.0.1",
+		ApiVersion: constants.ApiVersion,
 	}, http.StatusOK)
 
 }

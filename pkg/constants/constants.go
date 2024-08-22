@@ -1,8 +1,14 @@
 package constants
 
+import "time"
+
 const (
-	OrderAsc  = "ASC"
+	OrderAsc  = "Asc"
 	OrderDesc = "Desc"
+
+	//
+	StatusSuccess = "success"
+	StatusFailed  = "failed"
 
 	UserDir           = "usr/"
 	ProductDir        = "product/"
@@ -44,6 +50,8 @@ const (
 	MTransStatusCancel     = "cancel"
 	MTransStatusDeny       = "deny"
 
+	TransactionSourceApp = "APP"
+
 	CSNumber = "081217950269"
 
 	TransStatusBerhasil = "Berhasil"
@@ -57,7 +65,12 @@ const (
 	TF_BRI     = "TF_BRI"
 	COD        = "COD"
 
-	T_STATUS_MENUNGGU_DIPASANG = "Menunggu Dipasang"
+	TranStatusPembayaran = "Menunggu Pembayaran"
+	TranStatusDipasang   = "Menunggu Dipasang"
+	TranStatusDiproses   = "Diproses"
+	TranStatusBerhasil   = "Berhasil"
+	TranStatusBatal      = "Pesanan Dibatalkan"
+	TranStatusSelesai    = "Selesai"
 
 	DirectPayment = "Bayar Langsung"
 
@@ -66,11 +79,23 @@ const (
 	MAX_COMMON_SIZE  = 10
 
 	FORMAT_EXCEL = "sales-*.xlsx"
+
+	// register related
+	MinimumLengthPassword = 6
+	// token related
+	LoginTokenExpiry     = 24 * 7 * time.Hour  // 7 days
+	RefreshTokenExpiry   = 24 * 14 * time.Hour // 14 days
+	AnonymousTokenExpiry = 24 * 30 * time.Hour // 30 days
+	ApiVersion           = "v1.0.0"
+
+	// others
+	BannerMsgToday    = "Ban pilihan mu akan dipasang hari ini"
+	BannerMsgUpcoming = "Ban pilihan mu akan dipasang dalam %v hari"
 )
 
 var (
 	ScheduleTime               []string = []string{"08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"}
-	TransStatus                []string = []string{"Menunggu Pembayaran", "Menunggu Dipasang", "Diproses", "Berhasil", "Pesanan Dibatalkan", "Selesai"}
+	TransStatus                []string = []string{TranStatusPembayaran, TranStatusDipasang, TranStatusDiproses, TranStatusBerhasil, TranStatusBatal, TranStatusSelesai}
 	TypeDataNumberReportsSales []int    = []int{8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19}
 )
 
@@ -98,10 +123,15 @@ var (
 	STATUS_PAID       = "PAID"
 )
 
-// FEE_LAZADA    = 8.0
-// temp
 var (
 	JU_USER    = "davidbernadi13@gmail.com"
 	JU_PASS    = "Mitoma13@@"
 	JU_EXPIRED = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlVTRVI6ZGF2aWRiZXJuYWRpMTNAZ21haWwuY29tOjE3Mi43MC4xODguNDYiLCJleHAiOjEwNjk2NDk1MzQsImlzX3dtc19taWdyYXRlZCI6dHJ1ZSwiaWF0IjoxNjgxMDI2NDQ5fQ.aGK9Xz4fD3fsRnhG6yopb1NhPLluJlakAN2pTsQ9Xxk"
+)
+
+// push notif fcm related
+var (
+	PushNotifAction     = "page_transaction"
+	PushNotifMsgSuccess = "Selamat pembayaran untuk invoice %v berhasil diterima, silahkan datang ke outlet kami dijadwal yang sudah anda pilih untuk mendapatkan free pemasangan ban"
+	PushNotifTitle      = "Pembayaran Berhasil Diterima"
 )

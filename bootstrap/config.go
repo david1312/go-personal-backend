@@ -14,7 +14,9 @@ type Config struct {
 	} `yaml:"host"`
 
 	Database struct {
-		Write string `yaml:"write"`
+		Write         string `yaml:"write"`
+		MigrationUrl  string `yaml:"migration_url"`
+		MigrationPath string `yaml:"migration_path"`
 	} `yaml:"database"`
 
 	Key struct {
@@ -24,7 +26,8 @@ type Config struct {
 	} `yaml:"key"`
 
 	Api struct {
-		TimeOut int32 `yaml:"timeout"`
+		BaseUrl string `yaml:"base_url"`
+		TimeOut int32  `yaml:"timeout"`
 	} `yaml:"api"`
 
 	Assets struct {
@@ -44,7 +47,25 @@ type Config struct {
 		MerchantId string `yaml:"merchant_id"`
 		ClientKey  string `yaml:"client_key"`
 		ServerKey  string `yaml:"server_key"`
+		BaseUrl    string `yaml:"base_url"`
+		Api        struct {
+			Charge  string `yaml:"charge"`
+			Inquiry string `yaml:"inquiry"`
+		} `yaml:"api"`
 	} `yaml:"midtrans"`
+
+	SMTP struct {
+		Host         string `yaml:"host"`
+		Port         int    `yaml:"port"`
+		SenderName   string `yaml:"sender_name"`
+		AuthEmail    string `yaml:"auth_email"`
+		AuthPassword string `yaml:"auth_password"`
+	} `yaml:"smtp"`
+
+	FCM struct {
+		NotifUrl  string `yaml:"notif_url"`
+		ClientKey string `yaml:"client_key"`
+	} `yaml:"fcm"`
 }
 
 func LoadConfig(file string) (cnfg Config, err error) {

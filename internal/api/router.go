@@ -2,20 +2,18 @@ package api
 
 import (
 	"libra-internal/internal/api/auth"
-	cust "libra-internal/internal/api/customers"
+	"libra-internal/internal/api/customers"
 	"libra-internal/internal/api/master_data"
 	"libra-internal/internal/api/merchant"
 	localMdl "libra-internal/internal/api/middleware"
 	"libra-internal/internal/api/products"
 	"libra-internal/internal/api/ratings"
-	"libra-internal/internal/api/reports"
 	"libra-internal/internal/api/transactions"
 	"libra-internal/repository/repo_customers"
 	"libra-internal/repository/repo_master_data"
 	"libra-internal/repository/repo_merchant"
 	"libra-internal/repository/repo_products"
 	"libra-internal/repository/repo_ratings"
-	"libra-internal/repository/repo_reports"
 	"libra-internal/repository/repo_transactions"
 	"net/http"
 
@@ -36,16 +34,13 @@ type ServerConfig struct {
 	ProfilePicPath    string
 	ProfilePicMaxSize int
 	MidtransConfig    transactions.MidtransConfig
+	FcmConfig         transactions.FCMConfig
+	SMTPConfig        customers.SMTPConfig
 }
 
-// todo add rate limiter
-// todo add expired token from config
-// todo add base url from config for profile picture , product picture
-// implement credential email from config
 func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	var (
-		r = chi.NewRouter()
-		// ul = NewUnitLimiter()
+		r                 = chi.NewRouter()
 		jwt               = localMdl.New([]byte(cnf.JWTKey))
 		anon              = localMdl.New([]byte(cnf.AnonymousKey))
 		cuRepo            = repo_customers.NewSqlRepository(db)
@@ -53,15 +48,12 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		mdRepo            = repo_master_data.NewSqlRepository(db)
 		trRepo            = repo_transactions.NewSqlRepository(db)
 		rateRepo          = repo_ratings.NewSqlRepository(db)
-		reportsRepo       = repo_reports.NewSqlRepository(db)
-		custHandler       = cust.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize)
+		custHandler       = customers.NewUsersHandler(db, cuRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicPath, cnf.ProfilePicMaxSize, cnf.SMTPConfig)
 		authHandler       = auth.NewAuthHandler(jwt, anon)
 		prodHandler       = products.NewProductsHandler(db, prRepo, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
-		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig)
+		transHandler      = transactions.NewTransactionsHandler(db, prRepo, mdRepo, trRepo, cnf.BaseAssetsUrl, client, cnf.MidtransConfig, cnf.FcmConfig)
 		masterDataHandler = master_data.NewMasterDataHandler(db, mdRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
 		rateHandler       = ratings.NewRatingsHandler(db, rateRepo, prRepo, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.MaxFileSize)
-		reportHandler     = reports.NewReportsHandler(reportsRepo, client)
-
 		//merchant
 		merchRepo       = repo_merchant.NewSqlRepository(db)
 		merchantHandler = merchant.NewMerchantHandler(merchRepo, prRepo, jwt, cnf.BaseAssetsUrl, cnf.UploadPath, cnf.ProfilePicMaxSize)
@@ -143,7 +135,6 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 		r.Post("/payment-instruction", transHandler.GetPaymentInstruction)
 		r.Post("/detail", transHandler.GetTransactionDetail)
 		r.Get("/count", transHandler.GetCountTransaction)
-		r.Get("/test", transHandler.TestJubelio)
 	})
 
 	r.Route("/v1/products", func(r chi.Router) {
@@ -185,14 +176,6 @@ func NewServer(db *sqlx.DB, client *http.Client, cnf ServerConfig) *chi.Mux {
 	r.Route("/v1/merchant", func(r chi.Router) { //anonymous scope
 		r.Use(jwt.AuthMiddlewareMerchant(localMdl.GuardAccess))
 		r.Get("/me", merchantHandler.GetProfileMerchant)
-
-		r.Route("/reports", func(r chi.Router) {
-			r.Post("/sales/syncup", reportHandler.SyncSales)
-			r.Post("/sales/calculate-profit", reportHandler.SalesCalculateProfit)
-			r.Post("/sales/get/all", reportHandler.EPGetSalesReport)
-			r.Post("/sales/get/detail", reportHandler.EPGetSalesByInvoice)
-			r.Post("/sales/get/loss-all", reportHandler.EPGetLossSalesReport)
-		})
 
 		r.Route("/products", func(r chi.Router) {
 			r.Post("/delete", prodHandler.DeleteProduct)

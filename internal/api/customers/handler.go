@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"libra-internal/internal/api/response"
+	"libra-internal/pkg/constants"
 	"libra-internal/pkg/crashy"
 	"libra-internal/pkg/helper"
 	"libra-internal/pkg/log"
@@ -21,14 +22,6 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-// todo move to config
-const CONFIG_SMTP_HOST = "mail.sunmorisemestaban.com"
-const CONFIG_SMTP_PORT = 465
-const CONFIG_SENDER_NAME = "PT. Sunmori Semesta Ban <support@sunmorisemestaban.com>"
-const CONFIG_AUTH_EMAIL = "support@sunmorisemestaban.com"
-const CONFIG_AUTH_PASSWORD = "spyxfamily13"
-const CONFIG_API_URL = "https://api.sunmorisemestaban.com"
-
 type UsersHandler struct {
 	db                *sqlx.DB
 	custRepository    custRepo.CustomersRepository
@@ -37,13 +30,12 @@ type UsersHandler struct {
 	uploadPath        string
 	profilePicPath    string
 	profilePicMaxSize int
+	SMTPConfig
 }
 
-//todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
-
 func NewUsersHandler(db *sqlx.DB, cr custRepo.CustomersRepository, jwt *localMdl.JWT, baseAssetUrl, uploadPath,
-	profilePicPath string, profilePicMaxSize int) *UsersHandler {
-	return &UsersHandler{db: db, custRepository: cr, jwt: jwt, baseAssetUrl: baseAssetUrl, uploadPath: uploadPath, profilePicPath: profilePicPath, profilePicMaxSize: profilePicMaxSize}
+	profilePicPath string, profilePicMaxSize int, smtpConfig SMTPConfig) *UsersHandler {
+	return &UsersHandler{db: db, custRepository: cr, jwt: jwt, baseAssetUrl: baseAssetUrl, uploadPath: uploadPath, profilePicPath: profilePicPath, profilePicMaxSize: profilePicMaxSize, SMTPConfig: smtpConfig}
 }
 
 func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +50,7 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(p.Password) < 6 { // todo implement number from config
+	if len(p.Password) < cn.MinimumLengthPassword {
 		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCode(crashy.ErrCodeValidation), crashy.Message(crashy.ErrShortPassword)), http.StatusBadRequest)
 		return
 	}
@@ -94,8 +86,8 @@ func (usr *UsersHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//temporary
-	bodyEmail := "Hallo <b>" + p.Name + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + hashedTokenEmail
-	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
+	bodyEmail := "Hallo <b>" + p.Name + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + usr.baseAssetUrl + "/v1/verify?val=" + hashedTokenEmail
+	_ = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail, usr.SMTPConfig) // keep going even though send email failed
 
 	//generate token
 	// expiredTime := time.Now().Add(3 * time.Minute)
@@ -257,7 +249,7 @@ func (usr *UsersHandler) ChangePassword(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if len(p.NewPassword) < 6 { // todo implement number from config
+	if len(p.NewPassword) < cn.MinimumLengthPassword {
 		response.Nay(w, r, crashy.New(errors.New(crashy.ErrCodeValidation), crashy.ErrCode(crashy.ErrCodeValidation), crashy.Message(crashy.ErrShortPassword)), http.StatusBadRequest)
 		return
 	}
@@ -268,7 +260,7 @@ func (usr *UsersHandler) ChangePassword(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (usr *UsersHandler) ResendEmailVerification(w http.ResponseWriter, r *http.Request) {
@@ -289,15 +281,15 @@ func (usr *UsersHandler) ResendEmailVerification(w http.ResponseWriter, r *http.
 		return
 	}
 
-	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + emailToken
-	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep go
+	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + usr.baseAssetUrl + "/v1/verify?val=" + emailToken
+	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail, usr.SMTPConfig) // keep go
 
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrSendEmail, crashy.Message(crashy.ErrSendEmail)), http.StatusInternalServerError)
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (usr *UsersHandler) RequestPinEmail(w http.ResponseWriter, r *http.Request) {
@@ -319,14 +311,14 @@ func (usr *UsersHandler) RequestPinEmail(w http.ResponseWriter, r *http.Request)
 	}
 
 	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!<br> Anda telah melakukan request untuk pergantian email, berikut adalah kode yang dibutuhkan unik untuk diinput kedalam aplikasi untuk mengganti email anda : " + pin
-	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail)
+	err = sendMail(p.Email, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail, usr.SMTPConfig)
 
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrSendEmail, crashy.Message(crashy.ErrSendEmail)), http.StatusInternalServerError)
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (usr *UsersHandler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
@@ -349,10 +341,10 @@ func (usr *UsersHandler) ChangeEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//temporary
-	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + CONFIG_API_URL + "/v1/verify?val=" + hashedTokenEmail
-	_ = sendMail(p.NewEmail, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail) // keep going even though send email failed
+	bodyEmail := "Hallo <b>" + authData.CustName + "</b>!, <br> Terimakasih telah bersedia bergabung bersama kami, silahkan lakukan verifikasi email anda dengan klik link berikut : " + usr.baseAssetUrl + "/v1/verify?val=" + hashedTokenEmail
+	_ = sendMail(p.NewEmail, "Selamat Menjadi Bagian Pengguna Semesta Ban!", bodyEmail, usr.SMTPConfig) // keep going even though send email failed
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (usr *UsersHandler) UpdateName(w http.ResponseWriter, r *http.Request) {
@@ -372,7 +364,7 @@ func (usr *UsersHandler) UpdateName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -399,7 +391,7 @@ func (usr *UsersHandler) UpdatePhoneNumber(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -427,7 +419,7 @@ func (usr *UsersHandler) UpdateGender(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -460,7 +452,7 @@ func (usr *UsersHandler) UpdateBirthDate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -518,7 +510,7 @@ func (usr *UsersHandler) UploadProfileImg(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -609,15 +601,15 @@ func (usr *UsersHandler) SignInGoogle(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func sendMail(to, subject, body string) error {
+func sendMail(to, subject, body string, smtpConfig SMTPConfig) error {
 	m := gomail.NewMessage()
-	m.SetHeader("From", CONFIG_SENDER_NAME)
+	m.SetHeader("From", smtpConfig.SenderName)
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 
 	// Send the email to Bob
-	d := gomail.NewDialer(CONFIG_SMTP_HOST, CONFIG_SMTP_PORT, CONFIG_AUTH_EMAIL, CONFIG_AUTH_PASSWORD)
+	d := gomail.NewDialer(smtpConfig.Host, smtpConfig.Port, smtpConfig.AuthEmail, smtpConfig.AuthPassword)
 	if err := d.DialAndSend(m); err != nil {
 		log.Error(err)
 		return err

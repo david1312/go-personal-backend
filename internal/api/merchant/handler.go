@@ -23,8 +23,6 @@ type MerchantHandler struct {
 	profilePicMaxSize int
 }
 
-//todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
-
 func NewMerchantHandler(mr repo_merchant.MerchantRepository, pr repo_products.ProductsRepository, jwt *localMdl.JWT, baseAssetUrl, uploadPath string, profilePicMaxSize int) *MerchantHandler {
 	return &MerchantHandler{merchRepo: mr, prodRepo: pr, jwt: jwt, baseAssetUrl: baseAssetUrl, uploadPath: uploadPath, profilePicMaxSize: profilePicMaxSize}
 }

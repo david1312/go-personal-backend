@@ -135,6 +135,14 @@ type MidtransConfig struct {
 	ClientKey  string
 	ServerKey  string
 	AuthKey    string
+	BaseUrl    string
+	ChargeUrl  string
+	InquiryUrl string
+}
+
+type FCMConfig struct {
+	NotifUrl  string
+	ClientKey string
 }
 
 type TransferBNIRequest struct {

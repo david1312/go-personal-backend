@@ -7,6 +7,14 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+type SMTPConfig struct {
+	Host         string
+	Port         int
+	SenderName   string
+	AuthEmail    string
+	AuthPassword string
+}
+
 type LoginRequest struct {
 	Email       string `json:"email"`
 	Password    string `json:"password"`

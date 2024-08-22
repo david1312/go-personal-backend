@@ -2,23 +2,25 @@ env: local
 host:
   address: ":8097"
 database:
-  write: "root:password@tcp(127.0.0.1:3306)/libra_internal?timeout=30s&parseTime=true"
+  write: "mysql_user:mysql_password@tcp(127.0.0.1:3306)/sunmoris_customer?timeout=30s&parseTime=true"
+  migration_url: "mysql://mysql_user:mysql_password@tcp(localhost:3306)/sunmoris_customer"
+  migration_path: ""
 key:
-  encrypt_key: "xxx"
-  jwt: "xxx"
-  anonymous: "xxx"
+  encrypt_key: xxx
+  jwt: xx
+  anonymous: xx
 api:
   timeout: 60
 assets:
   common:
     max_file_size: 1
-  base_url: "https://xxx/"
-  upload_path: "somepath/"
+  base_url: "https://sunmorisemestaban.com/b6350926-8a8a-49ac-ab44-b52fd01fd2bb/"
+  upload_path: "../public_html/b6350926-8a8a-49ac-ab44-b52fd01fd2bb/"
   profile_pic:
     max_size: 1
     path: "usr/"
 midtrans:
   timeout: 30
-  merchant_id: "xxxx"
-  client_key: "xxx"
-  server_key: "xxx"
+  merchant_id: "G188422192"
+  client_key: "Mid-client-WHO2tHzM9y7FpJpv"
+  server_key: "Mid-server-kinFwehy4CFunPh_aR3TKfEh"

@@ -29,8 +29,6 @@ type RatingsHandler struct {
 	imgMaxSize     int
 }
 
-//todo REMEMBER 30 May gmail tidak support lagi less secure app find solution
-
 func NewRatingsHandler(db *sqlx.DB, rr rateRepo.RatingsRepository, pr repo_products.ProductsRepository, baseAssetUrl, uploadPath string,
 	imgMaxSize int) *RatingsHandler {
 	return &RatingsHandler{db: db, rateRepository: rr, prodRepo: pr, baseAssetUrl: baseAssetUrl, uploadPath: uploadPath, imgMaxSize: imgMaxSize}
@@ -117,7 +115,7 @@ func (rh *RatingsHandler) SubmitRatingProduct(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -203,7 +201,7 @@ func (rh *RatingsHandler) SubmitRatingOutlet(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 

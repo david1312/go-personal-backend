@@ -185,7 +185,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 		listProductImage = append(listProductImage, ProductImage{
 			Id:        val.Id,
 			Url:       prd.baseAssetUrl + cn.ProductDir + val.Url,
-			IsDisplay: val.IsDisplay, //todo fix tipe data
+			IsDisplay: val.IsDisplay,
 		})
 	}
 	//GET Image list
@@ -206,7 +206,7 @@ func (prd *ProductsHandler) GetProductDetail(w http.ResponseWriter, r *http.Requ
 	}
 
 	//get top comment
-	commentList, errCode, err := prd.prodRepo.GetTopCommentOutlet(ctx) //TODO IMPORTANT IMPROVE LATER WITH ID OUTLET
+	commentList, errCode, err := prd.prodRepo.GetTopCommentOutlet(ctx)
 	if err != nil {
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
@@ -279,7 +279,7 @@ func (prd *ProductsHandler) WishlistAdd(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 
 }
 
@@ -312,7 +312,7 @@ func (prd *ProductsHandler) WishlistRemove(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) WishlistMe(w http.ResponseWriter, r *http.Request) {
@@ -421,7 +421,7 @@ func (prd *ProductsHandler) CartAdd(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) CartRemove(w http.ResponseWriter, r *http.Request) {
@@ -441,7 +441,7 @@ func (prd *ProductsHandler) CartRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) CartUpdate(w http.ResponseWriter, r *http.Request) {
@@ -461,7 +461,7 @@ func (prd *ProductsHandler) CartUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) CartSelectDeselectAll(w http.ResponseWriter, r *http.Request) {
@@ -481,7 +481,7 @@ func (prd *ProductsHandler) CartSelectDeselectAll(w http.ResponseWriter, r *http
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) CartMe(w http.ResponseWriter, r *http.Request) {
@@ -626,7 +626,7 @@ func (prd *ProductsHandler) DeleteProduct(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
@@ -701,7 +701,7 @@ func (prd *ProductsHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) EPProductUpdate(w http.ResponseWriter, r *http.Request) {
@@ -730,7 +730,7 @@ func (prd *ProductsHandler) EPProductUpdate(w http.ResponseWriter, r *http.Reque
 		response.Nay(w, r, crashy.New(err, crashy.ErrCode(errCode), crashy.Message(crashy.ErrCode(errCode))), http.StatusInternalServerError)
 		return
 	}
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) EPProductAddImage(w http.ResponseWriter, r *http.Request) {
@@ -776,7 +776,7 @@ func (prd *ProductsHandler) EPProductAddImage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) EpProductDeleteImage(w http.ResponseWriter, r *http.Request) {
@@ -807,7 +807,7 @@ func (prd *ProductsHandler) EpProductDeleteImage(w http.ResponseWriter, r *http.
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
 
 func (prd *ProductsHandler) EpProductUpdateImage(w http.ResponseWriter, r *http.Request) {
@@ -842,5 +842,5 @@ func (prd *ProductsHandler) EpProductUpdateImage(w http.ResponseWriter, r *http.
 		return
 	}
 
-	response.Yay(w, r, "success", http.StatusOK)
+	response.Yay(w, r, constants.StatusSuccess, http.StatusOK)
 }
