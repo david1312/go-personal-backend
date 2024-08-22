@@ -17,8 +17,8 @@ type M map[string]interface{}
 func startPlayground(dep *bootstrap.Dependency) *cobra.Command {
 	return &cobra.Command{
 		Use:   "play",
-		Short: "Starting REST service",
-		Long:  `This command is used to start REST service`,
+		Short: "only for playground cobra command",
+		Long:  `only for playground cobra command`,
 		Run: func(cmd *cobra.Command, args []string) {
 
 			// start := time.Now()

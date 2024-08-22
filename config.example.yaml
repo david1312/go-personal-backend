@@ -4,21 +4,21 @@ host:
 database:
   write: "root:password@tcp(127.0.0.1:3306)/libra_internal?timeout=30s&parseTime=true"
 key:
-  encrypt_key: "30caa5d889061a6f8820d7c723387b36cf62097c317f80de"
-  jwt: "96d509fb90816e5cb9e8f1a744c30019fb61dc4b41c31c3e2e83ac0d7d496352"
-  anonymous: "2f183a4e64493af3f377f745eda502363cd3e7ef6e4d266d444758de0a85fcc8"
+  encrypt_key: "xxx"
+  jwt: "xxx"
+  anonymous: "xxx"
 api:
   timeout: 60
 assets:
   common:
     max_file_size: 1
-  base_url: "https://sunmorisemestaban.com/b6350926-8a8a-49ac-ab44-b52fd01fd2bb/"
-  upload_path: "../public_html/b6350926-8a8a-49ac-ab44-b52fd01fd2bb/"
+  base_url: "https://xxx/"
+  upload_path: "somepath/"
   profile_pic:
     max_size: 1
     path: "usr/"
 midtrans:
   timeout: 30
-  merchant_id: "G188422192"
-  client_key: "Mid-client-WHO2tHzM9y7FpJpv"
-  server_key: "Mid-server-kinFwehy4CFunPh_aR3TKfEh"
+  merchant_id: "xxxx"
+  client_key: "xxx"
+  server_key: "xxx"

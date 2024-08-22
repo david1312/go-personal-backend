@@ -77,8 +77,6 @@ func (q *SqlRepository) SyncUpSales(ctx context.Context, fileName, dir string) (
 		for _, valArg := range args {
 			args = append(args, valArg)
 		}
-		fmt.Println(args...)
-		fmt.Println(len(args))
 
 		//insert data to db
 		const query = `insert into sales 

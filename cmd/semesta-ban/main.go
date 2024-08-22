@@ -5,6 +5,8 @@ import (
 	"libra-internal/pkg/log"
 	"os"
 
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/sirupsen/logrus"
 
 	cmd "libra-internal/cmd/semesta-ban/commands"
