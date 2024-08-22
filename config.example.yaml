@@ -3,7 +3,7 @@ host:
   address: :8097
 database:
   write: mysql_user:mysql_password@tcp(127.0.0.1:3306)/sunmoris_customer?timeout=30s&parseTime=true
-  migration_url: mysql://mysql_user:mysql_password@tcp(localhost:3306)/sunmoris_customer
+  migration_url: mysql://xxx:xxx@tcp(localhost:3306)/xxx
   migration_path: file://files/db_migration/
 key:
   encrypt_key: xxx

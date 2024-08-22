@@ -2,6 +2,8 @@
 
 This repository is a showcase of my personal project for building a Golang REST API. It demonstrates practices in structuring a Go project and handling various tasks such as dependency management, API handling, and database migrations.
 
+Additionally, this project implements integration with the Midtrans payment gateway and Firebase Cloud Messaging (FCM) for push notifications.
+
 Idiomatic Way Format Your Code
 
 ```shell script
