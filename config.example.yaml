@@ -1,26 +1,40 @@
 env: local
 host:
-  address: ":8097"
+  address: :8097
 database:
-  write: "mysql_user:mysql_password@tcp(127.0.0.1:3306)/sunmoris_customer?timeout=30s&parseTime=true"
-  migration_url: "mysql://mysql_user:mysql_password@tcp(localhost:3306)/sunmoris_customer"
-  migration_path: ""
+  write: mysql_user:mysql_password@tcp(127.0.0.1:3306)/sunmoris_customer?timeout=30s&parseTime=true
+  migration_url: mysql://mysql_user:mysql_password@tcp(localhost:3306)/sunmoris_customer
+  migration_path: file://files/db_migration/
 key:
   encrypt_key: xxx
-  jwt: xx
-  anonymous: xx
+  jwt: xxx
+  anonymous: xxx
 api:
+  base_url: https://xxx
   timeout: 60
 assets:
   common:
     max_file_size: 1
-  base_url: "https://sunmorisemestaban.com/b6350926-8a8a-49ac-ab44-b52fd01fd2bb/"
-  upload_path: "../public_html/b6350926-8a8a-49ac-ab44-b52fd01fd2bb/"
+  base_url: https://xxx
+  upload_path: /xxx/xx
   profile_pic:
     max_size: 1
-    path: "usr/"
+    path: usr/
 midtrans:
   timeout: 30
-  merchant_id: "G188422192"
-  client_key: "Mid-client-WHO2tHzM9y7FpJpv"
-  server_key: "Mid-server-kinFwehy4CFunPh_aR3TKfEh"
+  merchant_id: xxx
+  client_key: xxx
+  server_key: xxx
+  base_url: "https://api.midtrans.xxx"
+  api:
+    charging: /charge
+    inquiry: /inquiry
+smtp:
+  host: xxx
+  port: 0
+  sender_name: xxx
+  auth_email: xx@xx.com
+  auth_password: xxx
+fcm:
+  notif_url: xxx
+  client_key: xxx
